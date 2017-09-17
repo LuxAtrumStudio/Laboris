@@ -2,7 +2,7 @@ SHELL = /bin/bash
 
 export NAME= laboris
 export LINK= 
-export INCLUDE=
+export INCLUDE=-I$(BASE_PATH)/$(EXTERNAL_DIR)/cli/include
 export TYPE= exe
 
 export SOURCE_DIR= source
