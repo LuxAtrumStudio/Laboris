@@ -1,0 +1,36 @@
+[
+    {
+        "arguments": [
+            "c++", 
+            "-c", 
+            "-I/home/arden/Programming/cpp/laboris/include", 
+            "-I/home/arden/Programming/cpp/laboris/external/cli/include", 
+            "-std=c++11", 
+            "-w", 
+            "-fprofile-arcs", 
+            "-ftest-coverage", 
+            "-o", 
+            "/home/arden/Programming/cpp/laboris/build/source/./task.o", 
+            "task.cpp"
+        ], 
+        "directory": "/home/arden/Programming/cpp/laboris/source", 
+        "file": "task.cpp"
+    }, 
+    {
+        "arguments": [
+            "c++", 
+            "-c", 
+            "-I/home/arden/Programming/cpp/laboris/include", 
+            "-I/home/arden/Programming/cpp/laboris/external/cli/include", 
+            "-std=c++11", 
+            "-w", 
+            "-fprofile-arcs", 
+            "-ftest-coverage", 
+            "-o", 
+            "/home/arden/Programming/cpp/laboris/build/source/./main.o", 
+            "main.cpp"
+        ], 
+        "directory": "/home/arden/Programming/cpp/laboris/source", 
+        "file": "main.cpp"
+    }
+]
