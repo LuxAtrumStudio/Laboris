@@ -1,11 +1,14 @@
 #include "task.hpp"
 
+#include <iostream>
+
 int main(int argc, char const* argv[]) {
   laboris::Task task(
-      "+MAR 18-09-2017 18-09-2017T15:27 This is a test task +Programming "
+      "+MAR 2017-09-08 2017-09-08T15:27:00 This is a test task +Programming "
       "+Laboris "
       "@Testing "
-      "@Arden due:19-09-2017T22:00:00");
+      "@Arden due:2017-09-19T22:00:00");
+  std::cout << task.Print("Entry: %E\nEnd: %C\nDue: %D{%m/%d/%y}") << "\n";
   /* code */
   return 0;
 }

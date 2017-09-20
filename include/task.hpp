@@ -12,13 +12,15 @@ namespace laboris {
   class Task {
    public:
     Task(std::string str);
+    std::string Print(std::string fmt);
 
-   private:
     bool status;
     int priority;
     std::string description;
     std::vector<std::string> tags, projects;
-    time_t entry, due, done;
+    // std::vector<Time> times;
+    struct tm entry, due, complete;
+    // time_t entry, due, done, total;
   };
 }  // namespace laboris
 
