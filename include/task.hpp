@@ -14,7 +14,7 @@ namespace laboris {
     Task(std::string str);
     std::string Print(std::string fmt);
 
-    bool status;
+    unsigned int status;
     int priority;
     std::string description;
     std::vector<std::string> tags, projects;
