@@ -1,6 +1,8 @@
 #include "task.hpp"
 
+#include <math.h>
 #include <time.h>
+#include <iomanip>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -56,6 +58,9 @@ laboris::Task::Task(std::string str) {
     due = *localtime(&current);
     date_blocks[0].erase(date_blocks[0].begin(), date_blocks[0].begin() + 4);
     LoadTm(date_blocks[0], &due);
+    due_ = true;
+  } else {
+    due_ = false;
   }
 
   tags = cli::RegexFind(str, "@[^\\s]+");
@@ -83,6 +88,8 @@ laboris::Task::Task(std::string str) {
       description += line + " ";
     }
   }
+  GenerateUuid();
+  LoadUrgency();
 }
 
 std::string laboris::Task::Print(std::string fmt) {
@@ -106,45 +113,16 @@ std::string laboris::Task::Print(std::string fmt) {
         str += std::to_string(priority);
       } else if (fmt[i] == 'd') {
         str += description;
+      } else if (fmt[i] == 'u') {
+        std::stringstream ss;
+        ss << std::fixed << std::setprecision(2) << urgency;
+        str += ss.str();
       } else if (fmt[i] == 'D') {
-        std::string date_fmt = "%Y-%m-%d %H:%M:%S";
-        if (i != fmt.size() - 1 && fmt[i + 1] == '{') {
-          date_fmt = "";
-          i += 2;
-          while (i < fmt.size() && fmt[i] != '}') {
-            date_fmt += fmt[i];
-            i++;
-          }
-        }
-        char buffer[255];
-        strftime(buffer, 255, date_fmt.c_str(), &due);
-        str += std::string(buffer);
+        str += GetDateString(fmt, i);
       } else if (fmt[i] == 'C') {
-        std::string date_fmt = "%Y-%m-%d %H:%M:%S";
-        if (i != fmt.size() - 1 && fmt[i + 1] == '{') {
-          date_fmt = "";
-          i += 2;
-          while (i < fmt.size() && fmt[i] != '}') {
-            date_fmt += fmt[i];
-            i++;
-          }
-        }
-        char buffer[255];
-        strftime(buffer, 255, date_fmt.c_str(), &complete);
-        str += std::string(buffer);
+        str += GetDateString(fmt, i);
       } else if (fmt[i] == 'E') {
-        std::string date_fmt = "%Y-%m-%d %H:%M:%S";
-        if (i != fmt.size() - 1 && fmt[i + 1] == '{') {
-          date_fmt = "";
-          i += 2;
-          while (i < fmt.size() && fmt[i] != '}') {
-            date_fmt += fmt[i];
-            i++;
-          }
-        }
-        char buffer[255];
-        strftime(buffer, 255, date_fmt.c_str(), &entry);
-        str += std::string(buffer);
+        str += GetDateString(fmt, i);
       } else if (fmt[i] == 't' && i != fmt.size() - 1) {
         i++;
         if (fmt[i] == '*') {
@@ -177,4 +155,92 @@ std::string laboris::Task::Print(std::string fmt) {
     }
   }
   return str;
+}
+
+void laboris::Task::GenerateUuid() {
+  time_t entry_time = mktime(&entry);
+  uuid = entry_time;
+  for (int i = 0; i < description.size(); i++) {
+    uuid += int(description[i]);
+  }
+}
+
+void laboris::Task::LoadUrgency() {
+  time_t current = time(NULL);
+  urgency = 0;
+  if (priority != 0) {
+    urgency += (6 / priority);
+  }
+  urgency += (tags.size() * 0.5);
+  urgency += (projects.size() * 1.0);
+  time_t entry_time = mktime(&entry);
+  entry_time = current - entry_time;
+  double age_val = 0.00362 * pow(2, -(double(entry_time) / 604800.0));
+  urgency += (age_val * 2.0);
+  if (due_ == true) {
+    time_t due_time = mktime(&due);
+    due_time = due_time - current;
+    double due_val = 0.75 / pow(2, double(due_time) / 604800.0);
+    urgency += (due_val * 12.0);
+  }
+  if (status == DONE) {
+    urgency = 0;
+  }
+}
+
+std::string laboris::Task::GetDateString(std::string str, int& i) {
+  std::string date_fmt = "%Y-%m-%d %H:%M:%S";
+  std::string date_str = "";
+  if (i != str.size()) {
+    if (str[i + 1] == 'C') {
+      date_fmt = "";
+      std::array<int, 6> steps = {60, 60, 24, 7, 4, 12};
+      std::array<char, 6> step_suffix = {'m', 'h', 'd', 'W', 'M', 'Y'};
+      time_t date_time;
+      if (str[i] == 'D') {
+        date_time = mktime(&due);
+      } else if (str[i] == 'E') {
+        date_time = mktime(&entry);
+      } else if (str[i] == 'C') {
+        date_time = mktime(&entry);
+      }
+      time_t current = time(NULL);
+      date_time -= current;
+      if (date_time < 0) {
+        if (str[i] != 'E') {
+          date_str += '-';
+        }
+        date_time *= -1;
+      }
+      if (date_time == 0) {
+        date_str += "NOW";
+      } else {
+        char suffix = 's';
+        for (int j = 0; j < 6; j++) {
+          if (date_time > steps[j]) {
+            date_time /= steps[j];
+            suffix = step_suffix[j];
+          } else {
+            break;
+          }
+        }
+        date_str += std::to_string(date_time) + suffix;
+      }
+      i++;
+    } else if (str[i + 1] == '{') {
+      date_fmt = "";
+      i += 2;
+      while (i < str.size() && str[i] != '}') {
+        date_fmt += str[i];
+        i++;
+      }
+    }
+  }
+  char buffer[255];
+  strftime(buffer, 255, date_fmt.c_str(), &entry);
+  date_str += std::string(buffer);
+  if (due_ == false) {
+    return "";
+  }
+  return date_str;
 }

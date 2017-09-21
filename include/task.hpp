@@ -15,12 +15,20 @@ namespace laboris {
     std::string Print(std::string fmt);
 
     unsigned int status;
+    unsigned int uuid;
     int priority;
+    double urgency;
     std::string description;
     std::vector<std::string> tags, projects;
     // std::vector<Time> times;
     struct tm entry, due, complete;
-    // time_t entry, due, done, total;
+
+   private:
+    void GenerateUuid();
+    void LoadUrgency();
+    std::string GetDateString(std::string str, int& i);
+
+    bool due_;
   };
 }  // namespace laboris
 

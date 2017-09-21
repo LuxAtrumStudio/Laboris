@@ -1,18 +1,16 @@
+#include "load.hpp"
+#include "print.hpp"
 #include "task.hpp"
 
 #include <iostream>
+#include <vector>
 
 int main(int argc, char const* argv[]) {
-  laboris::Task task(
-      "(5) +MAR 2017-09-08 2017-09-08T15:27:15 This is a test task "
-      "+Programming "
-      "+Laboris "
-      "@Testing "
-      "@Arden due:2017-09-19T22:00:00");
-  // std::cout << task.Print("Entry: %E\nEnd: %C\nDue: %D") << "\n";
-  std::cout << task.Print(
-      "%s (%P) %C{%Y-%m-%dT%H:%M:%S} %E{%Y-%m-%dT%H:%M:%S} \"%d\" %t* %p* "
-      "due:%D{%Y-%m-%dT%H:%M:%S}\n");
+  std::vector<laboris::Task> tasks = laboris::LoadTasks("todo.txt");
+  laboris::PrintTasks(tasks);
+  // for (int i = 0; i < tasks.size(); i++) {
+  // std::cout << i + 1 << " " << tasks[i].Print("%d") << "\n";
+  // }
   /* code */
   return 0;
 }

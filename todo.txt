@@ -1,0 +1,7 @@
+(0) 2017-09-15T13:53:17 Ch.22 #1,14,19,20,22,27,29,79 +Physics due:2017-09-22
+(0) 2017-09-15T15:38:41 HW 1 +Grading @Broide due:2017-09-21
+(0) 2017-09-18T22:02:44 HW 4 +Discrete due:2017-09-25T22:00
+(0) 2017-09-18T22:03:39 THW 2 +Discrete due:2017-09-25T22:00
+(0) 2017-09-18T22:04:24 HW 1.4 +Differential due:2017-09-21T22:00
+(0) 2017-09-20T16:44:00 Handle tasks without due dates +Programming +Laboris
+(1) 2017-09-18T22:02:07 Midterm +Discrete due:2017-09-22
