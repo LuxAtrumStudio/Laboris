@@ -1,5 +1,7 @@
-#ifndef LABORIS_TASK_HPP
-#define LABORIS_TASK_HPP
+// Copyright 2017 Arden Rasmussen
+
+#ifndef LABORIS_TASK_HPP_
+#define LABORIS_TASK_HPP_
 
 #include <time.h>
 #include <string>
@@ -7,12 +9,15 @@
 
 namespace laboris {
 
-  enum Status { DONE, PENDING };
+  enum Status { DEF, DONE, PENDING };
 
   class Task {
    public:
-    Task(std::string str);
+    explicit Task(std::string str);
     std::string Print(std::string fmt);
+
+    bool DueToday();
+    bool OverDue();
 
     unsigned int status;
     unsigned int uuid;
@@ -27,6 +32,12 @@ namespace laboris {
     void GenerateUuid();
     void LoadUrgency();
     std::string GetDateString(std::string str, int& i);
+
+    double UrgencyAge();
+    double UrgencyDue();
+    double UrgencyTags();
+    double UrgencyPriority();
+    double UrgencyProjects();
 
     bool due_;
   };

@@ -10,84 +10,138 @@
 #include "regex.hpp"
 
 namespace laboris {
+  bool IsInt(std::string str) {
+    for (size_t i = 0; i < str.size(); i++) {
+      if (str[i] > 57 || str[i] < 48) {
+        return false;
+      }
+    }
+    return true;
+  }
+  bool IsInt(char ch) {
+    if (ch > 57 || ch < 48) {
+      return false;
+    }
+    return true;
+  }
+
+  bool MatchFmt(std::string str, std::string fmt) {
+    if (str.size() > fmt.size()) {
+      return false;
+    }
+    for (size_t i = 0, j = 0; i < fmt.size() && j < str.size(); i++) {
+      if (fmt[i] == '%') {
+        i++;
+        if (fmt[i] == 'i' && (str[j] > 57 || str[j] < 48)) {
+          return false;
+        }
+      } else if (str[j] != fmt[i]) {
+        return false;
+      }
+      j++;
+    }
+    return true;
+  }
+
   void LoadTm(std::string date, struct tm* t) {
     t->tm_hour = 0;
     t->tm_min = 0;
     t->tm_sec = 0;
-    if (cli::Regex(date, cli::GenerateDateRegex("%Y-%m-%dT%H:%M:%S")) == true) {
-      strptime(date.c_str(), "%Y-%m-%dT%H:%M:%S", t);
-    } else if (cli::Regex(date, cli::GenerateDateRegex("%Y-%m-%dT%H:%M")) ==
-               true) {
-      strptime(date.c_str(), "%Y-%m-%dT%H:%M", t);
-    } else if (cli::Regex(date, cli::GenerateDateRegex("%Y-%m-%d")) == true) {
-      strptime(date.c_str(), "%Y-%m-%d", t);
+    int len = date.size();
+    std::string fmt = "-%m-%d";
+    if (len == 8 || len == 14 || len == 17) {
+      fmt = "%y" + fmt;
+    } else if (len == 10 || len == 16 || len == 19) {
+      fmt = "%Y" + fmt;
+    } else {
+      return;
     }
+    if (len >= 14) {
+      fmt += "T%H:%M";
+    }
+    if (len >= 17) {
+      fmt += ":%S";
+    }
+    strptime(date.c_str(), fmt.c_str(), t);
   }
 }  // namespace laboris
 
 laboris::Task::Task(std::string str) {
-  if (str.size() == 0) {
+  time_t current = time(NULL);
+  entry = *localtime(&current);
+  complete = *localtime(&current);
+  std::vector<std::string> words;
+  std::string word;
+  std::stringstream ss(str);
+  due_ = false;
+  while (getline(ss, word, ' ')) {
+    words.push_back(word);
+  }
+
+  if (words.size() == 0) {
     return;
   }
-  if (str[0] == 'x' || str[0] == 'X') {
+  if (words[0] == "x" || words[0] == "X") {
     status = DONE;
   } else {
     status = PENDING;
   }
-  std::vector<std::string> date_blocks = cli::RegexFind(
-      str, "\\s" + cli::GenerateDateRegex("%Y-%m-%d%(T%H:%M%(:%S%)%?%)%?"));
-  if (date_blocks.size() == 1) {
-    time_t current = time(NULL);
-    entry = *localtime(&current);
-    date_blocks[0].erase(date_blocks[0].begin());
-    LoadTm(date_blocks[0], &entry);
-  } else if (date_blocks.size() == 2) {
-    time_t current = time(NULL);
-    complete = *localtime(&current);
-    date_blocks[0].erase(date_blocks[0].begin());
-    LoadTm(date_blocks[0], &complete);
-    entry = *localtime(&current);
-    date_blocks[1].erase(date_blocks[1].begin());
-    LoadTm(date_blocks[1], &entry);
-  }
-  date_blocks.clear();
-  date_blocks = cli::RegexFind(
-      str, "(due:)" + cli::GenerateDateRegex("%Y-%m-%d%(T%H:%M%(:%S%)%?%)%?"));
-  if (date_blocks.size() == 1) {
-    time_t current = time(NULL);
-    due = *localtime(&current);
-    date_blocks[0].erase(date_blocks[0].begin(), date_blocks[0].begin() + 4);
-    LoadTm(date_blocks[0], &due);
-    due_ = true;
-  } else {
-    due_ = false;
-  }
-
-  tags = cli::RegexFind(str, "@[^\\s]+");
-
-  projects = cli::RegexFind(str, "\\+[^\\s]+");
-
-  std::vector<std::string> results = cli::RegexFind(str, "\\(\\d\\)");
-  if (results.size() < 1) {
-    priority = 0;
-  } else {
-    priority = int(results[0][1]) - 48;
-  }
-
-  std::stringstream ss(str);
-  std::string line;
-  while (std::getline(ss, line, ' ')) {
-    if (line != "x" && line != "X" && cli::Regex(line, "\\(\\d\\)") == false &&
-        cli::Regex(line, "\\+.+") == false &&
-        cli::Regex(line, "@.+") == false &&
-        cli::Regex(line,
-                   "(due:)" + cli::GenerateDateRegex(
-                                  "%Y-%m-%d%(T%H:%M%(:%S%)%?%)%?")) == false &&
-        cli::Regex(line, cli::GenerateDateRegex(
-                             "%Y-%m-%d%(T%H:%M%(:%S%)%?%)%?")) == false) {
-      description += line + " ";
+  unsigned int current_date = 0;
+  for (size_t i = 0; i < words.size(); i++) {
+    bool done = false;
+    if (i == 0 && (words[i] == "x" || words[i] == "X")) {
+      done = true;
+    }
+    if (done == false && words[i][0] == '+') {
+      words[i].erase(words[i].begin());
+      projects.push_back(words[i]);
+      done = true;
+    }
+    if (done == false && words[i][0] == '@') {
+      words[i].erase(words[i].begin());
+      tags.push_back(words[i]);
+      done = true;
+    }
+    if (done == false && words[i][0] == '(' && words[i].back() == ')') {
+      std::string pri = words[i];
+      pri.erase(pri.begin());
+      pri.pop_back();
+      if (IsInt(pri) == true) {
+        priority = stoi(pri);
+        done = true;
+      }
+    }
+    if (done == false && words[i].size() > 4 && words[i][0] == 'd' &&
+        words[i][1] == 'u' && words[i][2] == 'e' && words[i][3] == ':') {
+      words[i].erase(words[i].begin(), words[i].begin() + 4);
+      due = *localtime(&current);
+      LoadTm(words[i], &due);
+      due_ = true;
+      done = true;
+    }
+    if (done == false &&
+        (MatchFmt(words[i], "%i%i%i%i-%i%i-%i%iT%i%i:%i%i:%i%i") ||
+         MatchFmt(words[i], "%i%i-%i%i-%i%iT%i%i:%i%i:%i%i") ||
+         MatchFmt(words[i], "%i%i%i%i-%i%i-%i%iT%i%i:%i%i") ||
+         MatchFmt(words[i], "%i%i-%i%i-%i%iT%i%i:%i%i") ||
+         MatchFmt(words[i], "%i%i%i%i-%i%i-%i%i") ||
+         MatchFmt(words[i], "%i%i-%i%i-%i%i")) == true) {
+      if (current_date == 0) {
+        LoadTm(words[i], &entry);
+        done = true;
+        current_date = 1;
+      } else if (current_date == 1) {
+        complete = entry;
+        LoadTm(words[i], &entry);
+        done = true;
+        current_date = 2;
+      }
+    } else if (done == false) {
+      description += words[i] + " ";
     }
   }
+  description.pop_back();
+
   GenerateUuid();
   LoadUrgency();
 }
@@ -157,6 +211,35 @@ std::string laboris::Task::Print(std::string fmt) {
   return str;
 }
 
+bool laboris::Task::DueToday() {
+  if (due_ == false) {
+    return false;
+  }
+  time_t current_time = time(NULL);
+  struct tm current = *localtime(&current_time);
+  if (current.tm_year == due.tm_year && current.tm_mon == due.tm_mon &&
+      current.tm_mday == due.tm_mday && status != DONE) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+bool laboris::Task::OverDue() {
+  if (due_ == false) {
+    return false;
+  }
+  time_t current_time = time(NULL);
+  struct tm current = *localtime(&current_time);
+  if (current.tm_year >= due.tm_year && current.tm_mon >= due.tm_mon &&
+      current.tm_mday >= due.tm_mday && current.tm_hour >= due.tm_hour &&
+      current.tm_min >= due.tm_min && current.tm_sec > due.tm_sec &&
+      status != DONE) {
+    return true;
+  }
+  return false;
+}
+
 void laboris::Task::GenerateUuid() {
   time_t entry_time = mktime(&entry);
   uuid = entry_time;
@@ -166,23 +249,12 @@ void laboris::Task::GenerateUuid() {
 }
 
 void laboris::Task::LoadUrgency() {
-  time_t current = time(NULL);
   urgency = 0;
-  if (priority != 0) {
-    urgency += (6 / priority);
-  }
-  urgency += (tags.size() * 0.5);
-  urgency += (projects.size() * 1.0);
-  time_t entry_time = mktime(&entry);
-  entry_time = current - entry_time;
-  double age_val = 0.00362 * pow(2, -(double(entry_time) / 604800.0));
-  urgency += (age_val * 2.0);
-  if (due_ == true) {
-    time_t due_time = mktime(&due);
-    due_time = due_time - current;
-    double due_val = 0.75 / pow(2, double(due_time) / 604800.0);
-    urgency += (due_val * 12.0);
-  }
+  urgency += fabs(2.000 * UrgencyAge());
+  urgency += fabs(12.00 * UrgencyDue());
+  urgency += fabs(0.200 * UrgencyTags());
+  urgency += fabs(1.000 * UrgencyPriority());
+  urgency += fabs(1.000 * UrgencyProjects());
   if (status == DONE) {
     urgency = 0;
   }
@@ -191,23 +263,24 @@ void laboris::Task::LoadUrgency() {
 std::string laboris::Task::GetDateString(std::string str, int& i) {
   std::string date_fmt = "%Y-%m-%d %H:%M:%S";
   std::string date_str = "";
+  int i_0 = i;
   if (i != str.size()) {
     if (str[i + 1] == 'C') {
       date_fmt = "";
       std::array<int, 6> steps = {60, 60, 24, 7, 4, 12};
       std::array<char, 6> step_suffix = {'m', 'h', 'd', 'W', 'M', 'Y'};
       time_t date_time;
-      if (str[i] == 'D') {
+      if (str[i_0] == 'D') {
         date_time = mktime(&due);
-      } else if (str[i] == 'E') {
+      } else if (str[i_0] == 'E') {
         date_time = mktime(&entry);
-      } else if (str[i] == 'C') {
+      } else if (str[i_0] == 'C') {
         date_time = mktime(&entry);
       }
       time_t current = time(NULL);
       date_time -= current;
       if (date_time < 0) {
-        if (str[i] != 'E') {
+        if (str[i_0] != 'E') {
           date_str += '-';
         }
         date_time *= -1;
@@ -237,10 +310,50 @@ std::string laboris::Task::GetDateString(std::string str, int& i) {
     }
   }
   char buffer[255];
-  strftime(buffer, 255, date_fmt.c_str(), &entry);
+  if (str[i_0] == 'D') {
+    strftime(buffer, 255, date_fmt.c_str(), &due);
+  } else if (str[i_0] == 'C') {
+    strftime(buffer, 255, date_fmt.c_str(), &complete);
+  } else if (str[i_0] == 'E') {
+    strftime(buffer, 255, date_fmt.c_str(), &entry);
+  }
   date_str += std::string(buffer);
   if (due_ == false) {
     return "";
   }
   return date_str;
 }
+
+double laboris::Task::UrgencyAge() {
+  time_t now = time(NULL);
+  time_t e = mktime(&entry);
+  double age = (now - e) / 86400.0;
+  return (1.0 * age / 400.0);
+}
+
+double laboris::Task::UrgencyDue() {
+  if (due_ == true) {
+    time_t now = time(NULL);
+    time_t d = mktime(&due);
+    double overdue = (double)(now - d) / 86400.0;
+    if (overdue >= 7.0) {
+      return 1.0;
+    } else if (overdue >= -14.0) {
+      return ((overdue + 14.0) * 0.8 / 21.0) + 0.2;
+    } else {
+      return 0.2;
+    }
+  }
+  return 0.0;
+}
+
+double laboris::Task::UrgencyTags() { return tags.size(); }
+
+double laboris::Task::UrgencyPriority() {
+  if (priority == 0) {
+    return 0.0;
+  }
+  return 6.0 / (double)priority;
+}
+
+double laboris::Task::UrgencyProjects() { return projects.size(); }

@@ -18,9 +18,6 @@ export CXXFLAGS= -MMD -std=c++11 -w -c
 
 export INSTALL_PATH=/usr/local
 
-export GCOV_LINK = -lgcov --coverage
-export GCOV_FLAG = -fprofile-arcs -ftest-coverage
-
 export COMMON_INCLUDE=-I$(BASE_PATH)/$(INCLUDE_DIR) $(INCLUDE)
 
 export SECTION_COLOR=\033[1;97m

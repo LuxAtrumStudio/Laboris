@@ -13,7 +13,7 @@ std::vector<laboris::Task> laboris::LoadTasks(std::string file) {
   if (load.is_open()) {
     std::string line;
     while (getline(load, line)) {
-      tasks.push_back(line);
+      tasks.push_back(Task(line));
     }
   } else {
     std::cout << "Could not open file \"" << file << "\"\n";
