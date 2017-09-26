@@ -1,3 +1,5 @@
+// Copyright 2017 Arden Rasmussen
+
 #include "task.hpp"
 
 #include <math.h>
@@ -6,8 +8,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-
-#include "regex.hpp"
 
 namespace laboris {
   bool IsInt(std::string str) {
@@ -148,7 +148,7 @@ laboris::Task::Task(std::string str) {
 
 std::string laboris::Task::Print(std::string fmt) {
   std::string str;
-  for (int i = 0; i < fmt.size(); i++) {
+  for (size_t i = 0; i < fmt.size(); i++) {
     if (fmt[i] == '%' && i != fmt.size() - 1) {
       i++;
       if (fmt[i] == 's') {
@@ -180,28 +180,30 @@ std::string laboris::Task::Print(std::string fmt) {
       } else if (fmt[i] == 't' && i != fmt.size() - 1) {
         i++;
         if (fmt[i] == '*') {
-          for (int j = 0; j < tags.size(); j++) {
+          for (size_t j = 0; j < tags.size(); j++) {
             str += tags[j];
             if (j != tags.size() - 1) {
               str += " ";
             }
           }
         } else if (fmt[i] >= '0' && fmt[i] <= '9' &&
-                   (int)fmt[i] - 48 < tags.size()) {
-          str += tags[(int)fmt[i] - 48];
+                   static_cast<int>(fmt[i] - 48) <
+                       static_cast<int>(tags.size())) {
+          str += tags[static_cast<int>(fmt[i] - 48)];
         }
       } else if (fmt[i] == 'p' && i != fmt.size() - 1) {
         i++;
         if (fmt[i] == '*') {
-          for (int j = 0; j < projects.size(); j++) {
+          for (size_t j = 0; j < projects.size(); j++) {
             str += projects[j];
             if (j != projects.size() - 1) {
               str += " ";
             }
           }
         } else if (fmt[i] >= '0' && fmt[i] <= '9' &&
-                   (int)fmt[i] - 48 < projects.size()) {
-          str += projects[(int)fmt[i] - 48];
+                   static_cast<int>(fmt[i] - 48) <
+                       static_cast<int>(projects.size())) {
+          str += projects[static_cast<int>(fmt[i] - 48)];
         }
       }
     } else {
@@ -243,8 +245,8 @@ bool laboris::Task::OverDue() {
 void laboris::Task::GenerateUuid() {
   time_t entry_time = mktime(&entry);
   uuid = entry_time;
-  for (int i = 0; i < description.size(); i++) {
-    uuid += int(description[i]);
+  for (size_t i = 0; i < description.size(); i++) {
+    uuid += static_cast<int>(description[i]);
   }
 }
 
@@ -260,16 +262,16 @@ void laboris::Task::LoadUrgency() {
   }
 }
 
-std::string laboris::Task::GetDateString(std::string str, int& i) {
+std::string laboris::Task::GetDateString(std::string str, size_t& i) {
   std::string date_fmt = "%Y-%m-%d %H:%M:%S";
   std::string date_str = "";
   int i_0 = i;
   if (i != str.size()) {
     if (str[i + 1] == 'C') {
       date_fmt = "";
-      std::array<int, 6> steps = {60, 60, 24, 7, 4, 12};
-      std::array<char, 6> step_suffix = {'m', 'h', 'd', 'W', 'M', 'Y'};
-      time_t date_time;
+      std::array<int, 6> steps = {{60, 60, 24, 7, 4, 12}};
+      std::array<char, 6> step_suffix = {{'m', 'h', 'd', 'W', 'M', 'Y'}};
+      time_t date_time = time(NULL);
       if (str[i_0] == 'D') {
         date_time = mktime(&due);
       } else if (str[i_0] == 'E') {
@@ -318,7 +320,7 @@ std::string laboris::Task::GetDateString(std::string str, int& i) {
     strftime(buffer, 255, date_fmt.c_str(), &entry);
   }
   date_str += std::string(buffer);
-  if (due_ == false) {
+  if (due_ == false && str[i_0] == 'D') {
     return "";
   }
   return date_str;
@@ -335,7 +337,7 @@ double laboris::Task::UrgencyDue() {
   if (due_ == true) {
     time_t now = time(NULL);
     time_t d = mktime(&due);
-    double overdue = (double)(now - d) / 86400.0;
+    double overdue = static_cast<double>(now - d) / 86400.0;
     if (overdue >= 7.0) {
       return 1.0;
     } else if (overdue >= -14.0) {
@@ -353,7 +355,7 @@ double laboris::Task::UrgencyPriority() {
   if (priority == 0) {
     return 0.0;
   }
-  return 6.0 / (double)priority;
+  return 6.0 / static_cast<double>(priority);
 }
 
 double laboris::Task::UrgencyProjects() { return projects.size(); }

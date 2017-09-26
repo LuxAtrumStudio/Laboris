@@ -31,7 +31,7 @@ namespace laboris {
    private:
     void GenerateUuid();
     void LoadUrgency();
-    std::string GetDateString(std::string str, int& i);
+    std::string GetDateString(std::string str, size_t& i);
 
     double UrgencyAge();
     double UrgencyDue();
