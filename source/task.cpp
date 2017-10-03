@@ -183,6 +183,8 @@ std::string laboris::Task::Print(std::string fmt) {
         std::stringstream ss;
         ss << std::fixed << std::setprecision(2) << urgency;
         str += ss.str();
+      } else if (fmt[i] == 'i') {
+        str += uuid;
       } else if (fmt[i] == 'D') {
         str += GetDateString(fmt, &i);
       } else if (fmt[i] == 'C') {
@@ -252,9 +254,15 @@ bool laboris::Task::OverDue() {
 
 void laboris::Task::GenerateUuid() {
   time_t entry_time = mktime(&entry);
-  uuid = entry_time;
-  for (size_t i = 0; i < description.size(); i++) {
-    uuid += static_cast<int>(description[i]);
+  srand(entry_time);
+  for (int i = 0; i < 5; i++) {
+    int ch = rand() % 36;
+    if (ch < 10) {
+      ch += 48;
+    } else {
+      ch += 87;
+    }
+    uuid += char(ch);
   }
 }
 
@@ -333,6 +341,9 @@ std::string laboris::Task::GetDateString(std::string str, size_t* i) {
   }
   date_str += std::string(buffer);
   if (due_ == false && str[i_0] == 'D') {
+    return "";
+  }
+  if (status != DONE && str[i_0] == 'C') {
     return "";
   }
   return date_str;

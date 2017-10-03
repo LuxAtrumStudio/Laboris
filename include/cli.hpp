@@ -3,11 +3,15 @@
 #define LABORIS_CLI_HPP_
 
 #include <string>
+#include <utility>
+
+#include "task.hpp"
 
 namespace laboris {
-  int GetTaskId(std::string str);
+  bool IsTaskId(std::string str);
+  std::pair<laboris::Task*, int> GetTask(std::string str);
   void AddTask(std::string str);
-  void CompleteTask(int id);
+  void CompleteTask(std::pair<Task*, int> task);
   void ParseOptions(int argc, char const* argv[]);
 
 }  // namespace laboris

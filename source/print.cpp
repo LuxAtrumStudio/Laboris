@@ -9,7 +9,7 @@
 #include "task.hpp"
 
 void laboris::PrintTasks(unsigned int s) {
-  std::vector<int> sizes = {0, 0, 0, 0, 0, 0};
+  std::vector<int> sizes = {0, 0, 0, 0, 0, 0, 0};
   std::vector<std::string> fmt = {"%EC", "%P", "%p*", "%DC", "%d", "%u"};
   std::vector<Task> task_set;
   if (s == 0 || s == 2) {
@@ -21,24 +21,32 @@ void laboris::PrintTasks(unsigned int s) {
   }
   for (int j = 0; j < fmt.size(); j++) {
     for (int i = 0; i < task_set.size(); i++) {
-      std::string str = task_set[i].Print(fmt[j]);
+      std::string str;
+      if (j == 0 && task_set[i].status != DONE) {
+        str = std::to_string(i + 1);
+      } else if (j == 0) {
+        str = task_set[i].Print("%i");
+      } else {
+        str = task_set[i].Print(fmt[j - 1]);
+      }
       if (str.size() > sizes[j]) {
         sizes[j] = str.size();
       }
     }
   }
-  sizes[0] = std::max(sizes[0], 3);
-  sizes[1] = std::max(sizes[1], 1);
-  sizes[2] = std::max(sizes[2], 7);
-  sizes[3] = std::max(sizes[3], 3);
-  sizes[4] = std::max(sizes[4], 11);
-  sizes[5] = std::max(sizes[5], 3);
-  printf(cli::Underline("%*s %*s %-*s %-*s %-*s %-*s %-5s").c_str(), 2, "ID",
-         sizes[0], "Age", sizes[1], "P", sizes[2], "Project", sizes[3], "Due",
-         sizes[4], "Description", "Urg");
+  sizes[0] = std::max(sizes[0], 2);
+  sizes[1] = std::max(sizes[1], 3);
+  sizes[2] = std::max(sizes[2], 1);
+  sizes[3] = std::max(sizes[3], 7);
+  sizes[4] = std::max(sizes[4], 3);
+  sizes[5] = std::max(sizes[5], 11);
+  sizes[6] = std::max(sizes[6], 3);
+  printf(cli::Underline("%*s %*s %-*s %-*s %-*s %-*s %-5s").c_str(), sizes[0],
+         "ID", sizes[1], "Age", sizes[2], "P", sizes[3], "Project", sizes[4],
+         "Due", sizes[5], "Description", "Urg");
   std::cout << std::endl;
   for (int i = 0; i < task_set.size(); i++) {
-    std::string format = "%*i %*s %-*s %-*s %-*s %-*s %5.2f";
+    std::string format = "%*s %*s %-*s %-*s %-*s %-*s %5.2f";
     if (task_set[i].status == DONE) {
       format = cli::LightBlack(format);
     }
@@ -59,51 +67,66 @@ void laboris::PrintTasks(unsigned int s) {
     if (i % 2 == 0) {
       format = cli::BlackBg(format);
     }
-    printf(format.c_str(), 2, i + 1, sizes[0], task_set[i].Print("%EC").c_str(),
-           sizes[1], task_set[i].Print("%P").c_str(), sizes[2],
-           task_set[i].Print("%p*").c_str(), sizes[3],
-           task_set[i].Print("%DC").c_str(), sizes[4],
-           task_set[i].Print("%d").c_str(), task_set[i].urgency);
+    if (task_set[i].status != DONE) {
+      printf(format.c_str(), sizes[0], std::to_string(i + 1).c_str(), sizes[1],
+             task_set[i].Print("%EC").c_str(), sizes[2],
+             task_set[i].Print("%P").c_str(), sizes[3],
+             task_set[i].Print("%p*").c_str(), sizes[4],
+             task_set[i].Print("%DC").c_str(), sizes[5],
+             task_set[i].Print("%d").c_str(), task_set[i].urgency);
+    } else if (task_set[i].status == DONE) {
+      printf(format.c_str(), sizes[0], task_set[i].Print("%i").c_str(),
+             sizes[1], task_set[i].Print("%EC").c_str(), sizes[2],
+             task_set[i].Print("%P").c_str(), sizes[3],
+             task_set[i].Print("%p*").c_str(), sizes[4],
+             task_set[i].Print("%DC").c_str(), sizes[5],
+             task_set[i].Print("%d").c_str(), task_set[i].urgency);
+    }
     printf("\n");
   }
 }
 
-void laboris::PrintDetails(int id) {
+void laboris::PrintDetails(std::pair<Task*, int> task) {
   int size[2] = {4, 5};
   std::vector<std::array<std::string, 2>> opts = {
-      {"Status", "%sl"},  {"Description", "%d"}, {"Projects", "%p*"},
-      {"Tags", "%t*"},    {"Entered", "%ED"},    {"Due", "%DD"},
-      {"Priority", "%P"}, {"Urgency", "%u"}};
+      {"Status", "%sl"}, {"Description", "%d"}, {"Projects", "%p*"},
+      {"Tags", "%t*"},   {"Entered", "%ED"},    {"Completed", "%CD"},
+      {"Due", "%DD"},    {"Priority", "%P"},    {"Urgency", "%u"},
+      {"UUID", "%i"}};
   for (int i = 0; i < opts.size(); i++) {
     if (opts[i][0].size() > size[0]) {
       size[0] = opts[i][0].size();
     }
-    if (global_tasks_[id].Print(opts[i][1]).size() > size[1]) {
-      size[1] = global_tasks_[id].Print(opts[i][1]).size();
+    if (task.first->Print(opts[i][1]).size() > size[1]) {
+      size[1] = task.first->Print(opts[i][1]).size();
+    } else if (task.first->Print(opts[i][1]).size() == 0) {
+      opts.erase(opts.begin() + i);
+      i--;
     }
   }
-  printf(cli::Underline("%-*s   %-*s\n").c_str(), size[0], "Name", size[1],
+  printf(cli::Underline("%-*s   %-*s  \n").c_str(), size[0], "Name", size[1],
          "Value");
-  printf("%-*s   %-*i\n", size[0], "ID", size[1], id + 1);
+  printf("%-*s   %-*i  \n", size[0], "ID", size[1], task.second + 1);
   for (int i = 0; i < opts.size(); i++) {
     std::string str = "%-*s   ";
     if (opts[i][0] == "Projects") {
       str += cli::Blue("%-*s");
     } else if (opts[i][0] == "Tags") {
       str += cli::Magenta("%-*s");
-    } else if (opts[i][0] == "Due" && global_tasks_[id].OverDue() == true) {
+    } else if (opts[i][0] == "Due" && task.first->OverDue() == true) {
       str += cli::RedBg(cli::White("%-*s"));
-    } else if (opts[i][0] == "Due" && global_tasks_[id].DueToday() == true) {
+    } else if (opts[i][0] == "Due" && task.first->DueToday() == true) {
       str += cli::YellowBg(cli::Red("%-*s"));
     } else {
       str += "%-*s";
     }
+    str += "  ";
     str += "\n";
     if (i % 2 == 0) {
       str = cli::BlackBg(str);
     }
     printf(str.c_str(), size[0], opts[i][0].c_str(), size[1],
-           global_tasks_[id].Print(opts[i][1]).c_str());
+           task.first->Print(opts[i][1]).c_str());
   }
 }
 

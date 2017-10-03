@@ -24,7 +24,7 @@ namespace laboris {
     bool IsInt(char ch);
 
     unsigned int status;
-    unsigned int uuid;
+    std::string uuid;
     int priority;
     double urgency;
     std::string description;
