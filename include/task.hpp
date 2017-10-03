@@ -13,11 +13,15 @@ namespace laboris {
 
   class Task {
    public:
+    Task();
     explicit Task(std::string str);
     std::string Print(std::string fmt);
 
     bool DueToday();
     bool OverDue();
+
+    bool IsInt(std::string str);
+    bool IsInt(char ch);
 
     unsigned int status;
     unsigned int uuid;
@@ -27,19 +31,18 @@ namespace laboris {
     std::vector<std::string> tags, projects;
     // std::vector<Time> times;
     struct tm entry, due, complete;
+    bool due_;
 
    private:
     void GenerateUuid();
     void LoadUrgency();
-    std::string GetDateString(std::string str, size_t& i);
+    std::string GetDateString(std::string str, size_t* i);
 
     double UrgencyAge();
     double UrgencyDue();
     double UrgencyTags();
     double UrgencyPriority();
     double UrgencyProjects();
-
-    bool due_;
   };
 }  // namespace laboris
 

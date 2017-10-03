@@ -10,20 +10,6 @@
 #include <vector>
 
 namespace laboris {
-  bool IsInt(std::string str) {
-    for (size_t i = 0; i < str.size(); i++) {
-      if (str[i] > 57 || str[i] < 48) {
-        return false;
-      }
-    }
-    return true;
-  }
-  bool IsInt(char ch) {
-    if (ch > 57 || ch < 48) {
-      return false;
-    }
-    return true;
-  }
 
   bool MatchFmt(std::string str, std::string fmt) {
     if (str.size() > fmt.size()) {
@@ -31,7 +17,7 @@ namespace laboris {
     }
     for (size_t i = 0, j = 0; i < fmt.size() && j < str.size(); i++) {
       if (fmt[i] == '%') {
-        i++;
+        i += 1;
         if (fmt[i] == 'i' && (str[j] > 57 || str[j] < 48)) {
           return false;
         }
@@ -65,6 +51,19 @@ namespace laboris {
     strptime(date.c_str(), fmt.c_str(), t);
   }
 }  // namespace laboris
+
+laboris::Task::Task()
+    : status(DEF),
+      uuid(0),
+      priority(0),
+      urgency(0),
+      description(),
+      tags(),
+      projects(),
+      entry(),
+      due(),
+      complete(),
+      due_(false) {}
 
 laboris::Task::Task(std::string str) {
   time_t current = time(NULL);
@@ -152,9 +151,22 @@ std::string laboris::Task::Print(std::string fmt) {
     if (fmt[i] == '%' && i != fmt.size() - 1) {
       i++;
       if (fmt[i] == 's') {
-        if (status == DONE) {
+        bool done = false;
+        if (i + 1 != fmt.size()) {
+          if (fmt[i + 1] == 'l') {
+            i++;
+            if (status == DONE) {
+              str += "Completed";
+              done = true;
+            } else if (status == PENDING) {
+              str += "Pending";
+              done = true;
+            }
+          }
+        }
+        if (status == DONE && done == false) {
           str += "C";
-        } else if (status == PENDING) {
+        } else if (status == PENDING && done == false) {
           str += "P";
         }
       } else if (fmt[i] == 'S') {
@@ -172,11 +184,11 @@ std::string laboris::Task::Print(std::string fmt) {
         ss << std::fixed << std::setprecision(2) << urgency;
         str += ss.str();
       } else if (fmt[i] == 'D') {
-        str += GetDateString(fmt, i);
+        str += GetDateString(fmt, &i);
       } else if (fmt[i] == 'C') {
-        str += GetDateString(fmt, i);
+        str += GetDateString(fmt, &i);
       } else if (fmt[i] == 'E') {
-        str += GetDateString(fmt, i);
+        str += GetDateString(fmt, &i);
       } else if (fmt[i] == 't' && i != fmt.size() - 1) {
         i++;
         if (fmt[i] == '*') {
@@ -228,15 +240,11 @@ bool laboris::Task::DueToday() {
 }
 
 bool laboris::Task::OverDue() {
-  if (due_ == false) {
+  if (due_ == false || status == DONE) {
     return false;
   }
   time_t current_time = time(NULL);
-  struct tm current = *localtime(&current_time);
-  if (current.tm_year >= due.tm_year && current.tm_mon >= due.tm_mon &&
-      current.tm_mday >= due.tm_mday && current.tm_hour >= due.tm_hour &&
-      current.tm_min >= due.tm_min && current.tm_sec > due.tm_sec &&
-      status != DONE) {
+  if (current_time > mktime(&due)) {
     return true;
   }
   return false;
@@ -262,12 +270,13 @@ void laboris::Task::LoadUrgency() {
   }
 }
 
-std::string laboris::Task::GetDateString(std::string str, size_t& i) {
-  std::string date_fmt = "%Y-%m-%d %H:%M:%S";
+std::string laboris::Task::GetDateString(std::string str, size_t* i) {
+  std::string date_fmt = "%Y-%m-%dT%H:%M:%S";
   std::string date_str = "";
-  int i_0 = i;
-  if (i != str.size()) {
-    if (str[i + 1] == 'C') {
+  int i_0 = *i;
+  if (*i != str.size()) {
+    if (str[*i + 1] == 'C') {
+      (*i)++;
       date_fmt = "";
       std::array<int, 6> steps = {{60, 60, 24, 7, 4, 12}};
       std::array<char, 6> step_suffix = {{'m', 'h', 'd', 'W', 'M', 'Y'}};
@@ -277,7 +286,7 @@ std::string laboris::Task::GetDateString(std::string str, size_t& i) {
       } else if (str[i_0] == 'E') {
         date_time = mktime(&entry);
       } else if (str[i_0] == 'C') {
-        date_time = mktime(&entry);
+        date_time = mktime(&complete);
       }
       time_t current = time(NULL);
       date_time -= current;
@@ -302,13 +311,16 @@ std::string laboris::Task::GetDateString(std::string str, size_t& i) {
         date_str += std::to_string(date_time) + suffix;
       }
       i++;
-    } else if (str[i + 1] == '{') {
+    } else if (str[*i + 1] == '{') {
       date_fmt = "";
-      i += 2;
-      while (i < str.size() && str[i] != '}') {
-        date_fmt += str[i];
-        i++;
+      *i += 2;
+      while (*i < str.size() && str[*i] != '}') {
+        date_fmt += str[*i];
+        (*i)++;
       }
+    } else if (str[*i + 1] == 'D') {
+      (*i)++;
+      date_fmt = "%Y-%m-%d %H:%M:%S";
     }
   }
   char buffer[255];
@@ -359,3 +371,18 @@ double laboris::Task::UrgencyPriority() {
 }
 
 double laboris::Task::UrgencyProjects() { return projects.size(); }
+
+bool laboris::Task::IsInt(std::string str) {
+  for (size_t i = 0; i < str.size(); i++) {
+    if (str[i] > 57 || str[i] < 48) {
+      return false;
+    }
+  }
+  return true;
+}
+bool laboris::Task::IsInt(char ch) {
+  if (ch > 57 || ch < 48) {
+    return false;
+  }
+  return true;
+}
