@@ -70,6 +70,12 @@ void laboris::PrintTasks(unsigned int s, unsigned int sort_method) {
            task_set[i].Print("%d").c_str(), task_set[i].urgency);
     printf("\n");
   }
+  if (s == 0 || s == 2) {
+    SortTasks(SORT_ENTERED, false, 0);
+  }
+  if (s == 1 || s == 2) {
+    SortTasks(SORT_ENTERED, false, 1);
+  }
 }
 
 void laboris::PrintDetails(Task* task) {

@@ -2,6 +2,7 @@
 #include "cli.hpp"
 
 #include <stdio.h>
+#include <iostream>
 #include <string>
 
 #include "laboris.hpp"
@@ -71,12 +72,7 @@ void laboris::DeleteTask(std::pair<Task*, int> task) {
   }
 }
 
-void laboris::ParseOptions(int argc, char const* argv[]) {
-  if (argc == 1) {
-    PrintTasks(0, SORT_URGENCY);
-    SortTasks(SORT_ENTERED, false, 0);
-    return;
-  }
+bool laboris::ParseCmd(int argc, const char* argv[]) {
   if (std::string(argv[1]) == "add") {
     std::string task_str;
     for (int i = 2; i < argc; i++) {
@@ -84,21 +80,86 @@ void laboris::ParseOptions(int argc, char const* argv[]) {
       task_str += ' ';
     }
     AddTask(task_str);
-  } else if (std::string(argv[1]) == "all") {
-    PrintTasks(2, SORT_URGENCY);
-    SortTasks(SORT_ENTERED, false, 0);
-  } else if (std::string(argv[1]) == "completed") {
-    PrintTasks(1, SORT_URGENCY);
-    SortTasks(SORT_ENTERED, false, 0);
-  } else if (IsTaskId(argv[1]) == true) {
+    return true;
+  }
+  return false;
+}
+
+bool laboris::ParseTaskCmd(int argc, const char* argv[]) {
+  if (IsTaskId(argv[1]) == true) {
     if (argc == 2) {
       PrintDetails(GetTask(argv[1]).first);
+      return true;
     } else {
       if (std::string(argv[2]) == "done") {
         CompleteTask(GetTask(argv[1]));
+        return true;
       } else if (std::string(argv[2]) == "delete") {
         DeleteTask(GetTask(argv[1]));
+        return true;
       }
     }
   }
+  return false;
+}
+
+bool laboris::ParseList(int argc, const char* argv[]) {
+  int s = -1, method = SORT_URGENCY;
+  bool err = false;
+  for (int i = 1; i < argc; i++) {
+    if (s == -1 && std::string(argv[i]) == "all") {
+      s = 2;
+    } else if (s == -1 && std::string(argv[i]) == "complete") {
+      s = 1;
+    } else if (s == -1 && std::string(argv[i]) == "pending") {
+      s = 0;
+    } else if (std::string(argv[i]) == "id") {
+      method = SORT_ID;
+    } else if (std::string(argv[i]) == "project") {
+      method = SORT_PROJECT;
+    } else if (std::string(argv[i]) == "tag") {
+      method = SORT_TAGS;
+    } else if (std::string(argv[i]) == "description") {
+      method = SORT_DESCRIPTION;
+    } else if (std::string(argv[i]) == "enter") {
+      method = SORT_ENTERED;
+    } else if (std::string(argv[i]) == "due") {
+      method = SORT_DUE;
+    } else if (std::string(argv[i]) == "done") {
+      method = SORT_COMPLETED;
+    } else if (std::string(argv[i]) == "priority") {
+      method = SORT_PRIORITY;
+    } else if (std::string(argv[i]) == "urgency") {
+      method = SORT_URGENCY;
+    } else {
+      err = true;
+      std::cout << cli::Bold(
+          cli::Red("Unknown command \'" + std::string(argv[i]) + "\'\n"));
+    }
+  }
+  if (s == -1) {
+    s = 0;
+  }
+  if (err == false) {
+    PrintTasks(s, method);
+  }
+  return true;
+}
+
+void laboris::ParseOptions(int argc, char const* argv[]) {
+  unsigned int s = 0, method = SORT_URGENCY;
+  if (argc == 1) {
+    PrintTasks(0, SORT_URGENCY);
+    return;
+  }
+  if (ParseCmd(argc, argv) == true) {
+    return;
+  }
+  if (ParseTaskCmd(argc, argv) == true) {
+    return;
+  }
+  if (ParseList(argc, argv) == true) {
+    return;
+  }
+  printf(cli::Red("Unknown command \'%s\'\n").c_str(), argv[1]);
 }

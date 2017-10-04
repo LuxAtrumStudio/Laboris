@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <vector>
 
+#include <iostream>
+
 #include "laboris.hpp"
 #include "task.hpp"
 
@@ -12,19 +14,25 @@ bool laboris::IDSort(const Task& lhs, const Task& rhs) {
 bool laboris::ProjectSort(const Task& lhs, const Task& rhs) {
   std::string lhs_s = lhs.Print("%p*");
   std::string rhs_s = rhs.Print("%p*");
+  if (lhs_s == "" && rhs_s != "") {
+    return false;
+  }
   return lhs_s < rhs_s;
 }
 bool laboris::TagSort(const Task& lhs, const Task& rhs) {
   std::string lhs_s = lhs.Print("%t*");
   std::string rhs_s = rhs.Print("%t*");
-  return lhs_s < rhs_s;
+  if (lhs_s == "" && rhs_s != "") {
+    return false;
+  }
+  return lhs_s > rhs_s;
 }
 bool laboris::DescriptionSort(const Task& lhs, const Task& rhs) {
   return lhs.description < rhs.description;
 }
 bool laboris::CompletedSort(const Task& lhs, const Task& rhs) {
   if (lhs.status != DONE && rhs.status == DONE) {
-    return true;
+    return false;
   }
   return lhs.complete_time < rhs.complete_time;
 }
@@ -33,7 +41,7 @@ bool laboris::EnteredSort(const Task& lhs, const Task& rhs) {
 }
 bool laboris::DueSort(const Task& lhs, const Task& rhs) {
   if (lhs.due_ == false && rhs.due_ == true) {
-    return true;
+    return false;
   }
   return lhs.due_time < rhs.due_time;
 }
