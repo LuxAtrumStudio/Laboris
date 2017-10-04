@@ -8,27 +8,22 @@
 #include "output.hpp"
 #include "task.hpp"
 
-void laboris::PrintTasks(unsigned int s) {
+void laboris::PrintTasks(unsigned int s, unsigned int sort_method) {
   std::vector<int> sizes = {0, 0, 0, 0, 0, 0, 0};
-  std::vector<std::string> fmt = {"%EC", "%P", "%p*", "%DC", "%d", "%u"};
+  std::vector<std::string> fmt = {"%i", "%EC", "%P", "%p*", "%DC", "%d", "%u"};
   std::vector<Task> task_set;
   if (s == 0 || s == 2) {
+    SortTasks(sort_method, false, 0);
     task_set.insert(task_set.end(), global_tasks_.begin(), global_tasks_.end());
   }
   if (s == 1 || s == 2) {
+    SortTasks(sort_method, false, 1);
     task_set.insert(task_set.end(), completed_tasks_.begin(),
                     completed_tasks_.end());
   }
   for (int j = 0; j < fmt.size(); j++) {
     for (int i = 0; i < task_set.size(); i++) {
-      std::string str;
-      if (j == 0 && task_set[i].status != DONE) {
-        str = std::to_string(i + 1);
-      } else if (j == 0) {
-        str = task_set[i].Print("%i");
-      } else {
-        str = task_set[i].Print(fmt[j - 1]);
-      }
+      std::string str = task_set[i].Print(fmt[j]);
       if (str.size() > sizes[j]) {
         sizes[j] = str.size();
       }
@@ -67,55 +62,45 @@ void laboris::PrintTasks(unsigned int s) {
     if (i % 2 == 0) {
       format = cli::BlackBg(format);
     }
-    if (task_set[i].status != DONE) {
-      printf(format.c_str(), sizes[0], std::to_string(i + 1).c_str(), sizes[1],
-             task_set[i].Print("%EC").c_str(), sizes[2],
-             task_set[i].Print("%P").c_str(), sizes[3],
-             task_set[i].Print("%p*").c_str(), sizes[4],
-             task_set[i].Print("%DC").c_str(), sizes[5],
-             task_set[i].Print("%d").c_str(), task_set[i].urgency);
-    } else if (task_set[i].status == DONE) {
-      printf(format.c_str(), sizes[0], task_set[i].Print("%i").c_str(),
-             sizes[1], task_set[i].Print("%EC").c_str(), sizes[2],
-             task_set[i].Print("%P").c_str(), sizes[3],
-             task_set[i].Print("%p*").c_str(), sizes[4],
-             task_set[i].Print("%DC").c_str(), sizes[5],
-             task_set[i].Print("%d").c_str(), task_set[i].urgency);
-    }
+    printf(format.c_str(), sizes[0], task_set[i].Print("%i").c_str(), sizes[1],
+           task_set[i].Print("%EC").c_str(), sizes[2],
+           task_set[i].Print("%P").c_str(), sizes[3],
+           task_set[i].Print("%p*").c_str(), sizes[4],
+           task_set[i].Print("%DC").c_str(), sizes[5],
+           task_set[i].Print("%d").c_str(), task_set[i].urgency);
     printf("\n");
   }
 }
 
-void laboris::PrintDetails(std::pair<Task*, int> task) {
+void laboris::PrintDetails(Task* task) {
   int size[2] = {4, 5};
   std::vector<std::array<std::string, 2>> opts = {
-      {"Status", "%sl"}, {"Description", "%d"}, {"Projects", "%p*"},
-      {"Tags", "%t*"},   {"Entered", "%ED"},    {"Completed", "%CD"},
-      {"Due", "%DD"},    {"Priority", "%P"},    {"Urgency", "%u"},
-      {"UUID", "%i"}};
+      {"ID/UUID", "%i"},    {"Status", "%sl"}, {"Description", "%d"},
+      {"Projects", "%p*"},  {"Tags", "%t*"},   {"Entered", "%ED"},
+      {"Completed", "%CD"}, {"Due", "%DD"},    {"Priority", "%P"},
+      {"Urgency", "%u"}};
   for (int i = 0; i < opts.size(); i++) {
     if (opts[i][0].size() > size[0]) {
       size[0] = opts[i][0].size();
     }
-    if (task.first->Print(opts[i][1]).size() > size[1]) {
-      size[1] = task.first->Print(opts[i][1]).size();
-    } else if (task.first->Print(opts[i][1]).size() == 0) {
+    if (task->Print(opts[i][1]).size() > size[1]) {
+      size[1] = task->Print(opts[i][1]).size();
+    } else if (task->Print(opts[i][1]).size() == 0) {
       opts.erase(opts.begin() + i);
       i--;
     }
   }
   printf(cli::Underline("%-*s   %-*s  \n").c_str(), size[0], "Name", size[1],
          "Value");
-  printf("%-*s   %-*i  \n", size[0], "ID", size[1], task.second + 1);
   for (int i = 0; i < opts.size(); i++) {
     std::string str = "%-*s   ";
     if (opts[i][0] == "Projects") {
       str += cli::Blue("%-*s");
     } else if (opts[i][0] == "Tags") {
       str += cli::Magenta("%-*s");
-    } else if (opts[i][0] == "Due" && task.first->OverDue() == true) {
+    } else if (opts[i][0] == "Due" && task->OverDue() == true) {
       str += cli::RedBg(cli::White("%-*s"));
-    } else if (opts[i][0] == "Due" && task.first->DueToday() == true) {
+    } else if (opts[i][0] == "Due" && task->DueToday() == true) {
       str += cli::YellowBg(cli::Red("%-*s"));
     } else {
       str += "%-*s";
@@ -126,7 +111,7 @@ void laboris::PrintDetails(std::pair<Task*, int> task) {
       str = cli::BlackBg(str);
     }
     printf(str.c_str(), size[0], opts[i][0].c_str(), size[1],
-           task.first->Print(opts[i][1]).c_str());
+           task->Print(opts[i][1]).c_str());
   }
 }
 

@@ -7,8 +7,8 @@
 #include "task.hpp"
 
 namespace laboris {
-  void PrintTasks(unsigned int s);
-  void PrintDetails(std::pair<Task*, int> task);
+  void PrintTasks(unsigned int s, unsigned int sort_method);
+  void PrintDetails(Task* task);
   void PrintAction(std::vector<std::string> data, std::vector<int> colors);
 }  // namespace laboris
 

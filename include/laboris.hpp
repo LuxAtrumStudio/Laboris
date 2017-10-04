@@ -1,3 +1,6 @@
+#ifndef LABORIS_LABORIS_HPP_
+#define LABORIS_LABORIS_HPP_
+
 #include "cli.hpp"
 #include "file.hpp"
 #include "print.hpp"
@@ -10,3 +13,5 @@
 namespace laboris {
   extern std::vector<Task> global_tasks_, completed_tasks_;
 }  // namespace laboris
+
+#endif /* ifndef LABORIS_LABORIS_HPP_ */

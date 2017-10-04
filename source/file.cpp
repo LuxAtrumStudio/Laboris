@@ -17,6 +17,7 @@ void laboris::LoadTasks(std::string file) {
       if (new_task.status == DONE) {
         completed_tasks_.push_back(new_task);
       } else {
+        new_task.id = global_tasks_.size() + 1;
         global_tasks_.push_back(new_task);
       }
     }
