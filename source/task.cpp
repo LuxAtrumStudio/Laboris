@@ -188,7 +188,10 @@ std::string laboris::Task::Print(std::string fmt) const {
         ss << std::fixed << std::setprecision(2) << urgency;
         str += ss.str();
       } else if (fmt[i] == 'i') {
-        if (id != 0) {
+        if (i + 1 != fmt.size() && fmt[i + 1] == 'u') {
+          str += uuid;
+          i++;
+        } else if (id != 0) {
           str += std::to_string(id);
         } else {
           str += uuid;

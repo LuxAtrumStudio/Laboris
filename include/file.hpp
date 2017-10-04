@@ -7,6 +7,8 @@
 #include <vector>
 
 namespace laboris {
+  bool IsFile(std::string file);
+
   void LoadTasks(std::string file);
   void SaveTasks(std::string file);
 

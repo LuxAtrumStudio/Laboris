@@ -8,6 +8,16 @@
 #include "laboris.hpp"
 #include "task.hpp"
 
+bool laboris::IsFile(std::string file) {
+  std::ifstream test(file.c_str());
+  if (test.is_open()) {
+    test.close();
+    return true;
+  } else {
+    return false;
+  }
+}
+
 void laboris::LoadTasks(std::string file) {
   std::ifstream load(file.c_str());
   if (load.is_open()) {

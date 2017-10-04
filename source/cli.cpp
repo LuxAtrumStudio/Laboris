@@ -39,6 +39,32 @@ std::pair<laboris::Task*, int> laboris::GetTask(std::string str) {
   }
 }
 
+std::vector<laboris::Task> laboris::GetTaskNames(std::string str) {
+  std::vector<laboris::Task> tasks;
+  for (int i = 0; i < global_tasks_.size(); i++) {
+    bool match = true;
+    std::string description = global_tasks_[i].description;
+    if (description.size() < str.size()) {
+      match = false;
+    }
+    for (int j = 0; j < str.size() && match == true; j++) {
+      if (str[i] >= 97 && str[i] <= 122) {
+        str[i] -= 32;
+      }
+      if (description[i] >= 97 && description[i] <= 122) {
+        description[i] -= 32;
+      }
+      if (str[j] != description[j]) {
+        match = false;
+      }
+    }
+    if (match == true) {
+      tasks.push_back(global_tasks_[i]);
+    }
+  }
+  return tasks;
+}
+
 void laboris::AddTask(std::string str) {
   Task new_task(str);
   time_t current = time(NULL);
@@ -56,8 +82,21 @@ void laboris::CompleteTask(std::pair<Task*, int> task) {
     PrintAction({"Completed Task " + std::to_string(task.second),
                  "  \'" + task.first->Print("%d") + "\'"},
                 {cli::YELLOW});
-    completed_tasks_.push_back(global_tasks_[task.second]);
+    completed_tasks_.push_back(*task.first);
     global_tasks_.erase(global_tasks_.begin() + task.second);
+  }
+}
+
+void laboris::CompleteTasks(std::vector<Task> tasks) {
+  for (int i = 0; i < tasks.size(); i++) {
+    if (tasks[i].status != DONE) {
+      tasks[i].status = DONE;
+      PrintAction({"Completed Task " + tasks[i].Print("%i"),
+                   "  \'" + tasks[i].Print("%d") + "\'"},
+                  {cli::YELLOW});
+      completed_tasks_.push_back(tasks[i]);
+      global_tasks_.erase(global_tasks_.begin() + tasks[i].id);
+    }
   }
 }
 
@@ -103,6 +142,25 @@ bool laboris::ParseTaskCmd(int argc, const char* argv[]) {
   return false;
 }
 
+bool laboris::ParseTaskName(int argc, const char* argv[]) {
+  std::vector<Task> task_set = GetTaskNames(argv[1]);
+  if (task_set.size() != 0) {
+    if (argc == 2) {
+      if (task_set.size() == 1) {
+        PrintDetails(&task_set[0]);
+      } else if (task_set.size() > 1) {
+        tmp_task_list_ = task_set;
+        PrintTasks(3, SORT_URGENCY);
+      }
+    } else {
+      if (std::string(argv[2]) == "done") {
+        CompleteTasks(task_set);
+      }
+    }
+    return 1;
+  }
+}
+
 bool laboris::ParseList(int argc, const char* argv[]) {
   int s = -1, method = SORT_URGENCY;
   bool err = false;
@@ -133,8 +191,6 @@ bool laboris::ParseList(int argc, const char* argv[]) {
       method = SORT_URGENCY;
     } else {
       err = true;
-      std::cout << cli::Bold(
-          cli::Red("Unknown command \'" + std::string(argv[i]) + "\'\n"));
     }
   }
   if (s == -1) {
@@ -142,8 +198,9 @@ bool laboris::ParseList(int argc, const char* argv[]) {
   }
   if (err == false) {
     PrintTasks(s, method);
+    return true;
   }
-  return true;
+  return false;
 }
 
 void laboris::ParseOptions(int argc, char const* argv[]) {
@@ -151,15 +208,16 @@ void laboris::ParseOptions(int argc, char const* argv[]) {
   if (argc == 1) {
     PrintTasks(0, SORT_URGENCY);
     return;
-  }
-  if (ParseCmd(argc, argv) == true) {
+  } else if (ParseCmd(argc, argv) == true) {
+    return;
+  } else if (ParseTaskCmd(argc, argv) == true) {
+    PrintTasks(2, SORT_URGENCY);
+    return;
+  } else if (ParseList(argc, argv) == true) {
+    return;
+  } else if (ParseTaskName(argc, argv) == true) {
+    PrintTasks(2, SORT_URGENCY);
     return;
   }
-  if (ParseTaskCmd(argc, argv) == true) {
-    return;
-  }
-  if (ParseList(argc, argv) == true) {
-    return;
-  }
-  printf(cli::Red("Unknown command \'%s\'\n").c_str(), argv[1]);
+  printf(cli::Bold(cli::Red("Unknown command \'%s\'\n")).c_str(), argv[1]);
 }

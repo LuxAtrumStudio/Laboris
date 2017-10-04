@@ -21,6 +21,9 @@ void laboris::PrintTasks(unsigned int s, unsigned int sort_method) {
     task_set.insert(task_set.end(), completed_tasks_.begin(),
                     completed_tasks_.end());
   }
+  if (s == 3) {
+    task_set = tmp_task_list_;
+  }
   for (int j = 0; j < fmt.size(); j++) {
     for (int i = 0; i < task_set.size(); i++) {
       std::string str = task_set[i].Print(fmt[j]);
@@ -81,7 +84,7 @@ void laboris::PrintTasks(unsigned int s, unsigned int sort_method) {
 void laboris::PrintDetails(Task* task) {
   int size[2] = {4, 5};
   std::vector<std::array<std::string, 2>> opts = {
-      {"ID/UUID", "%i"},    {"Status", "%sl"}, {"Description", "%d"},
+      {"ID/UUID", "%iu"},   {"Status", "%sl"}, {"Description", "%d"},
       {"Projects", "%p*"},  {"Tags", "%t*"},   {"Entered", "%ED"},
       {"Completed", "%CD"}, {"Due", "%DD"},    {"Priority", "%P"},
       {"Urgency", "%u"}};
