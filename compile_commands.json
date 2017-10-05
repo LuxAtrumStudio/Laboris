@@ -7,8 +7,81 @@
             "-I/home/arden/Programming/cpp/laboris/external/cli/include", 
             "-std=c++11", 
             "-w", 
-            "-fprofile-arcs", 
-            "-ftest-coverage", 
+            "-o", 
+            "/home/arden/Programming/cpp/laboris/build/source/./laboris.o", 
+            "laboris.cpp"
+        ], 
+        "directory": "/home/arden/Programming/cpp/laboris/source", 
+        "file": "laboris.cpp"
+    }, 
+    {
+        "arguments": [
+            "c++", 
+            "-c", 
+            "-I/home/arden/Programming/cpp/laboris/include", 
+            "-I/home/arden/Programming/cpp/laboris/external/cli/include", 
+            "-std=c++11", 
+            "-w", 
+            "-o", 
+            "/home/arden/Programming/cpp/laboris/build/source/./main.o", 
+            "main.cpp"
+        ], 
+        "directory": "/home/arden/Programming/cpp/laboris/source", 
+        "file": "main.cpp"
+    }, 
+    {
+        "arguments": [
+            "c++", 
+            "-c", 
+            "-I/home/arden/Programming/cpp/laboris/include", 
+            "-I/home/arden/Programming/cpp/laboris/external/cli/include", 
+            "-std=c++11", 
+            "-w", 
+            "-o", 
+            "/home/arden/Programming/cpp/laboris/build/source/./print.o", 
+            "print.cpp"
+        ], 
+        "directory": "/home/arden/Programming/cpp/laboris/source", 
+        "file": "print.cpp"
+    }, 
+    {
+        "arguments": [
+            "c++", 
+            "-c", 
+            "-I/home/arden/Programming/cpp/laboris/include", 
+            "-I/home/arden/Programming/cpp/laboris/external/cli/include", 
+            "-std=c++11", 
+            "-w", 
+            "-o", 
+            "/home/arden/Programming/cpp/laboris/build/source/./sort.o", 
+            "sort.cpp"
+        ], 
+        "directory": "/home/arden/Programming/cpp/laboris/source", 
+        "file": "sort.cpp"
+    }, 
+    {
+        "arguments": [
+            "c++", 
+            "-c", 
+            "-I/home/arden/Programming/cpp/laboris/include", 
+            "-I/home/arden/Programming/cpp/laboris/external/cli/include", 
+            "-std=c++11", 
+            "-w", 
+            "-o", 
+            "/home/arden/Programming/cpp/laboris/build/source/./cli.o", 
+            "cli.cpp"
+        ], 
+        "directory": "/home/arden/Programming/cpp/laboris/source", 
+        "file": "cli.cpp"
+    }, 
+    {
+        "arguments": [
+            "c++", 
+            "-c", 
+            "-I/home/arden/Programming/cpp/laboris/include", 
+            "-I/home/arden/Programming/cpp/laboris/external/cli/include", 
+            "-std=c++11", 
+            "-w", 
             "-o", 
             "/home/arden/Programming/cpp/laboris/build/source/./task.o", 
             "task.cpp"
@@ -24,13 +97,11 @@
             "-I/home/arden/Programming/cpp/laboris/external/cli/include", 
             "-std=c++11", 
             "-w", 
-            "-fprofile-arcs", 
-            "-ftest-coverage", 
             "-o", 
-            "/home/arden/Programming/cpp/laboris/build/source/./main.o", 
-            "main.cpp"
+            "/home/arden/Programming/cpp/laboris/build/source/./file.o", 
+            "file.cpp"
         ], 
         "directory": "/home/arden/Programming/cpp/laboris/source", 
-        "file": "main.cpp"
+        "file": "file.cpp"
     }
 ]

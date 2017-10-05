@@ -48,10 +48,10 @@ void laboris::PrintTasks(unsigned int s, unsigned int sort_method) {
     if (task_set[i].status == DONE) {
       format = cli::LightBlack(format);
     }
-    if (task_set[i].DueToday() == true) {
-      format = cli::YellowBg(cli::Red(format));
-    } else if (task_set[i].OverDue() == true) {
+    if (task_set[i].OverDue() == true) {
       format = cli::RedBg(cli::White(format));
+    } else if (task_set[i].DueToday() == true) {
+      format = cli::YellowBg(cli::Red(format));
     }
     if (task_set[i].urgency >= 10) {
       format = cli::Bold(cli::Red(format));
