@@ -36,5 +36,5 @@ def save_data(pending_tasks, done_tasks):
     with open(path_pending, "w") as data:
         json.dump(pending_data, data)
     with open(path_done, "w") as data:
-        json.dump(pending_data, data)
+        json.dump(done_data, data)
 

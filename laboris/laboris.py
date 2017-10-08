@@ -10,9 +10,9 @@ def main():
     for t in pending:
         print("{} {} {} {}".format(t.print_date_entry("abbr"), t.print_date_due("abbr"), t.print_project(),
                                    t.description))
-        # print(out.red("{}").format(t.get_json()))
-        print(stylize("Hello World", [fg('light_red'), attr('underlined')]))
-        print("{}{}{}".format(bg('light_red'), "Hello", attr('reset')))
+        print("{} -> {}: {}".format(t.print_interval("start", True), t.print_interval("end", True),
+                                    t.print_interval("duration", True)))
+    data.save_data(pending, done)
 
 
 if __name__ == "__main__":
