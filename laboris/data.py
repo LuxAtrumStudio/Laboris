@@ -16,10 +16,12 @@ def load_data():
     for entry in pending_data:
         new_task = task.Task()
         new_task.parse_json(entry)
+        new_task.id = len(pending_tasks)
         pending_tasks.append(new_task)
     for entry in done_data:
         new_task = task.Task()
         new_task.parse_json(entry)
+        new_task.id = len(done_tasks)
         done_tasks.append(new_task)
     return pending_tasks, done_tasks
 

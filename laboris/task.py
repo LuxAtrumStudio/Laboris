@@ -24,6 +24,7 @@ class Task:
         self.due_date = _due
         self.done_date = _done
         self.status = self.Status.PENDING
+        self.id = int()
         self.times = list()
 
     def __repr__(self):
@@ -222,7 +223,7 @@ class Task:
 
     def urgency_age(self):
         diff = datetime.now() - self.entry_date
-        age = diff.days + (diff.seconds * 86400)
+        age = diff.days + (diff.seconds / 86400)
         return age / 400
 
     def urgency_due(self):
@@ -234,9 +235,7 @@ class Task:
             late = True
         else:
             diff = self.due_date - datetime.now()
-        print("DAY: {}  SEC: {}".format(diff.days, diff.seconds))
         overdue = diff.days + (diff.seconds / 86400)
-        print("OVERDUE: {}".format(overdue))
         if late is False:
             overdue *= -1
         if overdue > 7:
