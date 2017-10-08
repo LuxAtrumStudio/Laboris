@@ -1,14 +1,18 @@
-import load_data as load_data
+import data
 import task
+from color import fg, bg, attr, stylize
 from datetime import datetime
 
 
 def main():
-    my_task = task.Task("This is a test task", ["project 1", "project 2", "project 3", "project 4"],
-                        ["tag 1", "tag 2", "tag 3", "tag 4", "tag 5"], 5, datetime.now(), datetime(2017, 10, 7, 16))
-    print(my_task.print_date_due())
-    print(my_task.print_date_entry("abbr"))
-    print(my_task.print_date_due("abbr"))
+    pending, done = data.load_data()
+    print("PENDING: {}\nDONE: {}".format(len(pending), len(done)))
+    for t in pending:
+        print("{} {} {} {}".format(t.print_date_entry("abbr"), t.print_date_due("abbr"), t.print_project(),
+                                   t.description))
+        # print(out.red("{}").format(t.get_json()))
+        print(stylize("Hello World", [fg('light_red'), attr('underlined')]))
+        print("{}{}{}".format(bg('light_red'), "Hello", attr('reset')))
 
 
 if __name__ == "__main__":
