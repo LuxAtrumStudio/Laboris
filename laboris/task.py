@@ -145,7 +145,7 @@ class Task:
                 elif fmt == "duration":
                     output += t.print_duration(sec) + " "
                 elif fmt == "all":
-                    output += t.print_start(sec) + " " + t.print_end(sec) + " " + t.print_duration(sec) + " "
+                    output += t.print_start(sec) + " - " + t.print_end(sec) + ": " + t.print_duration(sec) + " "
             return output[:-1]
         elif len(self.times) > index:
             if fmt == "start":
@@ -155,7 +155,7 @@ class Task:
             elif fmt == "duration":
                 return self.times[index].print_duration(sec)
             elif fmt == "all":
-                return self.times[index].print_start(sec) + " " + self.times[index].print_end(sec) + " " + self.times[
+                return self.times[index].print_start(sec) + " - " + self.times[index].print_end(sec) + ": " + self.times[
                     index].print_duration(sec)
         return ""
 

@@ -25,7 +25,7 @@ class Interval:
 
     def print_start(self, sec=False):
         if self.start is None:
-            return " - "
+            return "NOW"
         if sec is True:
             return self.start.strftime("%H:%M:%S")
         elif sec is False:
@@ -33,7 +33,7 @@ class Interval:
 
     def print_end(self, sec=False):
         if self.end is None:
-            return " - "
+            return "NOW"
         if sec is True:
             return self.end.strftime("%H:%M:%S")
         elif sec is False:
@@ -47,7 +47,6 @@ class Interval:
                 return "00:00:00"
         elif self.end is None:
             t = datetime.now() - self.start
-            print(t.seconds)
             second = t.seconds
             minute = int(second / 60)
             second -= (minute * 60)

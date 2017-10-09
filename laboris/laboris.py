@@ -9,7 +9,8 @@ from datetime import datetime
 
 def main():
     pending, done = data.load_data()
-    print.print_set(pending)
+    print.print_set(pending, "times|description")
+    print.print_task(pending[0])
     data.save_data(pending, done)
 
 
