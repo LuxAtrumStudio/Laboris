@@ -1,16 +1,12 @@
 #!/usr/bin/python3
 
 import data
-import task
-from color import fg, bg, attr, stylize
-import print
-from datetime import datetime
+import parser
 
 
 def main():
     pending, done = data.load_data()
-    print.print_set(pending, "times|description")
-    print.print_task(pending[0])
+    parser.parse_args(pending, done)
     data.save_data(pending, done)
 
 

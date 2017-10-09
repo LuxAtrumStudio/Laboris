@@ -1,7 +1,7 @@
 from color import fg, bg, stylize, attr
 
 
-def print_entry(task, fmt, sizes, spacing=2):
+def print_entry(task, fmt, sizes, spacing=1):
     fmt = fmt.split('|')
     output = str()
     for i, part in enumerate(fmt):
@@ -10,45 +10,45 @@ def print_entry(task, fmt, sizes, spacing=2):
         elif part == "project":
             output += "{:{}}".format(task.print_project(), sizes[i])
         elif part == "tag":
-            output += task.print_tag()
+            output += "{:{}}".format(task.print_tag(), sizes[i])
         elif part == "uuid":
-            output += task.uuid
+            output += "{:{}}".format(task.uuid, sizes[i])
         elif part == "priority":
-            output += str(task.priority)
-        elif part == "urgency":
-            output += "{:.4}".format(task.urgency)
+            output += "{:{}}".format(task.priority, sizes[i])
+        elif part == "urgency" or part == "urg":
+            output += "{:{}}".format("{:.4}".format(task.urgency), sizes[i] + 1)
         elif part.startswith("entry"):
             tmp = part.split(';')
             if len(tmp) >= 2:
-                output += task.print_date_entry(tmp[1])
+                output += "{:{}}".format(task.print_date_entry(tmp[1]), sizes[i])
             else:
-                output += task.print_date_entry()
-        elif part == "due":
+                output += "{:{}}".format(task.print_date_entry(), sizes[i])
+        elif part.startswith("due"):
             tmp = part.split(';')
-            if len(tmp) >= 2:
-                output += task.print_date_due(tmp[1])
+            if len(tmp) > 1:
+                output += "{:{}}".format(task.print_date_due(tmp[1]),sizes[i])
             else:
-                output += task.print_date_due()
-        elif part == "done":
+                output += "{:{}}".format(task.print_date_due(), sizes[i])
+        elif part.startswith("done"):
             tmp = part.split(';')
-            if len(tmp) >= 2:
-                output += task.print_date_done(tmp[1])
+            if len(tmp) > 1:
+                output += "{:{}}".format(task.print_date_done(tmp[1]), sizes[i])
             else:
-                output += task.print_date_done()
+                output += "{:{}}".format(task.print_date_done(), sizes[i])
         elif part == "status":
             tmp = part.split(';')
             if len(tmp) > 1:
-                output += task.print_status(tmp[1])
+                output += "{:{}}".format(task.print_status(tmp[1]), sizes[i])
             else:
-                output += task.print_status()
+                output += "{:{}}".format(task.print_status(), sizes[i])
         elif part == "id":
-            output += str(task.id)
+            output += "{:{}}".format(task.id, sizes[i])
         elif part == "times":
             tmp = part.split(';')
             if len(tmp) > 1:
-                output += task.print_interval(tmp[1])
+                output += "{:{}}".format(task.print_interval(tmp[1]), sizes[i])
             else:
-                output += task.print_interval()
+                output += "{:{}}".format(task.print_interval(), sizes[i])
         output += ' ' * spacing
     output = output[:-2]
     if task.is_overdue() is True:
@@ -72,7 +72,7 @@ def print_line(line, index):
 
 
 def get_max_size(tasks, term):
-    m = len(term)
+    m = len(term.split(';')[0])
     for t in tasks:
         if term == "description":
             m = max(m, len(t.description))
@@ -84,7 +84,7 @@ def get_max_size(tasks, term):
             m = max(m, len(t.uuid))
         elif term == "priority":
             m = max(m, len(t.priority))
-        elif term == "urgency":
+        elif term == "urgency" or term == "urg":
             m = max(m, len("{:.4}".format(t.urgency)))
         elif term.startswith("entry"):
             tmp = term.split(';')
@@ -124,14 +124,14 @@ def get_max_size(tasks, term):
 
 def print_set(tasks, fmt=None):
     if fmt is None:
-        fmt = "id|entry|project|due|description|urgency"
+        fmt = "id|entry|project|due|description|urg"
     parts = fmt.split('|')
     sizes = []
     for p in parts:
         sizes.append(get_max_size(tasks, p))
     for i, p in enumerate(parts):
         p = p.split(';')[0]
-        print(stylize("{:{}}", [fg('white'), attr('underlined')]).format(p.title(), sizes[i]), end='  ')
+        print(stylize("{:{}}", [fg('white'), attr('underlined')]).format(p.title(), sizes[i]), end=' ')
     print()
     for i, t in enumerate(tasks):
         print_line(print_entry(t, fmt, sizes), i)
@@ -157,21 +157,21 @@ def print_task(task, fmt=None):
             value_size = max(value_size, len(task.uuid))
         elif part == "priority":
             value_size = max(value_size, len(task.priority))
-        elif part == "urgency":
+        elif part == "urgency" or part == "urg":
             value_size = max(value_size, len("{:.04}".format(task.urgency)))
-        elif part.startswith("entry"):
+        elif part.startswith("entry") and task.entry_date is not None:
             tmp = part.split(';')
             if len(tmp) > 1:
                 value_size = max(value_size, len(task.print_date_entry(tmp[1])))
             else:
                 value_size = max(value_size, len(task.print_date_entry()))
-        elif part.startswith("due"):
+        elif part.startswith("due") and task.due_date is not None:
             tmp = part.split(';')
             if len(tmp) > 1:
                 value_size = max(value_size, len(task.print_date_due(tmp[1])))
             else:
                 value_size = max(value_size, len(task.print_date_due()))
-        elif part.startswith("done"):
+        elif part.startswith("done") and task.done_date is not None:
             tmp = part.split(';')
             if len(tmp) > 1:
                 value_size = max(value_size, len(task.print_date_done(tmp[1])))
@@ -238,7 +238,6 @@ def print_task(task, fmt=None):
             tmp = part.split(';')
             if len(tmp) > 1:
                 print_line("{:{}}   {:{}}".format("Due", name_size, task.print_date_due(tmp[1]), value_size), index)
-                value_size = max(value_size, len(task.print_date_due(tmp[1])))
             else:
                 print_line("{:{}}   {:{}}".format("Due", name_size, task.print_date_due(), value_size), index)
         elif part.startswith("done") and task.done_date is not None:
