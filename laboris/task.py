@@ -13,7 +13,7 @@ class Task:
         DONE = 1
         PENDING = 2
 
-    def __init__(self, _desc=str(), _project=list(), _tag=(), _priority=int(), _entry=None, _due=None, _done=None):
+    def __init__(self, _desc=str(), _project=list(), _tag=list(), _priority=int(), _entry=None, _due=None, _done=None):
         self.description = _desc
         self.project = _project
         self.tag = _tag
@@ -26,6 +26,7 @@ class Task:
         self.status = self.Status.PENDING
         self.id = int()
         self.times = list()
+        self.active = False
 
     def __repr__(self):
         return "{} {} {} {} {} {}".format(self.priority, self.print_date_entry("abbr"), self.print_date_due("abbr"),
@@ -52,6 +53,20 @@ class Task:
             return self.tag[index]
         else:
             return str()
+
+    def print_id(self):
+        if self.status is self.Status.DONE:
+            return "-"
+        else:
+            return str(self.id)
+
+    def print_uuid(self, fmt=None):
+        if fmt is None or fmt == "long":
+            return str(self.uuid)
+        elif fmt == "short":
+            return str(self.uuid)[:8]
+        else:
+            return ""
 
     def print_status(self, fmt=None):
         if self.status is self.Status.PENDING:
@@ -94,11 +109,11 @@ class Task:
 
     def print_date_entry(self, fmt=None):
         if fmt is None:
-            return self.entry_date.strftime("%d-%m-%y %H:%M:%S")
+            return self.entry_date.strftime("%d-%m-%Y %H:%M:%S")
         elif fmt == "abbr":
             return self.print_date_abbr(self.entry_date, datetime.now())
         elif fmt == "date":
-            return self.entry_date.strftime("%d-%m-%y")
+            return self.entry_date.strftime("%d-%m-%Y")
         elif fmt == "time":
             return self.entry_date.strftime("%H:%M:%S")
         else:
@@ -108,11 +123,11 @@ class Task:
         if self.due_date is None:
             return str()
         if fmt is None:
-            return self.due_date.strftime("%d-%m-%y %H:%M:%S")
+            return self.due_date.strftime("%d-%m-%Y %H:%M:%S")
         elif fmt == "abbr":
             return self.print_date_abbr(datetime.now(), self.due_date)
         elif fmt == "date":
-            return self.due_date.strftime("%d-%m-%y")
+            return self.due_date.strftime("%d-%m-%Y")
         elif fmt == "time":
             return self.due_date.strftime("%H:%M:%S")
         else:
@@ -122,11 +137,11 @@ class Task:
         if self.done_date is None:
             return str()
         if fmt is None:
-            return self.done_date.strftime("%d-%m-%y %H:%M:%S")
+            return self.done_date.strftime("%d-%m-%Y %H:%M:%S")
         elif fmt == "abbr":
             return self.print_date_abbr(self.done_date, datetime.now())
         elif fmt == "date":
-            return self.done_date.strftime("%d-%m-%y")
+            return self.done_date.strftime("%d-%m-%Y")
         elif fmt == "time":
             return self.done_date.strftime("%H:%M:%S")
         else:
@@ -178,7 +193,10 @@ class Task:
                 new_interval = interval.Interval()
                 new_interval.parse_json(t)
                 self.times.append(new_interval)
+                if new_interval.is_done() is False:
+                    self.active = True
         self.calculate_urgency()
+        self.uuid = uuid.uuid3(uuid.NAMESPACE_URL, self.description)
 
     def get_json(self):
         data = dict()
@@ -218,6 +236,8 @@ class Task:
         self.urgency += abs(1.00 * self.priority)
         self.urgency += abs(0.20 * len(self.tag))
         self.urgency += abs(1.00 * len(self.project))
+        if self.active is True:
+            self.urgency += abs(1.0 * 4)
         if self.status is self.Status.DONE:
             self.urgency = 0.0
 

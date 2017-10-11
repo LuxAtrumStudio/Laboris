@@ -2,12 +2,21 @@ from datetime import datetime
 
 
 class Interval:
-    def __init__(self, start=None, end=None):
+    def __init__(self, start=datetime.now(), end=None):
         self.start = start
         self.end = end
 
     def __repr__(self):
         pass
+
+    def is_done(self):
+        if self.end is None:
+            return False
+        else:
+            return True
+
+    def stop(self):
+        self.end = datetime.now()
 
     def parse_json(self, data):
         if len(data) > 0:

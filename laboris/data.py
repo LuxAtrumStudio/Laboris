@@ -20,14 +20,17 @@ def load_data():
         pending_tasks.append(new_task)
     for entry in done_data:
         new_task = task.Task()
+        new_task.status = new_task.Status.DONE
         new_task.parse_json(entry)
         new_task.id = len(done_tasks) + 1
-        new_task.status = new_task.Status.Done
         done_tasks.append(new_task)
+
     return pending_tasks, done_tasks
 
 
 def save_data(pending_tasks, done_tasks):
+    pending_tasks = sorted(pending_tasks, key=lambda task: task.entry_date)
+    done_tasks = sorted(done_tasks, key=lambda task: task.entry_date)
     path_pending = os.path.expanduser("~/.laboris/pending.json")
     pending_data = []
     for t in pending_tasks:

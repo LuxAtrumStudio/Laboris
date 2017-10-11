@@ -6,43 +6,47 @@ def print_entry(task, fmt, sizes, spacing=1):
     output = str()
     for i, part in enumerate(fmt):
         if part == "description":
-            output += "{:{}}".format(task.description, sizes[i])
+            output += "{:{}}".format(task.description, sizes[i] + 1)
         elif part == "project":
             output += "{:{}}".format(task.print_project(), sizes[i])
         elif part == "tag":
             output += "{:{}}".format(task.print_tag(), sizes[i])
-        elif part == "uuid":
-            output += "{:{}}".format(task.uuid, sizes[i])
-        elif part == "priority":
+        elif part.startswith("uuid"):
+            tmp = part.split(';')
+            if len(tmp) > 1:
+                output += "{:{}}".format(task.print_uuid(tmp[1]), sizes[i])
+            else:
+                output += "{:{}}".format(task.print_uuid(), sizes[i])
+        elif part == "priority" or part == "p":
             output += "{:{}}".format(task.priority, sizes[i])
         elif part == "urgency" or part == "urg":
-            output += "{:{}}".format("{:.4}".format(task.urgency), sizes[i] + 1)
-        elif part.startswith("entry"):
+            output += "{:{}}".format("{:.3}".format(task.urgency), sizes[i] + 1)
+        elif part.startswith("entry") or part.startswith("age"):
             tmp = part.split(';')
             if len(tmp) >= 2:
-                output += "{:{}}".format(task.print_date_entry(tmp[1]), sizes[i])
+                output += "{:>{}}".format(task.print_date_entry(tmp[1]), sizes[i])
             else:
-                output += "{:{}}".format(task.print_date_entry(), sizes[i])
+                output += "{:>{}}".format(task.print_date_entry(), sizes[i])
         elif part.startswith("due"):
             tmp = part.split(';')
             if len(tmp) > 1:
-                output += "{:{}}".format(task.print_date_due(tmp[1]),sizes[i])
+                output += "{:>{}}".format(task.print_date_due(tmp[1]), sizes[i])
             else:
-                output += "{:{}}".format(task.print_date_due(), sizes[i])
+                output += "{:>{}}".format(task.print_date_due(), sizes[i])
         elif part.startswith("done"):
             tmp = part.split(';')
             if len(tmp) > 1:
-                output += "{:{}}".format(task.print_date_done(tmp[1]), sizes[i])
+                output += "{:>{}}".format(task.print_date_done(tmp[1]), sizes[i])
             else:
-                output += "{:{}}".format(task.print_date_done(), sizes[i])
-        elif part == "status":
+                output += "{:>{}}".format(task.print_date_done(), sizes[i])
+        elif part.startswith("status") or part.startswith("st"):
             tmp = part.split(';')
             if len(tmp) > 1:
                 output += "{:{}}".format(task.print_status(tmp[1]), sizes[i])
             else:
                 output += "{:{}}".format(task.print_status(), sizes[i])
         elif part == "id":
-            output += "{:{}}".format(task.id, sizes[i])
+            output += "{:{}}".format(task.print_id(), sizes[i])
         elif part == "times":
             tmp = part.split(';')
             if len(tmp) > 1:
@@ -51,7 +55,11 @@ def print_entry(task, fmt, sizes, spacing=1):
                 output += "{:{}}".format(task.print_interval(), sizes[i])
         output += ' ' * spacing
     output = output[:-2]
-    if task.is_overdue() is True:
+    if task.active is True:
+        output = stylize(output, [fg('black'), bg('light_green')])
+    elif task.status == task.Status.DONE:
+        output = stylize(output, [fg('dark_gray')])
+    elif task.is_overdue() is True:
         output = stylize(output, [fg('white'), bg('red')])
     elif task.due_today() is True:
         output = stylize(output, [fg('red'), bg('yellow')])
@@ -80,13 +88,17 @@ def get_max_size(tasks, term):
             m = max(m, len(t.print_project()))
         elif term == "tag":
             m = max(m, len(t.print_tag()))
-        elif term == "uuid":
-            m = max(m, len(t.uuid))
-        elif term == "priority":
-            m = max(m, len(t.priority))
+        elif term.startswith("uuid"):
+            tmp = term.split(';')
+            if len(tmp) > 1:
+                m = max(m, len(t.print_uuid(tmp[1])))
+            else:
+                m = max(m, len(t.print_uuid()))
+        elif term == "priority" or term == "p":
+            m = max(m, len(str(t.priority)))
         elif term == "urgency" or term == "urg":
-            m = max(m, len("{:.4}".format(t.urgency)))
-        elif term.startswith("entry"):
+            m = max(m, len("{:.3}".format(t.urgency)))
+        elif term.startswith("age") or term.startswith("entry"):
             tmp = term.split(';')
             if len(tmp) > 1:
                 m = max(m, len(t.print_date_entry(tmp[1])))
@@ -106,7 +118,7 @@ def get_max_size(tasks, term):
                 m = max(m, len(t.print_date_done()))
         elif term == "id":
             m = max(m, len(str(t.id)))
-        elif term.startswith("status"):
+        elif term.startswith("status") or term.startswith("st"):
             tmp = term.split(';')
             if len(tmp) > 1:
                 m = max(m, len(t.print_status(tmp[1])))
@@ -123,6 +135,7 @@ def get_max_size(tasks, term):
 
 
 def print_set(tasks, fmt=None):
+    tasks = sorted(tasks, key=lambda task: task.urgency, reverse=True)
     if fmt is None:
         fmt = "id|entry|project|due|description|urg"
     parts = fmt.split('|')
@@ -139,7 +152,7 @@ def print_set(tasks, fmt=None):
 
 def print_task(task, fmt=None):
     if fmt is None:
-        fmt = "id|description|status;long|project|tag|entry|due|done|urgency|times"
+        fmt = "id|priority|description|status;long|project|tag|entry|due|done|urgency|uuid|times"
     fmt = fmt.split('|')
     name_size = 4
     for part in fmt:
@@ -153,10 +166,14 @@ def print_task(task, fmt=None):
             value_size = max(value_size, len(max(task.project, key=len)))
         elif part == "tag" and len(task.tag) != 0:
             value_size = max(value_size, len(max(task.tag, key=len)))
-        elif part == "uuid":
-            value_size = max(value_size, len(task.uuid))
-        elif part == "priority":
-            value_size = max(value_size, len(task.priority))
+        elif part.startswith("uuid"):
+            tmp = part.split(';')
+            if len(tmp) > 1:
+                value_size = max(value_size, len(task.print_uuid(tmp[1])))
+            else:
+                value_size = max(value_size, len(task.print_uuid()))
+        elif part == "priority" or part == "p":
+            value_size = max(value_size, len(str(task.priority)))
         elif part == "urgency" or part == "urg":
             value_size = max(value_size, len("{:.04}".format(task.urgency)))
         elif part.startswith("entry") and task.entry_date is not None:
@@ -179,7 +196,7 @@ def print_task(task, fmt=None):
                 value_size = max(value_size, len(task.print_date_done()))
         elif part == "id":
             value_size = max(value_size, len(str(task.id)))
-        elif part.startswith("status"):
+        elif part.startswith("status") or part.startswith("st"):
             tmp = part.split(';')
             if len(tmp) > 1:
                 value_size = max(value_size, len(task.print_status(tmp[1])))
@@ -217,10 +234,14 @@ def print_task(task, fmt=None):
                     print_line("{:{}}   {:{}}".format("", name_size, task.print_tag(j), value_size), index)
                 index += 1
             index -= 1
-        elif part == "uuid":
+        elif part.startswith("uuid"):
+            tmp = part.split(';')
+            if len(tmp) > 1:
+                print_line("{:{}}   {:{}}".format("UUID", name_size, task.print_uuid(tmp[1]), value_size), index)
+            else:
+                print_line("{:{}}   {:{}}".format("UUID", name_size, task.print_uuid(), value_size), index)
             index += 1
-            print_line("{:{}}   {:{}}".format("UUID", name_size, task.uuid, value_size), index)
-        elif part == "priority":
+        elif part == "priority" or part == "p":
             index += 1
             print_line("{:{}}   {:{}}".format("Priority", name_size, str(task.priority), value_size), index)
         elif part == "urgency":
@@ -250,7 +271,7 @@ def print_task(task, fmt=None):
         elif part == "id":
             index += 1
             print_line("{:{}}   {:{}}".format("ID", name_size, str(task.id), value_size), index)
-        elif part.startswith("status"):
+        elif part.startswith("status") or part.startswith("st"):
             index += 1
             tmp = part.split(';')
             if len(tmp) > 1:
