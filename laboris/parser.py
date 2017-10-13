@@ -99,44 +99,78 @@ def add_task(args, pending):
     return True
 
 
-def modify_task(index, args, pending, done):
+def modify_task(index, args, pending, done, from_pending):
     mod_des = False
     mod_pro = False
     mod_tag = False
     for arg in args:
         if arg.startswith("p:") or arg.startswith("priority:"):
             arg = arg.split(':')[1]
-            pending[index].priority = int(arg)
+            if from_pending is True:
+                pending[index].priority = int(arg)
+            else:
+                done[index].priority = int(arg)
         elif arg.startswith("due:"):
             arg = arg[4:]
-            pending[index].due_date = get_date(arg)
+            if from_pending is True:
+                pending[index].due_date = get_date(arg)
+            else:
+                done[index].due_date = get_date(arg)
         elif arg.startswith("+"):
             if mod_pro is False:
                 mod_pro = True
-                pending[index].project = list()
+                if from_pending is True:
+                    pending[index].project = list()
+                else:
+                    done[index].project = list()
             arg = arg[1:]
-            pending[index].project.append(arg)
+            if from_pending is True:
+                pending[index].project.append(arg)
+            else:
+                done[index].project.append(arg)
         elif arg.startswith("@"):
             if mod_tag is False:
                 mod_tag = True
-                pending[index].tag = list()
+                if from_pending is True:
+                    pending[index].tag = list()
+                else:
+                    done[index].tag = list()
             arg = arg[1:]
-            pending[index].tag.append(arg)
+            if from_pending is True:
+                pending[index].tag.append(arg)
+            else:
+                done[index].tag.append(arg)
         else:
             if mod_des is False:
                 mod_des = True
-                pending[index].description = str()
-            pending[index].description += arg + ' '
+                if from_pending is True:
+                    pending[index].description = str()
+                else:
+                    done[index].description = str()
+            if from_pending is True:
+                pending[index].description += arg + ' '
+            else:
+                done[index].description += arg + ' '
 
     if mod_des is True:
-        pending[index].description = pending[index].description[:-1]
+        if from_pending is True:
+            pending[index].description = pending[index].description[:-1]
+        else:
+            done[index].description = done[index].description[:-1]
 
-    pending[index].calculate_urgency()
-    print("{}Modified Task: {}{}".format(fg('green'), pending[index].id, attr('reset')))
-    print("{}\"{}\"{}".format(fg('green'), pending[index].description, attr('reset')))
+    if from_pending is True:
+        pending[index].calculate_urgency()
+        print("{}Modified Task: {}{}".format(fg('green'), pending[index].id, attr('reset')))
+        print("{}\"{}\"{}".format(fg('green'), pending[index].description, attr('reset')))
+    else:
+        done[index].calculate_urgency()
+        print("{}Modified Task: {}{}".format(fg('green'), done[index].id, attr('reset')))
+        print("{}\"{}\"{}".format(fg('green'), done[index].description, attr('reset')))
 
 
-def complete_task(index, pending, done):
+def complete_task(index, pending, done, from_pending):
+    if from_pending is False:
+        return
     pending[index].done_date = datetime.now()
     done.append(pending[index])
     print("{}Completed Task: {}{}".format(fg('yellow'), index, attr('reset')))
@@ -144,13 +178,21 @@ def complete_task(index, pending, done):
     del pending[index]
 
 
-def delete_task(index, pending, done):
-    print("{}Deleted Task: {}{}".format(fg('red'), index, attr('reset')))
-    print("{}\"{}\"{}".format(fg('red'), pending[index].description, attr('reset')))
-    del pending[index]
+def delete_task(index, pending, done, from_pending):
+    if from_pending is True:
+        print("{}Deleted Task: {}{}".format(fg('red'), index, attr('reset')))
+        print("{}\"{}\"{}".format(fg('red'), pending[index].description, attr('reset')))
+        del pending[index]
+    if from_pending is False:
+        print("{}Deleted Task: {}{}".format(fg('red'), done[index].print_uuid("short"), attr('reset')))
+        print("{}\"{}\"{}".format(fg('red'), done[index].description, attr('reset')))
+        del done[index]
 
 
-def start_interval(index, pending):
+def start_interval(index, pending, done, from_pending):
+    if from_pending is False:
+        print("{}Cannot start task \"{}\" from completed tasks.{}".format(fg('red'), done[index].print_uuid("short"), attr('reset')))
+        return
     if pending[index].active is False:
         pending[index].times.append(interval.Interval())
         print("{}Starting task {}".format(fg('yellow'), index + 1, attr('reset')))
@@ -160,7 +202,10 @@ def start_interval(index, pending):
         print("{}\"{}\"{}".format(fg('red'), pending[index].description, attr('reset')))
 
 
-def end_interval(index, pending):
+def end_interval(index, pending, done, from_pending):
+    if from_pending is False:
+        print("{}Cannot start task \"{}\" from completed tasks.{}".format(fg('red'), done[index].print_uuid("short"), attr('reset')))
+        return
     if pending[index].active is True:
         pending[index].times[-1].stop()
         print("{}Stopping task {}".format(fg('yellow'), index + 1, attr('reset')))
@@ -180,25 +225,41 @@ def parse_cmd(args, pending, done):
     return False
 
 
+def get_task_index(str, pending, done):
+    if str.isdigit() is True and int(str) - 1 < len(pending):
+        return int(str) - 1, True
+    for i, task in enumerate(pending):
+        if str == task.print_uuid("short") or str == task.print_uuid("long"):
+            return i, True
+    for i, task in enumerate(done):
+        if str == task.print_uuid("short") or str == task.print_uuid("long"):
+            return i, False
+    return None, False
+
+
 def parse_task_id_cmd(args, pending, done):
-    if args[0].isdigit() is True and int(args[0]) - 1 < len(pending):
+    index, sset = get_task_index(args[0], pending, done)
+    if sset is True:
+        tset = pending
+    else:
+        tset = done
+    if index is None:
+        return False
+    else:
         if len(args) == 1:
-            printer.print_task(pending[int(args[0]) - 1])
+            printer.print_task(tset[index])
         else:
             if args[1] == "done":
-                complete_task(int(args[0]) - 1, pending, done)
+                complete_task(index, pending, done, sset)
             elif args[1] == "delete":
-                delete_task(int(args[0]) - 1, pending, done)
+                delete_task(index, pending, done, sset)
             elif args[1] == "modify":
-                modify_task(int(args[0]) - 1, args[2:], pending, done)
+                modify_task(index, args[2:], pending, done, sset)
             elif args[1] == "start":
-                start_interval(int(args[0]) - 1, pending)
+                start_interval(index, pending, done, sset)
             elif args[1] == "stop":
-                end_interval(int(args[0]) - 1, pending)
+                end_interval(index, pending, done, sset)
         return True
-    elif args[0].isdigit() is True and int(args[0]) - 1 >= len(pending):
-        print(stylize("Task ID \'{}\' is out of range", [fg('red'), attr('bold')]).format(args[0]))
-    return False
 
 
 def parse_list(args, pending, done):
@@ -222,7 +283,7 @@ def parse_list(args, pending, done):
     for arg in args:
         fmt += arg + '|'
     if fmt == "" and i_set == 0:
-        fmt = "id|entry;abbr|project|due;abbr|description|urg"
+        fmt = "id|age;abbr|project|due;abbr|description|urg"
     elif fmt == "" and i_set == 1:
         fmt = "id|st|uuid;short|age;abbr|done;abbr|p|project|due;date|description"
     elif fmt == "" and i_set == 2:
@@ -236,9 +297,9 @@ def parse_list(args, pending, done):
 def parse_args(pending, done):
     args = sys.argv[1:]
     if len(args) == 0:
-        printer.print_set(pending, "id|entry;abbr|project|due;abbr|description|urg")
+        printer.print_set(pending, "id|p|age;abbr|project|due;abbr|description|urg")
         print()
     elif parse_cmd(args, pending, done) is False and parse_task_id_cmd(args, pending, done) is False and parse_list(args, pending, done) is False:
-        printer.print_set(pending, "id|entry;abbr|project|due;abbr|description|urg")
+        printer.print_set(pending, "id|p|entry;abbr|project|due;abbr|description|urg")
         print()
         print(stylize("Invalid command: \"{}\"", [fg('red'), attr('bold')]).format(' '.join(args)))

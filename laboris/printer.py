@@ -137,7 +137,7 @@ def get_max_size(tasks, term):
 def print_set(tasks, fmt=None):
     tasks = sorted(tasks, key=lambda task: task.urgency, reverse=True)
     if fmt is None:
-        fmt = "id|entry|project|due|description|urg"
+        fmt = "id|p|entry|project|due|description|urg"
     parts = fmt.split('|')
     sizes = []
     for p in parts:
