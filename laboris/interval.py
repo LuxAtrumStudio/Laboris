@@ -18,6 +18,16 @@ class Interval:
     def stop(self):
         self.end = datetime.now()
 
+    def duration(self):
+        if self.start is None:
+            return 0
+        elif self.end is None:
+            t = datetime.now() - self.start
+            return t.seconds
+        else:
+            t = self.end - self.start
+            return t.seconds
+
     def parse_json(self, data):
         if len(data) > 0:
             self.start = datetime.fromtimestamp(data[0])

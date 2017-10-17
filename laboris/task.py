@@ -2,6 +2,7 @@
 
 import time
 import interval
+import settings as s
 import json
 import uuid
 from enum import Enum
@@ -9,11 +10,19 @@ from datetime import datetime, date, time
 
 
 class Task:
+
     class Status(Enum):
         DONE = 1
         PENDING = 2
 
-    def __init__(self, _desc=str(), _project=list(), _tag=list(), _priority=int(), _entry=None, _due=None, _done=None):
+    def __init__(self,
+                 _desc=str(),
+                 _project=list(),
+                 _tag=list(),
+                 _priority=int(),
+                 _entry=None,
+                 _due=None,
+                 _done=None):
         self.description = _desc
         self.project = _project
         self.tag = _tag
@@ -27,10 +36,6 @@ class Task:
         self.id = int()
         self.times = list()
         self.active = False
-
-    def __repr__(self):
-        return "{} {} {} {} {} {}".format(self.priority, self.print_date_entry("abbr"), self.print_date_due("abbr"),
-                                          self.print_project(), self.description, self.urgency)
 
     def print_project(self, index=None):
         if index is None:
@@ -160,8 +165,9 @@ class Task:
                 elif fmt == "duration":
                     output += t.print_duration(sec) + " "
                 elif fmt == "all":
-                    output += t.print_start(sec) + " - " + t.print_end(sec) + ": " + t.print_duration(sec) + " "
-            return output[:-1]
+                    output += t.print_start(sec) + " - " + t.print_end(
+                        sec) + ": " + t.print_duration(sec) + " "
+                    return output[:-1]
         elif len(self.times) > index:
             if fmt == "start":
                 return self.times[index].print_start(sec)
@@ -170,9 +176,80 @@ class Task:
             elif fmt == "duration":
                 return self.times[index].print_duration(sec)
             elif fmt == "all":
-                return self.times[index].print_start(sec) + " - " + self.times[index].print_end(sec) + ": " + self.times[
-                    index].print_duration(sec)
+                return self.times[index].print_start(sec) + " - " + self.times[index].print_end(sec) + ": " +\
+                        self.times[index].print_duration(sec)
         return ""
+
+    def print_fmt(self, fmt, sizes=None):
+        fmt = fmt.split('|')
+        output = str()
+        if sizes is None:
+            sizes = [0] * len(fmt)
+        for i, entry in enumerate(fmt):
+            add = entry.split(';')
+            if len(add) > 1:
+                add = add[1]
+            else:
+                add = None
+            if entry == "description":
+                output += "{:<{}}".format(self.description, sizes[i])
+            elif entry == "project":
+                output += "{:<{}}".format(self.print_project(add), sizes[i])
+            elif entry == "tag":
+                output += "{:<{}}".format(self.print_tag(add), sizes[i])
+            elif entry == "uuid":
+                output += "{:<{}}".format(self.print_uuid(add), sizes[i])
+            elif entry == "priority" or entry == 'p':
+                output += "{:<{}}".format(self.priority, sizes[i])
+            elif entry == "urgency" or entry == "urg":
+                output += "{:<{}}".format("{:.3}".format(self.urgency),
+                                          sizes[i])
+            elif entry == "id":
+                output += "{:>{}}".format(self.print_id(), sizes[i])
+            elif entry == "times":
+                output += "{:<{}}".format(self.print_interval(add), sizes[i])
+            elif entry.startswith("entry") or entry.startswith("age"):
+                output += "{:>{}}".format(self.print_date_entry(add), sizes[i])
+            elif entry.startswith("due"):
+                output += "{:>{}}".format(self.print_date_due(add), sizes[i])
+            elif entry.startswith("done"):
+                output += "{:>{}}".format(self.print_date_done(add), sizes[i])
+            elif entry.startswith("status"):
+                output += "{:<{}}".format(self.print_status(add), sizes[i])
+            output += ' '
+        output = output[:-1]
+        return output
+
+    def task_color(self, txt):
+        if self.active is True:
+            txt = s._theme.get_color("active") + txt + s._theme.reset()
+        elif self.status == self.Status.DONE:
+            txt = s._theme.get_color("done") + txt + s._theme.reset()
+        elif self.is_overdue() is True:
+            txt = s._theme.get_color("overdue") + txt + s._theme.reset()
+        elif self.due_today() is True:
+            txt = s._theme.get_color("due_today") + txt + s._theme.reset()
+        elif self.urgency > 10:
+            txt = s._theme.get_color("urg10") + txt + s._theme.reset()
+        elif self.urgency > 9:
+            txt = s._theme.get_color("urg9") + txt + s._theme.reset()
+        elif self.urgency > 8:
+            txt = s._theme.get_color("urg8") + txt + s._theme.reset()
+        elif self.urgency > 7:
+            txt = s._theme.get_color("urg7") + txt + s._theme.reset()
+        elif self.urgency > 6:
+            txt = s._theme.get_color("urg6") + txt + s._theme.reset()
+        elif self.urgency > 5:
+            txt = s._theme.get_color("urg5") + txt + s._theme.reset()
+        elif self.urgency > 4:
+            txt = s._theme.get_color("urg4") + txt + s._theme.reset()
+        elif self.urgency > 3:
+            txt = s._theme.get_color("urg3") + txt + s._theme.reset()
+        elif self.urgency > 2:
+            txt = s._theme.get_color("urg2") + txt + s._theme.reset()
+        elif self.urgency > 1:
+            txt = s._theme.get_color("urg1") + txt + s._theme.reset()
+        return txt
 
     def parse_json(self, json_obj):
         self.description = json_obj['description']
@@ -214,6 +291,12 @@ class Task:
             for t in self.times:
                 data['times'].append(t.get_json())
         return data
+
+    def total_time(self):
+        total = 0
+        for t in self.times:
+            total += t.duration()
+        return total
 
     def is_overdue(self):
         if self.due_date is None:
