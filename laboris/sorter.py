@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class SortMethod(Enum):
     URG = 1
     DESCRIPTION = 2
@@ -56,7 +57,7 @@ def sort_task_set(task_set, method=SortMethod.URG, rev=False):
     elif method is SortMethod.ID:
         task_set.sort(key=lambda task: task.print_id(), reverse=not(True is rev))
     elif method is SortMethod.UUID:
-        task_set.sort(key=lambda task: task.print_UUID(), reverse=not(True is rev))
+        task_set.sort(key=lambda task: task.print_uuid(), reverse=not(True is rev))
     elif method is SortMethod.PROJECT:
         task_set.sort(key=lambda task: task.print_project(), reverse=not(True is rev))
     elif method is SortMethod.TAG:

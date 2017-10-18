@@ -1,7 +1,7 @@
 import theme
 import data
 
-_theme=theme.Theme()
+_theme = theme.Theme()
 _pending = list()
 _done = list()
 

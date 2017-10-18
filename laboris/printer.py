@@ -36,3 +36,34 @@ def print_task_details(task, fmt="id|priority|description|status;long|project|ta
         else:
             print(s._theme.bg() + "{:<{}} {:<{}}".format(entry.split(';')[0].title(), name_width, task.print_fmt(entry), value_width) + s._theme.reset())
 
+
+def print_error(action, msg):
+    if action == "add":
+        print("{}Failed to add task\n{}{}".format(s._theme.get_color("err"), msg, s._theme.reset()))
+    if action == "done":
+        print("{}Failed to complete task\n{}{}".format(s._theme.get_color("err"), msg, s._theme.reset()))
+    if action == "delete":
+        print("{}Failed to complete task\n{}{}".format(s._theme.get_color("err"), msg, s._theme.reset()))
+    if action == "start":
+        print("{}Failed to start task\n{}{}".format(s._theme.get_color("err"), msg, s._theme.reset()))
+    if action == "stop":
+        print("{}Failed to stop task\n{}{}".format(s._theme.get_color("err"), msg, s._theme.reset()))
+
+
+def print_action(action, task=None):
+    if action == "add":
+        print("{}Added task {}\n\'{}\'{}".format(s._theme.get_color("add"), task.id, task.description, s._theme.reset()))
+    elif action == "done":
+        print("{}Completed task {}\n\'{}\'{}".format(s._theme.get_color("completed"), task.id, task.description, s._theme.reset()))
+    elif action == "delete":
+        print("{}Deleted task {}\n\'{}\'{}".format(s._theme.get_color("delete"), task.id, task.description, s._theme.reset()))
+    elif action == "start":
+        print("{}Starting task {} \'{}\'{}".format(s._theme.get_color("start"), task.id, task.description, s._theme.reset()))
+        print("{}Start    : {}{}".format(s._theme.get_color("start"), task.times[-1].print_start(True), s._theme.reset()))
+        print("{}Stop     : {}{}".format(s._theme.get_color("start"), task.times[-1].print_end(True), s._theme.reset()))
+        print("{}Duration : {}{}".format(s._theme.get_color("start"), task.times[-1].print_duration(True), s._theme.reset()))
+    elif action == "stop":
+        print("{}Stopping task {} \'{}\'{}".format(s._theme.get_color("stop"), task.id, task.description, s._theme.reset()))
+        print("{}Start    : {}{}".format(s._theme.get_color("stop"), task.times[-1].print_start(True), s._theme.reset()))
+        print("{}Stop     : {}{}".format(s._theme.get_color("stop"), task.times[-1].print_end(True), s._theme.reset()))
+        print("{}Duration : {}{}".format(s._theme.get_color("stop"), task.times[-1].print_duration(True), s._theme.reset()))

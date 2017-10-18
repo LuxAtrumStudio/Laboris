@@ -3,15 +3,17 @@
 import settings as s
 import printer
 import sorter
+import parser
 import os
 
 
 def main():
     s.init()
     s._theme.parse_file(os.path.expanduser("~/.laboris/default.json"))
-    sorter.sort_task_set(s._pending, "urg")
-    printer.print_task_set(s._pending)
-    printer.print_task_details(s._pending[2])
+    parser.parse_args()
+    # sorter.sort_task_set(s._pending, "urg")
+    # printer.print_task_set(s._pending)
+    # printer.print_task_details(s._pending[2])
     # print(s._pending[0].task_color(s._pending[0].print_fmt(
     #     "id|description|due|age;abbr|urg")))
 

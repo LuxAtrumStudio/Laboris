@@ -44,7 +44,7 @@ class Interval:
 
     def print_start(self, sec=False):
         if self.start is None:
-            return "NOW"
+            return " - "
         if sec is True:
             return self.start.strftime("%H:%M:%S")
         elif sec is False:
@@ -52,7 +52,7 @@ class Interval:
 
     def print_end(self, sec=False):
         if self.end is None:
-            return "NOW"
+            return " - "
         if sec is True:
             return self.end.strftime("%H:%M:%S")
         elif sec is False:
