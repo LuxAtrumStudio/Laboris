@@ -1,6 +1,6 @@
 import re
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import settings as s
 import sorter
@@ -8,7 +8,7 @@ import task
 import printer
 import interval
 import sys
-
+import report
 
 args = list()
 data = dict()
@@ -23,12 +23,20 @@ class Action(Enum):
     START = 5
     STOP = 6
     DELETE = 7
+    MODIFY = 8
+    UNDONE = 9
 
 
 def parse_args():
     global args
     global data
     args = sys.argv[1:]
+    rep = report.is_report(args)
+    if rep is not None:
+        find_project()
+        find_tag()
+        report.report(rep, args, data)
+        return
     find_args()
     action = find_action()
     find_project()
@@ -38,20 +46,81 @@ def parse_args():
         action_add()
     elif action is Action.DONE:
         action_done()
+    elif action is Action.UNDONE:
+        action_undone()
     elif action is Action.START:
         action_start()
     elif action is Action.STOP:
         action_stop()
+    elif action is Action.DELETE:
+        action_delete()
+    elif action is Action.MODIFY:
+        action_modify()
+
+
+def action_modify():
+    global data
+    global args
+    print(data)
+    find_task(True)
+    if "_task" in data and type(data["_task"]) is task.Task:
+        if "priority" in data:
+            data["_task"].priority = int(data["priority"])
+        elif "p" in data:
+            data["_task"].priority = int(data["p"])
+        if "due" in data:
+            print("HERE")
+            data["_task"].due_date = get_date(data["due"])
+        if len(data["_project"]) != 0:
+            data["_task"].project = data["_project"]
+        if len(data["_tag"]) != 0:
+            data["_task"].tag = data["_tag"]
+        if len(args) != 0:
+            data["_task"].description = " ".join(args)
+        printer.print_action("modify", data["_task"])
+    elif "_completed_task" in data and type(
+            data["_completed_task"]) is task.Task:
+        if "priority" in data:
+            data["_comleted_task"].priority = int(data["priority"])
+        elif "p" in data:
+            data["_comleted_task"].priority = int(data["p"])
+        if "due" in data:
+            data["_comleted_task"].due = get_date(data["due"])
+        if len(data["_project"]) != 0:
+            data["_comleted_task"].project = data["_project"]
+        if len(data["_tag"]) != 0:
+            data["_comleted_task"].tag = data["_tag"]
+        if len(args) != 0:
+            data["_comleted_task"].description = " ".join(args)
+        printer.print_action("modify", data["_completed_task"])
+    else:
+        printer.print_error("modify", "No task found")
+
+
+def action_delete():
+    find_task()
+    if "_task" in data and type(data["_task"]) is task.Task:
+        s._pending.remove(data["_task"])
+        printer.print_action("delete", data["_task"])
+    elif "_completed_task" in data and type(
+            data["_completed_task"]) is task.Task:
+        s._done.remove(data["_completed_task"])
+        printer.print_action("delete", data["_completed_task"])
+    else:
+        printer.print_error("delete", "No task found")
 
 
 def action_stop():
     find_task()
     if "_task" in data and type(data["_task"]) is task.Task:
-        if len(data["_task"].times) != 0 and data["_task"].times[-1].is_done() is False:
+        if len(data["_task"]
+               .times) != 0 and data["_task"].times[-1].is_done() is False:
             data["_task"].times[-1].stop()
             printer.print_action("stop", data["_task"])
         else:
-            printer.print_error("stop", "Task {} has not been started".format(data["_task"].print_id()))
+            printer.print_error(
+                "stop",
+                "Task {} has not been started".format(data["_task"].print_id()))
     else:
         printer.print_error("stop", "No task found")
 
@@ -61,6 +130,10 @@ def action_start():
     if "_task" in data and type(data["_task"]) is task.Task:
         data["_task"].times.append(interval.Interval())
         printer.print_action("start", data["_task"])
+        tmp_set = s._pending
+        sorter.sort_task_set(tmp_set, "urg")
+        if data["_task"].urgency < tmp_set[0].urgency:
+            printer.print_action("urg")
     else:
         printer.print_error("start", "No task found")
 
@@ -71,6 +144,10 @@ def action_done():
         return
     if "_task" in data:
         if type(data["_task"]) is task.Task:
+            if data["_task"].active is True:
+                data["_task"].times[-1].stop()
+                printer.print_action("stop", data["_task"])
+            data["_task"].done_date = datetime.now()
             s._done.append(data["_task"])
             s._pending.remove(data["_task"])
             printer.print_action("done", data["_task"])
@@ -79,7 +156,7 @@ def action_done():
     elif "_completed_task" in data:
         if type(data["_completed_task"]) is task.Task:
             s._done.remove(data["_completed_task"])
-            s._pending.pending(data["_completed_task"])
+            s._pending.append(data["_completed_task"])
             printer.print_action("done", data["_completed_task"])
         else:
             printer.print_error("done", "Cannot specify multiple tasks")
@@ -99,8 +176,9 @@ def action_add():
     elif "p" in data:
         pri = int(data["p"])
     elif "due" in data:
-        due = get_datetime(data["due"])
-    new_task = task.Task(" ".join(args), data["_project"], data["_tag"], pri, entry, due)
+        due = get_date(data["due"])
+    new_task = task.Task(" ".join(args), data["_project"], data["_tag"], pri,
+                         entry, due)
     s._pending.append(new_task)
     printer.print_action("add", new_task)
 
@@ -111,34 +189,105 @@ def action_print(action):
     if action not in [Action.NONE, Action.LIST, Action.SHOW]:
         return
     find_task()
-    if (action is Action.NONE or action is Action.SHOW) and "_task" in data and type(data["_task"]) is task.Task:
+    if (action is Action.NONE or action is Action.SHOW
+       ) and "_task" in data and type(data["_task"]) is task.Task:
         printer.print_task_details(data["_task"])
+    elif (action is Action.NONE or
+          action is Action.SHOW) and "_completed_task" in data and type(
+              data["_completed_task"]) is task.Task:
+        printer.print_task_details(data["_completed_task"])
     elif action is Action.NONE or action is Action.LIST:
+        fmt = "id|p|age;abbr|project|due;abbr|description|urg"
         task_set = None
         if "_task" in data and type(data["_task"]) is list:
             task_set = data["_task"]
         if "all" in args:
+            fmt = "id|st|uuid;short|age;abbr|done;abbr|p|project|due;date|description"
             if task_set is None:
                 task_set = s._pending + s._done
             elif "_completed_task" in data:
                 task_set += data["_completed_task"]
         elif "completed" in args:
+            fmt = "uuid;short|entry;date|done;date|age;abbr|p|project|due;date|description"
             if task_set is None:
                 task_set = s._done
             elif "_completed_task" in data:
                 task_set = data["_completed_task"]
         elif "_task" not in data:
             task_set = s._pending
-        get_project_set(task_set)
-        get_tag_set(task_set)
+        task_set = get_project_set(task_set)
+        task_set = get_tag_set(task_set)
         if "sort" in data:
             sorter.sort_task_set(task_set, data["sort"])
         else:
             sorter.sort_task_set(task_set, "urg")
-        printer.print_task_set(task_set)
+        printer.print_active()
+        printer.print_task_set(task_set, fmt)
 
 
-def get_datetime(val):
+def attempt_date(string, fmt):
+    try:
+        dt = datetime.strptime(string, fmt)
+        if fmt == "%A":
+            cdt = datetime.now()
+            string = string.title()
+            while cdt.strftime("%A") != string:
+                cdt += timedelta(days=1)
+            dt = dt.replace(year=cdt.year, month=cdt.month, day=cdt.day)
+        if fmt.startswith("%AT"):
+            string = string.split('T')[0]
+            cdt = datetime.now()
+            string = string.title()
+            while cdt.strftime("%A") != string:
+                cdt += timedelta(days=1)
+            dt = dt.replace(year=cdt.year, month=cdt.month, day=cdt.day)
+    except ValueError:
+        return False
+    return dt
+
+
+def try_date_format_set(arg, fmts):
+    for fmt in fmts:
+        if attempt_date(arg, fmt) is not False:
+            return attempt_date(arg, fmt)
+    return None
+
+
+def get_date(arg):
+    dmy = [
+        "%d-%m-%Y", "%d-%m-%y", "%m-%d-%Y", "%m-%d-%y", "%Y-%m-%d", "%y-%m-%d",
+        "%d/%m/%Y", "%d/%m/%y", "%m/%d/%Y", "%m/%d/%y", "%Y/%m/%d", "%y/%m/%d"
+    ]
+    dmyhm = [
+        "%d-%m-%YT%H:%M", "%d-%m-%yT%H:%M", "%m-%d-%YT%H:%M", "%m-%d-%yT%H:%M",
+        "%Y-%m-%dT%H:%M", "%y-%m-%dT%H:%M", "%d/%m/%YT%H:%M", "%d/%m/%yT%H:%M",
+        "%m/%d/%YT%H:%M", "%m/%d/%yT%H:%M", "%Y/%m/%dT%H:%M", "%y/%m/%dT%H:%M"
+    ]
+    a = ["%A"]
+    ahm = ["%AT%H:%M", "%AT%H:%M:%S"]
+    dm = ["%d-%m", "%m-%d", "%d/%m", "%m/%d"]
+    hms = ["%H:%M", "%H.%M", "%H:%M:%S", "%H.%M.%S"]
+
+    dt = datetime.now()
+    adt = try_date_format_set(arg, dmy)
+    if adt is not None:
+        return dt.replace(year=adt.year, month=adt.month, day=adt.day)
+    adt = try_date_format_set(arg, dm)
+    if adt is not None:
+        return dt.replace(month=adt.month, day=adt.day)
+    adt = try_date_format_set(arg, hms)
+    if adt is not None:
+        return dt.replace(hour=adt.hour, minute=adt.minute, second=adt.second)
+    adt = try_date_format_set(arg, dmyhm)
+    if adt is not None:
+        return adt
+    adt = try_date_format_set(arg, a)
+    if adt is not None:
+        return adt
+    adt = try_date_format_set(arg, ahm)
+    if adt is not None:
+        return adt
+    printer.print_error("date", "Invalid date format: \"{}\"".format(arg))
     return datetime.now()
 
 
@@ -147,7 +296,7 @@ def get_project_set(task_set):
     for task in task_set:
         if set(data["_project"]) <= set(task.project):
             rem.append(task)
-    task_set[:] = rem
+    return rem
 
 
 def get_tag_set(task_set):
@@ -155,36 +304,41 @@ def get_tag_set(task_set):
     for task in task_set:
         if set(data["_tag"]) <= set(task.tag):
             rem.append(task)
-    task_set[:] = rem
+    return rem
 
 
-def find_task():
+def find_task(strict=False):
     global args
     global data
     task_ref = list()
     for entry in args:
         was_added = False
         for task in s._pending:
-            if entry == str(task.id) or entry == task.print_uuid("short") or entry == task.print_uuid("long"):
+            if entry == str(task.id) or task.print_uuid("long").startswith(
+                    entry) and entry != str():
                 data["_task"] = task
                 args.remove(entry)
                 return
-            elif task.description.startswith(entry):
+            elif task.description.startswith(entry) and strict is False:
                 if "_task" not in data:
                     data["_task"] = list()
                 data["_task"].append(task)
                 task_ref.append(entry)
         for task in s._done:
-            if entry == task.print_uuid("short") or entry == task.print_uuid("long"):
-                data["_task"] = task
+            if task.print_uuid("long").startswith(entry) and entry != str():
+                data["_completed_task"] = task
                 args.remove(entry)
                 return
-            elif task.description.startswith(entry):
+            elif task.description.startswith(entry) and strict is False:
                 if "_completed_task" not in data:
                     data["_completed_task"] = list()
                 data["_completed_task"].append(task)
                 task_ref.append(entry)
     args = [x for x in args if x not in task_ref]
+    if "_task" in data and len(data["_task"]) == 1:
+        data["_task"] = data["_task"][0]
+    if "_completed_task" in data and len(data["_completed_task"]) == 1:
+        data["_completed_task"] = data["_completed_task"][0]
     return
 
 
@@ -204,8 +358,16 @@ def find_tag():
 
 def find_action():
     global args
-    actions = {"add": Action.ADD, "show": Action.SHOW, "done": Action.DONE, "delete": Action.DELETE,
-               "start": Action.START, "stop": Action.STOP}
+    actions = {
+        "add": Action.ADD,
+        "show": Action.SHOW,
+        "done": Action.DONE,
+        "delete": Action.DELETE,
+        "start": Action.START,
+        "stop": Action.STOP,
+        "modify": Action.MODIFY,
+        "undone": Action.UNDONE
+    }
     for entry in args:
         if entry.lower() in actions.keys():
             args.remove(entry)
@@ -221,7 +383,7 @@ def find_args():
     args = [x for x in args if x not in res]
     for entry in res:
         name = entry.split(':')[0]
-        entry = " ".join(entry.split(':')[1:])
+        entry = ":".join(entry.split(':')[1:])
         data[name] = entry
 
 

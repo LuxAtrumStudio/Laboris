@@ -38,6 +38,13 @@ class Task:
         self.active = False
 
     def print_project(self, index=None):
+        if index == "size":
+            m = 0
+            for p in self.project:
+                m = max(m, len(p))
+            return " " * m
+        if type(index) is str:
+            index = int(index)
         if index is None:
             output = str()
             for p in self.project:
@@ -49,6 +56,13 @@ class Task:
             return str()
 
     def print_tag(self, index=None):
+        if index == "size":
+            m = 0
+            for t in self.tag:
+                m = max(m, len(t))
+            return " " * m
+        if type(index) is str():
+            index = int(index)
         if index is None:
             output = str()
             for t in self.tag:
@@ -74,6 +88,13 @@ class Task:
             return ""
 
     def print_status(self, fmt=None):
+        if self.active is True:
+            if fmt is None or fmt == "short":
+                return "A"
+            elif fmt is "long":
+                return "Active"
+            else:
+                return ""
         if self.status is self.Status.PENDING:
             if fmt is None or fmt == "short":
                 return "P"
@@ -83,9 +104,9 @@ class Task:
                 return ""
         elif self.status is self.Status.DONE:
             if fmt is None or fmt == "short":
-                return "D"
+                return "C"
             elif fmt == "long":
-                return "Done"
+                return "Completed"
             else:
                 return ""
         else:
@@ -153,21 +174,33 @@ class Task:
             return self.done_date.strftime(fmt)
 
     def print_interval(self, fmt=None, sec=False, index=None):
-        if fmt is None:
+        if type(fmt) is str and fmt.isdigit():
+            index = int(fmt)
+            fmt = None
+        if fmt is None or fmt == str():
             fmt = "all"
+        if fmt == "total":
+            sec = 0
+            for t in self.times:
+                sec += t.get_duration()
+            minute = int(sec / 60)
+            sec -= minute * 60
+            hour = int(minute / 60)
+            minute -= hour * 60
+            return "{0:02}:{1:02}".format(hour, minute)
         if index is None:
             output = str()
             for t in self.times:
                 if fmt == "start":
-                    output += t.print_start(sec) + " "
+                    output += t.print_start(sec) + "\n"
                 elif fmt == "end":
-                    output += t.print_end(sec) + " "
+                    output += t.print_end(sec) + "\n"
                 elif fmt == "duration":
-                    output += t.print_duration(sec) + " "
+                    output += t.print_duration(sec) + "\n"
                 elif fmt == "all":
                     output += t.print_start(sec) + " - " + t.print_end(
-                        sec) + ": " + t.print_duration(sec) + " "
-                    return output[:-1]
+                        sec) + ": " + t.print_duration(sec) + "\n"
+            return output[:-1]
         elif len(self.times) > index:
             if fmt == "start":
                 return self.times[index].print_start(sec)
@@ -193,12 +226,10 @@ class Task:
                 add = None
             if entry == "description":
                 output += "{:<{}}".format(self.description, sizes[i])
-            elif entry == "project":
+            elif entry.startswith("project"):
                 output += "{:<{}}".format(self.print_project(add), sizes[i])
-            elif entry == "tag":
+            elif entry.startswith("tag"):
                 output += "{:<{}}".format(self.print_tag(add), sizes[i])
-            elif entry == "uuid":
-                output += "{:<{}}".format(self.print_uuid(add), sizes[i])
             elif entry == "priority" or entry == 'p':
                 output += "{:<{}}".format(self.priority, sizes[i])
             elif entry == "urgency" or entry == "urg":
@@ -206,15 +237,17 @@ class Task:
                                           sizes[i])
             elif entry == "id":
                 output += "{:>{}}".format(self.print_id(), sizes[i])
-            elif entry == "times":
+            elif entry.startswith("times"):
                 output += "{:<{}}".format(self.print_interval(add), sizes[i])
+            elif entry.startswith("uuid"):
+                output += "{:<{}}".format(self.print_uuid(add), sizes[i])
             elif entry.startswith("entry") or entry.startswith("age"):
                 output += "{:>{}}".format(self.print_date_entry(add), sizes[i])
             elif entry.startswith("due"):
                 output += "{:>{}}".format(self.print_date_due(add), sizes[i])
             elif entry.startswith("done"):
                 output += "{:>{}}".format(self.print_date_done(add), sizes[i])
-            elif entry.startswith("status"):
+            elif entry.startswith("status") or entry.startswith("st"):
                 output += "{:<{}}".format(self.print_status(add), sizes[i])
             output += ' '
         output = output[:-1]

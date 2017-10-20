@@ -2,6 +2,7 @@ from datetime import datetime
 
 
 class Interval:
+
     def __init__(self, start=datetime.now(), end=None):
         self.start = start
         self.end = end
@@ -44,7 +45,14 @@ class Interval:
 
     def print_start(self, sec=False):
         if self.start is None:
+            dt = datetime.now()
+            if sec is True:
+                return dt.strftime("%H:%M:%S")
+            elif sec is False:
+                return dt.strftime("%H:%M:%S")
             return " - "
+        if type(sec) is str:
+            return self.start.strftime(sec)
         if sec is True:
             return self.start.strftime("%H:%M:%S")
         elif sec is False:
@@ -52,11 +60,26 @@ class Interval:
 
     def print_end(self, sec=False):
         if self.end is None:
+            dt = datetime.now()
+            if sec is True:
+                return dt.strftime("%H:%M:%S")
+            elif sec is False:
+                return dt.strftime("%H:%M:%S")
             return " - "
+        if type(sec) is str:
+            return self.end.strftime(sec)
         if sec is True:
             return self.end.strftime("%H:%M:%S")
         elif sec is False:
             return self.end.strftime("%H:%M")
+
+    def get_duration(self):
+        if self.start is None:
+            return 0
+        elif self.end is None:
+            return (datetime.now() - self.start).seconds
+        else:
+            return (self.end - self.start).seconds
 
     def print_duration(self, sec=False):
         if self.start is None:
