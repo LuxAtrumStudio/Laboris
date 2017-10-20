@@ -1,5 +1,4 @@
-import settings as s
-from color import fg, bg, stylize, attr
+import laboris.settings as s
 
 
 def print_active():

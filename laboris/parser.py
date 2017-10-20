@@ -2,13 +2,13 @@ import re
 from enum import Enum
 from datetime import datetime, timedelta
 
-import settings as s
-import sorter
-import task
-import printer
-import interval
+import laboris.settings as s
+import laboris.sorter as sorter
+import laboris.task as task
+import laboris.printer as printer
+import laboris.interval as interval
 import sys
-import report
+import laboris.report as report
 
 args = list()
 data = dict()
@@ -233,7 +233,13 @@ def attempt_date(string, fmt):
             string = string.title()
             while cdt.strftime("%A") != string:
                 cdt += timedelta(days=1)
-            dt = dt.replace(year=cdt.year, month=cdt.month, day=cdt.day)
+            dt = dt.replace(
+                year=cdt.year,
+                month=cdt.month,
+                day=cdt.day,
+                hour=0,
+                minute=0,
+                second=0)
         if fmt.startswith("%AT"):
             string = string.split('T')[0]
             cdt = datetime.now()
@@ -254,6 +260,7 @@ def try_date_format_set(arg, fmts):
 
 
 def get_date(arg):
+    arg = arg.replace("@", "T")
     dmy = [
         "%d-%m-%Y", "%d-%m-%y", "%m-%d-%Y", "%m-%d-%y", "%Y-%m-%d", "%y-%m-%d",
         "%d/%m/%Y", "%d/%m/%y", "%m/%d/%Y", "%m/%d/%y", "%Y/%m/%d", "%y/%m/%d"
@@ -268,6 +275,16 @@ def get_date(arg):
     dm = ["%d-%m", "%m-%d", "%d/%m", "%m/%d"]
     hms = ["%H:%M", "%H.%M", "%H:%M:%S", "%H.%M.%S"]
 
+    arg = arg.replace(
+        "yesterday", (datetime.now() - timedelta(days=1)).strftime("%A"))
+    arg = arg.replace("today", datetime.now().strftime("%A"))
+    arg = arg.replace(
+        "tomorrow", (datetime.now() + timedelta(days=1)).strftime("%A"))
+    arg = arg.replace(
+        "Yesterday", (datetime.now() - timedelta(days=1)).strftime("%A"))
+    arg = arg.replace("Today", datetime.now().strftime("%A"))
+    arg = arg.replace(
+        "Tomorrow", (datetime.now() + timedelta(days=1)).strftime("%A"))
     dt = datetime.now()
     adt = try_date_format_set(arg, dmy)
     if adt is not None:

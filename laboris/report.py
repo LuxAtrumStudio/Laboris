@@ -1,6 +1,6 @@
 from datetime import datetime
 import time
-import settings as s
+import laboris.settings as s
 from enum import Enum
 
 global args

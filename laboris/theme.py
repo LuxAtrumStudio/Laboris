@@ -36,7 +36,8 @@ class Theme:
 
     def bg(self):
         if type(self.background) is list:
-            return "\033[48;2;{};{};{}m".format(self.background[0], self.background[1], self.background[2])
+            return "\033[48;2;{};{};{}m".format(
+                self.background[0], self.background[1], self.background[2])
         elif type(self.background) is int:
             return "\033[{}m".format(self.background)
         else:
@@ -46,7 +47,6 @@ class Theme:
         color = {
             "black": 0,
             "red": 1,
-
         }
         for key, value in obj.items():
             if type(value) is dict:
@@ -75,14 +75,18 @@ class Theme:
         _str = str()
         if self.get_key(color) is not False:
             color = self.get_key(color)
-            if self.color_16_mill is True and self.get_color_format(self.colors[color]) == 2:
+            if self.color_16_mill is True and self.get_color_format(
+                    self.colors[color]) == 2:
                 if self.colors[color][0] is not None and self.colors[color][0] != -1:
-                    _str += "\033[38;2;{};{};{}m".format(self.colors[color][0][0], self.colors[color][0][1],
-                                                         self.colors[color][0][2])
+                    _str += "\033[38;2;{};{};{}m".format(
+                        self.colors[color][0][0], self.colors[color][0][1],
+                        self.colors[color][0][2])
                 if self.colors[color][1] is not None and self.colors[color][1] != -1:
-                    _str += "\033[48;2;{};{};{}m".format(self.colors[color][1][0], self.colors[color][1][1],
-                                                         self.colors[color][1][2])
-            if self.color_256 is True and self.get_color_format(self.colors[color]) == 1:
+                    _str += "\033[48;2;{};{};{}m".format(
+                        self.colors[color][1][0], self.colors[color][1][1],
+                        self.colors[color][1][2])
+            if self.color_256 is True and self.get_color_format(
+                    self.colors[color]) == 1:
                 if self.colors[color][0] is not None and self.colors[color][0] != -1:
                     _str += "\033[{}m".format(self.colors[color][0])
                 if self.colors[color][1] is not None and self.colors[color][1] != -1:

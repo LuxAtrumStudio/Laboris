@@ -1,8 +1,7 @@
 """This is the task module that contains task and time data"""
 
 import time
-import interval
-import settings as s
+import laboris.interval as interval
 import json
 import uuid
 from enum import Enum
@@ -254,6 +253,7 @@ class Task:
         return output
 
     def task_color(self, txt):
+        import laboris.settings as s
         if self.active is True:
             txt = s._theme.get_color("active") + txt + s._theme.reset()
         elif self.status == self.Status.DONE:
@@ -355,6 +355,8 @@ class Task:
         if self.active is True:
             self.urgency += abs(1.0 * 4)
         if self.status is self.Status.DONE:
+            self.urgency = 0.0
+        if self.urgency <= 0.009:
             self.urgency = 0.0
 
     def urgency_age(self):

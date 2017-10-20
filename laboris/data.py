@@ -1,5 +1,5 @@
 import json
-import task
+import laboris.task as task
 import os
 
 
@@ -43,4 +43,3 @@ def save_data(pending_tasks, done_tasks):
         json.dump(pending_data, data)
     with open(path_done, "w") as data:
         json.dump(done_data, data)
-
