@@ -35,6 +35,7 @@ class Task:
         self.id = int()
         self.times = list()
         self.active = False
+        self.set_urg = False
 
     def print_project(self, index=None):
         if index == "size":
@@ -60,7 +61,7 @@ class Task:
             for t in self.tag:
                 m = max(m, len(t))
             return " " * m
-        if type(index) is str():
+        if type(index) is str:
             index = int(index)
         if index is None:
             output = str()
@@ -305,8 +306,14 @@ class Task:
                 self.times.append(new_interval)
                 if new_interval.is_done() is False:
                     self.active = True
-        self.calculate_urgency()
-        self.uuid = uuid.uuid3(uuid.NAMESPACE_URL, self.description)
+        if "urg" in json_obj.keys():
+            self.urgency = json_obj["urg"]
+            self.set_urg = True
+        else:
+            self.calculate_urgency()
+        self.uuid = uuid.uuid3(
+            uuid.NAMESPACE_URL,
+            self.description + self.entry_date.strftime("%Y%m%d%H%M%S"))
 
     def get_json(self):
         data = dict()
@@ -315,6 +322,8 @@ class Task:
         data['project'] = self.project
         data['tag'] = self.tag
         data['entry'] = int(self.entry_date.timestamp())
+        if self.set_urg is True:
+            data['urg'] = self.urgency
         if self.due_date is not None:
             data['due'] = int(self.due_date.timestamp())
         if self.done_date is not None:
@@ -324,6 +333,13 @@ class Task:
             for t in self.times:
                 data['times'].append(t.get_json())
         return data
+
+    def get_age(self):
+        if self.done_date is None:
+            age = datetime.now() - self.entry_date
+        else:
+            age = self.done_date - self.entry_date
+        return int(age.seconds)
 
     def total_time(self):
         total = 0

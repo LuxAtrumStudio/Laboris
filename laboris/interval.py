@@ -64,7 +64,7 @@ class Interval:
             if sec is True:
                 return dt.strftime("%H:%M:%S")
             elif sec is False:
-                return dt.strftime("%H:%M:%S")
+                return dt.strftime("%H:%M")
             return " - "
         if type(sec) is str:
             return self.end.strftime(sec)

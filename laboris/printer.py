@@ -175,7 +175,7 @@ def print_action(action, task=None):
         print("{}Start    : {}{}".format(
             s._theme.get_color("start"), task.times[-1].print_start(True),
             s._theme.reset()))
-        print("{}Stop     : {}{}".format(
+        print("{}Current  : {}{}".format(
             s._theme.get_color("start"), task.times[-1].print_end(True),
             s._theme.reset()))
         print("{}Duration : {}{}".format(

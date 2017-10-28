@@ -329,32 +329,71 @@ def find_task(strict=False):
     global data
     task_ref = list()
     for entry in args:
-        was_added = False
         for task in s._pending:
-            if entry == str(task.id) or task.print_uuid("long").startswith(
-                    entry) and entry != str():
+            if entry == str(task.id) and entry != str():
                 data["_task"] = task
                 args.remove(entry)
                 return
-            elif task.description.startswith(entry) and strict is False:
-                if "_task" not in data:
-                    data["_task"] = list()
-                data["_task"].append(task)
-                task_ref.append(entry)
+    for entry in args:
+        for task in s._pending:
+            if task.print_uuid("long").startswith(entry) and entry != str():
+                data["_task"] = task
+                args.remove(entry)
+                return
         for task in s._done:
             if task.print_uuid("long").startswith(entry) and entry != str():
                 data["_completed_task"] = task
                 args.remove(entry)
                 return
-            elif task.description.startswith(entry) and strict is False:
+    if strict is True:
+        return
+    for entry in args:
+        for task in s._pending:
+            if task.description.startswith(entry) and entry != str():
+                if "_task" not in data:
+                    data["_task"] = list()
+                data["_task"].append(task)
+                task_ref.append(entry)
+        for task in s._done:
+            if task.description.startswith(entry) and entry != str():
                 if "_completed_task" not in data:
                     data["_completed_task"] = list()
                 data["_completed_task"].append(task)
                 task_ref.append(entry)
+    if "_tasks" not in data and "_completed_task" not in data:
+        for entry in args:
+            for task in s._pending:
+                if entry in task.project:
+                    if "_task" not in data:
+                        data["_task"] = list()
+                    data["_task"].append(task)
+                    task_ref.append(entry)
+            for task in s._done:
+                if entry in task.project:
+                    if "_completed_task" not in data:
+                        data["_completed_task"] = list()
+                    data["_completed_task"].append(task)
+                    task_ref.append(entry)
+    if "_tasks" not in data and "_completed_task" not in data:
+        for entry in args:
+            for task in s._pending:
+                if entry in task.tag:
+                    if "_task" not in data:
+                        data["_task"] = list()
+                    data["_task"].append(task)
+                    task_ref.append(entry)
+            for task in s._done:
+                if entry in task.tag:
+                    if "_completed_task" not in data:
+                        data["_completed_task"] = list()
+                    data["_completed_task"].append(task)
+                    task_ref.append(entry)
     args = [x for x in args if x not in task_ref]
-    if "_task" in data and len(data["_task"]) == 1:
+    if "_task" in data and len(
+            data["_task"]) == 1 and "_completed_task" not in data:
         data["_task"] = data["_task"][0]
-    if "_completed_task" in data and len(data["_completed_task"]) == 1:
+    if "_completed_task" in data and len(
+            data["_completed_task"]) == 1 and "_task" not in data:
         data["_completed_task"] = data["_completed_task"][0]
     return
 
