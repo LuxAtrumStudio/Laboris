@@ -1,11 +1,10 @@
 """This is the task module that contains task and time data"""
 
-import time
-import laboris.interval as interval
-import json
+#  import json
 import uuid
+from datetime import datetime
 from enum import Enum
-from datetime import datetime, date, time
+import laboris.interval as interval
 
 
 class Task:
@@ -52,8 +51,7 @@ class Task:
             return output[:-1]
         if len(self.project) > index:
             return self.project[index]
-        else:
-            return str()
+        return str()
 
     def print_tag(self, index=None):
         if index == "size":
@@ -200,7 +198,7 @@ class Task:
                 elif fmt == "all":
                     output += t.print_start(sec) + " - " + t.print_end(
                         sec) + ": " + t.print_duration(sec) + "\n"
-            return output[:-1]
+                    return output[:-1]
         elif len(self.times) > index:
             if fmt == "start":
                 return self.times[index].print_start(sec)
@@ -314,6 +312,7 @@ class Task:
         self.uuid = uuid.uuid3(
             uuid.NAMESPACE_URL,
             self.description + self.entry_date.strftime("%Y%m%d%H%M%S"))
+        return
 
     def get_json(self):
         data = dict()
@@ -396,5 +395,4 @@ class Task:
             return 1.0
         elif overdue >= -14:
             return float((overdue + 14) * 0.8 / 21) + 0.2
-        else:
-            return 2.0
+        return 0.2

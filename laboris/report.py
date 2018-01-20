@@ -40,8 +40,7 @@ def display(reset, report):
     elif report is Report.TIMES:
         times(reset)
     elif report is Report.DAY:
-        pass
-        #  day(reset)
+        day(reset)
     elif report is Report.SUMMARY:
         summary(reset)
 
@@ -76,11 +75,11 @@ def summary(reset):
             else:
                 count[proj] = [1, 0, 1, 0]
                 count[proj][3] += task.get_age()
-    size = [7, 9, 7, 8, 30]
+    size = [7, 9, 5, 7, 8, 30]
     for key in count.keys():
         size[0] = max(size[0], len(key))
     title = [
-        "Project", "Remaining", "Avg Age", "Complete",
+        "Project", "Remaining", "Total", "Avg Age", "Complete",
         "0%                        100%"
     ]
     for i, t in enumerate(title):
@@ -91,26 +90,26 @@ def summary(reset):
     print()
     index = 0
     for key, val in count.items():
-        val[3] = int(val[3] / val[0])
         output = "{:{}} ".format(key, size[0])
-        output += "{:{}} ".format(val[2], size[1])
+        output += "{:{}} ".format(val[1], size[1])
+        output += "{:{}} ".format(val[0], size[2])
         tmp = str()
         if val[3] < 60:
-            tmp += val[3] + "s"
+            tmp += "{}s".format(val[3])
         elif val[3] < 3600:
-            tmp += int(val[3] / 60) + "m"
+            tmp += "{}m".format(int(val[3] / 60))
         elif val[3] < 86400:
-            tmp += "%i" % int(val[3] / 3600) + "h"
+            tmp += "{}h".format(int(val[3] / 3600))
         elif val[3] < 604800:
-            tmp += int(val[3] / 86400) + "d"
+            tmp += "{}d".format(int(val[3] / 86400))
         elif val[3] < 2628000:
-            tmp += int(val[3] / 604800) + "W"
+            tmp += "{}W".format(int(val[3] / 604800))
         elif val[3] < 31540000:
-            tmp += int(val[3] / 2628000) + "M"
+            tmp += "{}M".format(int(val[3] / 2628000))
         else:
-            tmp += "%i" % int(val[3] / 31540000) + "Y"
-        output += "{:>{}} ".format(tmp, size[2])
-        output += "{:>{}.0%} ".format(val[2] / val[0], size[3])
+            tmp += "{}Y".format(int(val[3] / 31540000))
+        output += "{:>{}} ".format(tmp, size[3])
+        output += "{:>{}.0%} ".format(val[2] / val[0], size[4])
         output += s._theme.get_color("report.summary.completed")
         for i in range(0, 30):
             if i <= int(30 * (val[2] / val[0])):
@@ -128,6 +127,9 @@ def summary(reset):
     if reset is True:
         print("\033[{}F".format(line_count), end='')
     #  pprint.pprint(count)
+
+def day(reset):
+    pass
 
 
 def times(reset):
@@ -235,7 +237,7 @@ def get_range(args):
         start -= timedelta(days=start.weekday())
         end = start + timedelta(days=7)
     elif "lastweek" in args:
-        start -= timedelta(days=start.weekday() - 7)
+        start -= timedelta(days=start.weekday() + 7)
         end = start + timedelta(days=7)
     elif "all" in args:
         start = datetime(year=1, month=1, day=1)

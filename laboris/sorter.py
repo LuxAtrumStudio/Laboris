@@ -21,18 +21,20 @@ class SortMethod(Enum):
         if method_str[0] == '-':
             method_str = method_str[1:]
             rev = True
-        hash_map = {"urg": SortMethod.URG,
-                    "description": SortMethod.DESCRIPTION,
-                    "due": SortMethod.DUE,
-                    "entry": SortMethod.ENTRY,
-                    "done": SortMethod.DONE,
-                    "id": SortMethod.ID,
-                    "uuid": SortMethod.UUID,
-                    "project": SortMethod.PROJECT,
-                    "tag": SortMethod.TAG,
-                    "status": SortMethod.STATUS,
-                    "times": SortMethod.TIMES,
-                    "priority": SortMethod.PRIORITY}
+        hash_map = {
+            "urg": SortMethod.URG,
+            "description": SortMethod.DESCRIPTION,
+            "due": SortMethod.DUE,
+            "entry": SortMethod.ENTRY,
+            "done": SortMethod.DONE,
+            "id": SortMethod.ID,
+            "uuid": SortMethod.UUID,
+            "project": SortMethod.PROJECT,
+            "tag": SortMethod.TAG,
+            "status": SortMethod.STATUS,
+            "times": SortMethod.TIMES,
+            "priority": SortMethod.PRIORITY
+        }
         if type(method_str) is not str:
             return SortMethod.URG, rev
         elif method_str in hash_map.keys():
@@ -45,27 +47,36 @@ def sort_task_set(task_set, method=SortMethod.URG, rev=False):
     if type(method) is str:
         method, rev = SortMethod.get_method(method)
     if method is SortMethod.URG:
-        task_set.sort(key=lambda task: task.urgency, reverse=not(True is rev))
+        task_set.sort(key=lambda task: task.urgency, reverse=not (True is rev))
     elif method is SortMethod.DESCRIPTION:
-        task_set.sort(key=lambda task: task.description, reverse=not(False is rev))
+        task_set.sort(
+            key=lambda task: task.description, reverse=not (False is rev))
     elif method is SortMethod.DUE:
-        task_set.sort(key=lambda task: task.due_date, reverse=not(False is rev))
+        task_set.sort(
+            key=lambda task: str(task.due_date), reverse=not (False is rev))
     elif method is SortMethod.ENTRY:
-        task_set.sort(key=lambda task: task.entry_date, reverse=not(False is rev))
+        task_set.sort(
+            key=lambda task: task.entry_date, reverse=not (False is rev))
     elif method is SortMethod.DONE:
-        task_set.sort(key=lambda task: task.done_date, reverse=not(True is rev))
+        task_set.sort(
+            key=lambda task: str(task.done_date), reverse=not (True is rev))
     elif method is SortMethod.ID:
-        task_set.sort(key=lambda task: task.print_id(), reverse=not(True is rev))
+        task_set.sort(
+            key=lambda task: task.print_id(), reverse=not (True is rev))
     elif method is SortMethod.UUID:
-        task_set.sort(key=lambda task: task.print_uuid(), reverse=not(True is rev))
+        task_set.sort(
+            key=lambda task: task.print_uuid(), reverse=not (True is rev))
     elif method is SortMethod.PROJECT:
-        task_set.sort(key=lambda task: task.print_project(), reverse=not(True is rev))
+        task_set.sort(
+            key=lambda task: task.print_project(), reverse=not (True is rev))
     elif method is SortMethod.TAG:
-        task_set.sort(key=lambda task: task.print_tag(), reverse=not(True is rev))
+        task_set.sort(
+            key=lambda task: task.print_tag(), reverse=not (True is rev))
     elif method is SortMethod.STATUS:
-        task_set.sort(key=lambda task: task.print_status(), reverse=not(True is rev))
+        task_set.sort(
+            key=lambda task: task.print_status(), reverse=not (True is rev))
     elif method is SortMethod.TIMES:
-        task_set.sort(key=lambda task: task.total_time(), reverse=not(True is rev))
+        task_set.sort(
+            key=lambda task: task.total_time(), reverse=not (True is rev))
     elif method is SortMethod.PRIORITY:
-        task_set.sort(key=lambda task: task.priority, reverse=not(True is rev))
-
+        task_set.sort(key=lambda task: task.priority, reverse=not (True is rev))

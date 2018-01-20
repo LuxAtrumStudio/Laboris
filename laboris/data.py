@@ -29,7 +29,17 @@ def load_data():
 
 
 def save_data(pending_tasks, done_tasks):
-    pending_tasks = sorted(pending_tasks, key=lambda task: task.entry_date)
+    pending_tasks = sorted(pending_tasks, key=lambda task: str(task.due_date))
+    due = list()
+    ndue = list()
+    for task in pending_tasks:
+        if task.due_date is not None:
+            due.append(task)
+        else:
+            ndue.append(task)
+    due = sorted(due, key=lambda task: task.entry_date)
+    ndue = sorted(ndue, key=lambda task: task.entry_date)
+    pending_tasks = due + ndue
     done_tasks = sorted(done_tasks, key=lambda task: task.entry_date)
     path_pending = os.path.expanduser("~/.laboris/pending.json")
     pending_data = []
