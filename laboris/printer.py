@@ -15,6 +15,8 @@ def print_active():
 
 def print_task_set(task_set,
                    fmt="id|p|age;abbr|project|due;abbr|description|urg"):
+    fmt = fmt.replace(',', '|')
+    fmt = fmt.replace(':', ';')
     if len(task_set) == 0:
         print(s._theme.get_color("title") + "No Tasks" + s._theme.reset())
         return
@@ -44,6 +46,7 @@ def print_task_details(
         task,
         fmt="id|priority|description|status;long|project|tag|entry|due|done|urgency|uuid|times"
 ):
+
     fmt = fmt.split('|')
     name_width = 0
     value_width = 0

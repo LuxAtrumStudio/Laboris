@@ -23,6 +23,7 @@ class SortMethod(Enum):
             rev = True
         hash_map = {
             "urg": SortMethod.URG,
+            "urgency": SortMethod.URG,
             "description": SortMethod.DESCRIPTION,
             "due": SortMethod.DUE,
             "entry": SortMethod.ENTRY,

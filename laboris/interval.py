@@ -4,6 +4,8 @@ from datetime import datetime
 class Interval:
 
     def __init__(self, start=datetime.now(), end=None):
+        if start is None:
+            start = datetime.now()
         self.start = start
         self.end = end
 
@@ -16,8 +18,11 @@ class Interval:
         else:
             return True
 
-    def stop(self):
-        self.end = datetime.now()
+    def stop(self, date=None):
+        if date is None:
+            self.end = datetime.now()
+        else:
+            self.end = date
 
     def duration(self):
         if self.start is None:

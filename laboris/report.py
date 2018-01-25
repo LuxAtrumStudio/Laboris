@@ -1,281 +1,203 @@
-from datetime import datetime, timedelta
-from operator import itemgetter
 import time
 import calendar
-import laboris.settings as s
-from enum import Enum
-import pprint
-from collections import OrderedDict
+import laboris.settings as sett
 
-global args
-global data
+from ioterm.table import Table
+from datetime import datetime, timedelta
 
 
-class Report(Enum):
-    SUMMARY = 0
-    TIMES = 1
-    PROJECT = 2
-    ACTIVE = 3
-    DAY = 4
-    WEEK = 5
+def monitor(args):
+    args.monitor = False
+    try:
+        while True:
+            report(args, True)
+            time.sleep(1)
+    except KeyboardInterrupt:
+        report(args, False)
 
 
-def report(report, a, d):
-    global args
-    global data
-    args = a
-    data = d
-    if "clear" in args:
-        print("\033[2J", end='')
-        print("\033[H", end='')
-    if "monitor" in args or "live" in args:
-        live(report)
-    else:
-        display(False, report)
+def report(args, reset=False):
+    if args.monitor is True:
+        monitor(args)
+        return
+    if args.clear is True:
+        print('\033[2J\033[H', end='')
+    if args.report == 'summary':
+        summary(args, reset)
+    elif args.report == 'active':
+        active(args, reset)
+    elif args.report == 'times':
+        times(args, reset)
 
 
-def display(reset, report):
-    if report is Report.ACTIVE:
-        active(reset)
-    elif report is Report.TIMES:
-        times(reset)
-    elif report is Report.DAY:
-        day(reset)
-    elif report is Report.SUMMARY:
-        summary(reset)
-
-
-def summary(reset):
-    global args, data
-    count = OrderedDict()
-    count["No Project"] = [0, 0, 0, 0]
-    for task in s._pending:
+def summary(args, reset):
+    tasks = sett._pending + sett._done
+    count = {"No Project": [0] * 3}
+    for task in tasks:
         if len(task.project) == 0:
             count["No Project"][0] += 1
-            count["No Project"][1] += 1
-            count["No Project"][3] += task.get_age()
+            if task.status is task.Status.DONE:
+                count["No Project"][1] += 1
+            count["No Project"][2] += task.get_age()
         for proj in task.project:
             if proj in count.keys():
                 count[proj][0] += 1
-                count[proj][1] += 1
-                count[proj][3] += task.get_age()
+                if task.status is task.Status.DONE:
+                    count[proj][1] += 1
+                count[proj][2] += task.get_age()
             else:
-                count[proj] = [1, 1, 0, 0]
-                count[proj][3] += task.get_age()
-    for task in s._done:
-        if len(task.project) == 0:
-            count["No Project"][0] += 1
-            count["No Project"][2] += 1
-            count["No Project"][3] += task.get_age()
-        for proj in task.project:
-            if proj in count.keys():
-                count[proj][0] += 1
-                count[proj][2] += 1
-                count[proj][3] += task.get_age()
-            else:
-                count[proj] = [1, 0, 1, 0]
-                count[proj][3] += task.get_age()
-    size = [7, 9, 5, 7, 8, 30]
-    for key in count.keys():
-        size[0] = max(size[0], len(key))
-    title = [
-        "Project", "Remaining", "Total", "Avg Age", "Complete",
-        "0%                        100%"
-    ]
-    for i, t in enumerate(title):
-        print(
-            "{}{:{}}{} ".format(
-                s._theme.get_color("title"), t, size[i], s._theme.reset()),
-            end='')
-    print()
-    index = 0
-    for key, val in count.items():
-        output = "{:{}} ".format(key, size[0])
-        output += "{:{}} ".format(val[1], size[1])
-        output += "{:{}} ".format(val[0], size[2])
-        tmp = str()
-        if val[3] < 60:
-            tmp += "{}s".format(val[3])
-        elif val[3] < 3600:
-            tmp += "{}m".format(int(val[3] / 60))
-        elif val[3] < 86400:
-            tmp += "{}h".format(int(val[3] / 3600))
-        elif val[3] < 604800:
-            tmp += "{}d".format(int(val[3] / 86400))
-        elif val[3] < 2628000:
-            tmp += "{}W".format(int(val[3] / 604800))
-        elif val[3] < 31540000:
-            tmp += "{}M".format(int(val[3] / 2628000))
+                count[proj] = [1, 0, task.get_age()]
+                if task.status is task.Status.DONE:
+                    count[proj][1] += 1
+    count = [[x, y] for x, y in count.items()]
+    for proj in count:
+        proj[1][2] /= proj[1][0]
+    new = []
+    for proj in count:
+        if args.all is True or proj[1][0] != proj[1][1]:
+            new.append(proj)
+    count = new
+    data = [["Project", "Remaining", "Total", "Avg Age", "Complete",
+             "0%                        100%"]]
+    for proj in count:
+        avg_age = str()
+        if proj[1][2] < 60:
+            avg_age += "{}s".format(proj[1][2])
+        elif proj[1][2] < 3600:
+            avg_age += "{}m".format(int(proj[1][2] / 60))
+        elif proj[1][2] < 86400:
+            avg_age += "{}h".format(int(proj[1][2] / 3600))
+        elif proj[1][2] < 604800:
+            avg_age += "{}d".format(int(proj[1][2] / 86400))
+        elif proj[1][2] < 2628000:
+            avg_age += "{}W".format(int(proj[1][2] / 604800))
+        elif proj[1][2] < 31540000:
+            avg_age += "{}M".format(int(proj[1][2] / 2628000))
         else:
-            tmp += "{}Y".format(int(val[3] / 31540000))
-        output += "{:>{}} ".format(tmp, size[3])
-        output += "{:>{}.0%} ".format(val[2] / val[0], size[4])
-        output += s._theme.get_color("report.summary.completed")
+            avg_age += "{}Y".format(int(proj[1][2] / 31540000))
+        bar = str()
         for i in range(0, 30):
-            if i <= int(30 * (val[2] / val[0])):
-                output += "\u2588"
+            if i <= int(30 * (proj[1][1] / proj[1][0])):
+                bar += "\u2588"
             else:
-                output += " "
-        output += s._theme.reset()
-        if index % 2 == 0:
-            print(output)
-        else:
-            print(s._theme.bg() + output + s._theme.reset())
-        index += 1
-    line_count = len(count)
-    line_count += 1
+                bar += " "
+        bar = sett._theme.get_color(
+            "report.summary.completed") + bar + sett._theme.reset()
+        data.append([proj[0].title(), "{}".format(proj[1][0] - proj[1][1]),
+                     "{}".format(proj[1][0]), avg_age, "{}".format(proj[1][1]), bar])
+    table = Table()
+    table.data = data
+    table.flags['zebra'] = True
+    table.flags['title_row'] = [0]
+    table.title_fmt = ["\033[1;4m", "\033[21;24m"]
+    table.fmt = table.BoxFormat.SPACE
+    table.flags['vert_sep'] = True
+    table.display()
     if reset is True:
-        print("\033[{}F".format(line_count), end='')
-    #  pprint.pprint(count)
-
-def day(reset):
-    pass
+        print('\033[{}F'.format(len(data)), end='')
 
 
-def times(reset):
-    global args, data
-    start, end = get_range(args)
+def active(args, reset):
+    has_print = False
     count = 0
-    print_data = OrderedDict()
-    size = [0, 0, 0, 0]
-    total = 0
-    for task in s._pending:
-        for t in task.times:
-            if t.start > start and t.start < end:
-                if t.start.date() not in print_data.keys():
-                    print_data[t.start.date()] = [0]
-                print_data[t.start.date()].append([
-                    task.description,
-                    t.print_start(True),
-                    t.print_end(True),
-                    t.print_duration(True)
-                ])
-                print_data[t.start.date()][0] += t.get_duration()
-                total += t.get_duration()
-    for task in s._done:
-        for t in task.times:
-            if t.start > start and t.start < end:
-                if t.start.date() not in print_data.keys():
-                    print_data[t.start.date()] = [0]
-                print_data[t.start.date()].append([
-                    task.description,
-                    t.print_start(True),
-                    t.print_end(True),
-                    t.print_duration(True)
-                ])
-                print_data[t.start.date()][0] += t.get_duration()
-                total += t.get_duration()
-    for val in print_data.values():
-        for entry in val[1:]:
-            size[0] = max(size[0], len(entry[0]))
-            size[1] = max(size[1], len(entry[1]))
-            size[2] = max(size[2], len(entry[2]))
-            size[3] = max(size[3], len(entry[3]))
-    print_data = sorted(print_data.items())
-    for key, val in print_data:
-        print("{}{:{}}{}".format(
-            s._theme.get_color("title"),
-            key.strftime("%a %b %d, %Y"), sum(size) + 9, s._theme.reset()))
-        for i, entry in enumerate(val[1:]):
-            if i % 2 == 0:
-                fmt = "{:{}} {:{}} {:{}} {:{}}"
-            else:
-                fmt = s._theme.bg(
-                ) + "{:{}} {:{}} {:{}} {:{}}" + s._theme.reset()
-            print(
-                fmt.format(entry[0], size[0] + 2, entry[1], size[1] + 2, entry[
-                    2], size[2] + 2, entry[3], size[3]))
-            count += 1
-        sub_m, sub_s = divmod(val[0], 60)
-        sub_h, sub_m = divmod(sub_m, 60)
-        print("{:{}}{}{:>{}}{}".format(
-            str(),
-            sum(size) + 9 - size[3],
-            s._theme.get_color("title"), "{:02}:{:02}:{:02}".format(
-                sub_h, sub_m, sub_s), size[3], s._theme.reset()))
-        count += 2
-    m, sec = divmod(total, 60)
-    h, m = divmod(m, 60)
-    print("\n{}{:<{}}{:>{}}{}".format(
-        s._theme.get_color("title"), "Total:", size[0] + size[1] + size[2] + 9,
-        "{:02}:{:02}:{:02}".format(h, m, sec), size[3], s._theme.reset()))
-    count += 2
-    if reset is True:
-        print("\033[{}F".format(count), end='')
-
-
-def active(reset):
-    global args, data
-    count = 0
-    for task in s._pending:
+    for task in sett._pending:
         if task.active is True:
-            count += 3
             print("{}Task {} \'{}\' [{}]{}".format(
-                s._theme.get_color("start"), task.id, task.description,
-                task.times[-1].print_duration(True), s._theme.reset()))
-            print("{}Start:   {}{}".format(
-                s._theme.get_color("start"), task.times[-1].print_start(
-                    "%I:%M:%S %p"), s._theme.reset()))
-            print("{}Current: {}{}".format(
-                s._theme.get_color("start"),
-                time.strftime("%I:%M:%S %p"), s._theme.reset()))
-    if count == 0:
+                sett._theme.get_color("start"), task.id, task.description,
+                task.times[-1].print_duration(True), sett._theme.reset()))
+            has_print = True
+            count += 1
+    if has_print is False:
+        print("{}No active Tasks{}".format(
+            sett._theme.get_color("start"), sett._theme.reset()))
         count += 1
-        print("{}No Active Tasks{}".format(
-            s._theme.get_color("warn"), s._theme.reset()))
     if reset is True:
-        print("\033[{}F".format(count), end='')
+        print('\033[{}F'.format(count), end='')
+
+
+def times(args, reset):
+    start, end = get_range(args)
+    data = {}
+    total = 0
+    if args.group == 'all' or args.group == 'pending':
+        for task in sett._pending:
+            for t in task.times:
+                if t.start > start and t.start <= end:
+                    if t.start.date() not in data:
+                        data[t.start.date()] = [0]
+                    data[t.start.date()].append((task.description, t.print_start(
+                        True), t.print_end(True), t.print_duration(True)))
+                    data[t.start.date()][0] += t.get_duration()
+                    total += t.get_duration()
+    if args.group == 'all' or args.group == 'completed':
+        for task in sett._done:
+            for t in task.times:
+                if t.start > start and t.start <= end:
+                    if t.start.date() not in data:
+                        data[t.start.date()] = [0]
+                    data[t.start.date()].append((task.description, t.print_start(
+                        True), t.print_end(True), t.print_duration(True)))
+                    data[t.start.date()][0] += t.get_duration()
+                    total += t.get_duration()
+    from pprint import pprint
+    data = sorted(list(data.items()), key=lambda x: x[0])
+    display = [["Date/Description", "Start", "End", "Duration"]]
+    table = Table()
+    table.flags['title_row'] = [0]
+    index = 1
+    for a in data:
+        display.append([a[0].strftime("%a %b %d, %Y"), '', '', ''])
+        table.flags['title_row'].append(index)
+        for b in a[1][1:]:
+            display.append([b[0], b[1], b[2], b[3]])
+            index += 1
+        display.append(['', '', '', "{:02}:{:02}:{:02}".format(divmod(divmod(a[1][0], 60)[
+                       0], 60)[0], divmod(divmod(a[1][0], 60)[0], 60)[1], divmod(a[1][0], 60)[1])])
+        index += 2
+    display.append(['', '', '', ''])
+    display.append(['Total', '', '', "{:02}:{:02}:{:02}".format(divmod(divmod(total, 60)[
+                   0], 60)[0], divmod(divmod(total, 60)[0], 60)[1], divmod(total, 60)[1])])
+    table.flags['title_row'].append(index + 1)
+    table.data = display
+    table.update_alignment()
+    table.col_align(0, 'r')
+    table.row_align(table.flags['title_row'], 'l')
+    table.flags['zebra'] = True
+    table.title_fmt = ["\033[1;4m", "\033[21;24m"]
+    table.fmt = table.BoxFormat.SPACE
+    table.flags['vert_sep'] = True
+    table.display()
+    if reset is True:
+        print('\033[{}F'.format(len(display)), end='')
 
 
 def get_range(args):
-    start = datetime.now().replace(hour=0, minute=0, second=0)
-    end = datetime.now().replace(hour=23, minute=59, second=59)
-    if "yesterday" in args:
-        start -= timedelta(days=1)
-        end -= timedelta(days=1)
-    elif "week" in args:
-        start -= timedelta(days=start.weekday())
-        end = start + timedelta(days=7)
-    elif "lastweek" in args:
-        start -= timedelta(days=start.weekday() + 7)
-        end = start + timedelta(days=7)
-    elif "all" in args:
-        start = datetime(year=1, month=1, day=1)
-    elif "month" in args:
-        start -= timedelta(days=start.day - 1)
-        end = start + timedelta(days=calendar.monthrange(
-            start.year, start.month)[1])
-    elif "lastmonth" in args:
-        start = start.replace(day=1, month=start.month - 1)
-        end = start + timedelta(days=calendar.monthrange(
-            start.year, start.month)[1])
-    elif "year" in args:
-        start = start.replace(day=1, month=1)
-        end = start + timedelta(days=365)
+    if args.start is None:
+        start = datetime.now().replace(hour=0, minute=0, second=0)
+    else:
+        start = args.start[1]
+    if args.stop is None and args.start is not None:
+        end = datetime.now().replace(hour=23, minute=59, second=59)
+        if args.start[0] == 'yesterday':
+            end -= timedelta(days=1)
+        elif args.start[0] == 'week':
+            end = start + timedelta(days=7)
+        elif args.start[0] == 'lastweek':
+            end = start + timedelta(days=7)
+        elif args.start[0] == 'month':
+            end = start + \
+                timedelta(days=calendar.monthrange(start.year, start.month)[1])
+        elif args.start[0] == 'lastmonth':
+            end = start + \
+                timedelta(days=calendar.monthrange(start.year, start.month)[1])
+        elif args.start[0] == 'year':
+            end = start.replace(month=12, day=31)
+        elif args.start[0] == 'lastyear':
+            end = start.replace(month=12, day=31)
+    elif args.stop is None and args.start is None:
+        end = datetime.now().replace(hour=23, minute=59, second=59)
+    else:
+        end = args.stop[1]
+        if end.hour == 0 and end.minute == 0 and end.second == 0:
+            end = end.replace(hour=23, minute=59, second=59)
     return start, end
-
-
-def live(report):
-    try:
-        while True:
-            display(True, report)
-            time.sleep(1)
-    except KeyboardInterrupt:
-        display(False, report)
-        pass
-
-
-def is_report(arg):
-    reports = {
-        "summary": Report.SUMMARY,
-        "times": Report.TIMES,
-        "project": Report.PROJECT,
-        "active": Report.ACTIVE,
-        "day": Report.DAY,
-        "week": Report.WEEK
-    }
-    for a in arg:
-        if a.lower() in reports.keys():
-            arg.remove(a)
-            return reports[a.lower()]
-    return None
