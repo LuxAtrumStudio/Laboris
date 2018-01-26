@@ -52,7 +52,7 @@ def run_add(args):
         args.project = list()
     tsk = Task(args.description, args.project,
                args.tag, args.priority, entry, args.due)
-    sett._pending.append(tsk)
+    sett.pending.append(tsk)
     printer.print_action("add", tsk)
 
 def run_done(args):
@@ -62,13 +62,13 @@ def run_done(args):
     else:
         if len(tasks[0]) != 0:
             task = tasks[0][0]
-            sett._done.append(task)
-            sett._pending.remove(task)
+            sett.done.append(task)
+            sett.pending.remove(task)
             printer.print_action("done", task)
         else:
             task = tasks[1][0]
-            sett._pending.append(task)
-            sett._done.remove(task)
+            sett.pending.append(task)
+            sett.done.remove(task)
             printer.print_action("undone", task)
 
 def run_undone(args):
@@ -77,8 +77,8 @@ def run_undone(args):
         printer.print_error("undone", "No task found")
     else:
         task = tasks[1][0]
-        sett._pending.append(task)
-        sett._done.remove(task)
+        sett.pending.append(task)
+        sett.done.remove(task)
         printer.print_action("undone", task)
 
 
@@ -94,7 +94,7 @@ def run_start(args):
             return
         task.times.append(Interval(args.time))
         printer.print_action("start", task)
-        tmp_set = sett._pending
+        tmp_set = sett.pending
         sorter.sort_task_set(tmp_set, "urg")
         if task.urgency < tmp_set[0].urgency:
             printer.print_action('urg')
@@ -120,11 +120,11 @@ def run_delete(args):
         printer.print_error("delete", "No task found")
     elif len(tasks[0]) != 0:
         task = tasks[0][0]
-        sett._pending.remove(task)
+        sett.pending.remove(task)
         printer.print_action("delete", tasks)
     elif len(tasks[1]) != 0:
         task = tasks[1][0]
-        sett._done.remove(task)
+        sett.done.remove(task)
         printer.print_action("delete", tasks)
 
 
@@ -150,7 +150,7 @@ def run_modify(args):
 def run_list(args):
     tasks = find_task(args.task)
     if len(tasks[0]) == 0 and len(tasks[1]) == 0:
-        tasks = sett._pending, sett._done
+        tasks = sett.pending, sett.done
     if args.group == 'all':
         if args.format is None:
             args.format = "id|st|uuid;short|age;abbr|done;abbr|p|project|due;date|description"
@@ -179,38 +179,38 @@ def find_task(ref, strict=False):
     completed = list()
     if ref is None:
         return tasks, completed
-    for task in sett._pending:
+    for task in sett.pending:
         if ref == str(task.id):
             tasks.append(task)
             return tasks, completed
-    for task in sett._pending:
+    for task in sett.pending:
         if task.print_uuid("long").startswith(ref):
             tasks.append(task)
             return tasks, completed
-    for task in sett._done:
+    for task in sett.done:
         if task.print_uuid("long").startswith(ref):
             completed.append(task)
             return tasks, completed
-    for task in sett._pending:
+    for task in sett.pending:
         if task.description.startswith(ref):
             tasks.append(task)
-    for task in sett._done:
+    for task in sett.done:
         if task.description.startswith(ref):
             completed.append(task)
     if len(tasks) != 0 or len(completed) != 0:
         return tasks, completed
-    for task in sett._pending:
+    for task in sett.pending:
         if ref in task.project:
             tasks.append(task)
-    for task in sett._done:
+    for task in sett.done:
         if ref in task.project:
             completed.append(task)
     if len(tasks) != 0 or len(completed) != 0:
         return tasks, completed
-    for task in sett._pending:
+    for task in sett.pending:
         if ref in task.tag:
             tasks.append(task)
-    for task in sett._done:
+    for task in sett.done:
         if ref in task.tag:
             completed.append(task)
     if len(tasks) > 0:

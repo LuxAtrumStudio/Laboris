@@ -254,33 +254,33 @@ class Task:
     def task_color(self, txt):
         import laboris.settings as s
         if self.active is True:
-            txt = s._theme.get_color("active") + txt + s._theme.reset()
+            txt = s.theme.get_color("active") + txt + s.theme.reset()
         elif self.status == self.Status.DONE:
-            txt = s._theme.get_color("done") + txt + s._theme.reset()
+            txt = s.theme.get_color("done") + txt + s.theme.reset()
         elif self.is_overdue() is True:
-            txt = s._theme.get_color("overdue") + txt + s._theme.reset()
+            txt = s.theme.get_color("overdue") + txt + s.theme.reset()
         elif self.due_today() is True:
-            txt = s._theme.get_color("due_today") + txt + s._theme.reset()
+            txt = s.theme.get_color("due_today") + txt + s.theme.reset()
         elif self.urgency > 10:
-            txt = s._theme.get_color("urg10") + txt + s._theme.reset()
+            txt = s.theme.get_color("urg10") + txt + s.theme.reset()
         elif self.urgency > 9:
-            txt = s._theme.get_color("urg9") + txt + s._theme.reset()
+            txt = s.theme.get_color("urg9") + txt + s.theme.reset()
         elif self.urgency > 8:
-            txt = s._theme.get_color("urg8") + txt + s._theme.reset()
+            txt = s.theme.get_color("urg8") + txt + s.theme.reset()
         elif self.urgency > 7:
-            txt = s._theme.get_color("urg7") + txt + s._theme.reset()
+            txt = s.theme.get_color("urg7") + txt + s.theme.reset()
         elif self.urgency > 6:
-            txt = s._theme.get_color("urg6") + txt + s._theme.reset()
+            txt = s.theme.get_color("urg6") + txt + s.theme.reset()
         elif self.urgency > 5:
-            txt = s._theme.get_color("urg5") + txt + s._theme.reset()
+            txt = s.theme.get_color("urg5") + txt + s.theme.reset()
         elif self.urgency > 4:
-            txt = s._theme.get_color("urg4") + txt + s._theme.reset()
+            txt = s.theme.get_color("urg4") + txt + s.theme.reset()
         elif self.urgency > 3:
-            txt = s._theme.get_color("urg3") + txt + s._theme.reset()
+            txt = s.theme.get_color("urg3") + txt + s.theme.reset()
         elif self.urgency > 2:
-            txt = s._theme.get_color("urg2") + txt + s._theme.reset()
+            txt = s.theme.get_color("urg2") + txt + s.theme.reset()
         elif self.urgency > 1:
-            txt = s._theme.get_color("urg1") + txt + s._theme.reset()
+            txt = s.theme.get_color("urg1") + txt + s.theme.reset()
         return txt
 
     def parse_json(self, json_obj):

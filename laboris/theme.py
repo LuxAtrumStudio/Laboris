@@ -44,9 +44,18 @@ class Theme:
             return str()
 
     def parse_json(self, obj, index=str()):
+        if "background" in obj:
+            self.background = obj["background"]
+            del obj["background"]
         color = {
-            "black": 0,
-            "red": 1,
+            "black": [30, 40],
+            "red": [31,41],
+            "green": [32,42],
+            "yellow": [33,43],
+            "blue": [34,44],
+            "magenta":[35, 45],
+            "cyan": [36, 46],
+            "grey": [37, 47]
         }
         for key, value in obj.items():
             if type(value) is dict:
@@ -60,8 +69,6 @@ class Theme:
     def parse_file(self, file_path):
         with open(file_path) as json_file:
             obj = json.load(json_file)
-            self.background = obj["background"]
-            del obj["background"]
             self.parse_json(obj)
 
     def get_key(self, color):

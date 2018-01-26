@@ -259,6 +259,10 @@ def main():
                        help="Clears screen before printing")
     graph.add_argument('--monitor', action='store_true',
                        help="Updates result every second")
+    graph.add_argument('--trim', action='store_true',
+                       help="Removes un-tracked days on either end of tracked days")
+    graph.add_argument('--trim-all', action='store_true',
+                       help="Removes all un-tracked days")
     graph.add_argument('start', nargs='?',
                        type=valid_datetime_ref, help="Datetime range begining")
     graph.add_argument('stop', nargs='?',
@@ -267,7 +271,7 @@ def main():
     args = parser.parse_args()
     print(args)
     sett.init()
-    sett._theme.parse_file(os.path.expanduser("~/.laboris/default.json"))
+    #  sett._theme.parse_file(os.path.expanduser("~/.laboris/default.json"))
     action.run_action(args)
     sett.term()
 
