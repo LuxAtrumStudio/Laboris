@@ -1,8 +1,12 @@
 import time
 import calendar
+import os
 import laboris.settings as sett
+import laboris.printer as printer
 
 from ioterm.table import Table
+import ioterm.display as display
+import ioterm.color as color
 from datetime import datetime, timedelta
 
 
@@ -17,6 +21,9 @@ def monitor(args):
 
 
 def report(args, reset=False):
+    if args.report is None:
+        printer.print_error('report', "Must specify a report type.")
+        return
     if args.monitor is True:
         monitor(args)
         return
@@ -28,6 +35,11 @@ def report(args, reset=False):
         active(args, reset)
     elif args.report == 'times':
         times(args, reset)
+    elif args.report == 'burndown':
+        burndown(args, reset)
+    elif args.report == 'graph':
+        graph(args, reset)
+
 
 
 def summary(args, reset):
@@ -169,6 +181,94 @@ def times(args, reset):
     table.display()
     if reset is True:
         print('\033[{}F'.format(len(display)), end='')
+
+def burndown(args, reset):
+    pass
+
+def graph(args, reset):
+    start, end = get_range(args)
+    height, width = os.popen('stty size', 'r').read().split()
+    height = int(height)
+    width = int(width)
+    data = {}
+    total = 0
+    if args.group == 'all' or args.group == 'pending':
+        for task in sett._pending:
+            for t in task.times:
+                if t.start > start and t.start <= end:
+                    if t.start.date() not in data:
+                        data[t.start.date()] = list()
+                    if t.end is not None:
+                        data[t.start.date()].append(((task.description, task.project), t.start, t.end))
+                    else:
+                        data[t.start.date()].append(((task.description, task.project), t.start, datetime.now()))
+                    total += t.get_duration()
+    if args.group == 'all' or args.group == 'completed':
+        for task in sett._done:
+            for t in task.times:
+                if t.start > start and t.start <= end:
+                    if t.start.date() not in data:
+                        data[t.start.date()] = list()
+                    if t.end is not None:
+                        data[t.start.date()].append(((task.description, task.project), t.start, t.end))
+                    else:
+                        data[t.start.date()].append(((task.description, task.project), t.start, datetime.now()))
+                    total += t.get_duration()
+    from pprint import pprint
+    for x in data:
+        data[x] = sorted(data[x], key=lambda x: x[1])
+    if start.date() == end.date():
+        print(display.print_aligned(sett._theme.get_color('title') + start.strftime('%a %b %d, %Y') + sett._theme.reset(), 'c', width))
+        hour = width / 24.0
+    else:
+        print(display.print_aligned(sett._theme.get_color('title') + start.strftime('%a %b %d, %Y') + ' -- ' + end.strftime('%a %b %d, %Y') + sett._theme.reset(), 'c', width))
+        hour = (width - 11) / 24.0
+        print(' ' * 11, end='')
+    for i in range(24):
+        print("{:<{}}".format(str(i) + ":00", int(hour)), end='')
+    print()
+    data = sorted(list(data.items()), key=lambda x: x[0])
+    colors = {}
+    rem_col = list(range(255))
+    for key, value in data:
+        print(key.strftime('%d-%m-%Y'), end=' ')
+        current = datetime.combine(key, datetime.min.time())
+        day_end = datetime.combine(key, datetime.max.time())
+        step = 86400 / (int(hour) * 24.0)
+        index = 0
+        active = 0
+        while current <= day_end:
+            if current > value[index][1] and active is 0:
+                if value[index][0][1] != list():
+                    if len(colors) <= 15:
+                        colors[value[index][0][1][0]] = len(colors) + 1
+                    else:
+                        colors[value[index][0][1][0]] = random.choice(rem_col)
+                        print(color.get_color(colors[value[index][0][1][0]]),end='')
+                else:
+                    if len(colors) <= 15:
+                        colors[value[index][0][0]] = len(colors) + 1
+                    else:
+                        colors[value[index][0][0]] = random.choice(rem_col)
+                    print(color.get_color(colors[value[index][0][0]]),end='')
+                print(value[index][0], end='')
+                active = 1
+            if current > value[index][2] and active is 1:
+                print("\033[0m", end='')
+                active = 0
+                if len(value) > index + 1:
+                    index += 1
+                else:
+                    active = 2
+            print(' ', end='')
+            current += timedelta(seconds=step)
+        print('\033[0m')
+    print(data)
+    print()
+    print(colors)
+    print()
+    print(rem_col)
+
 
 
 def get_range(args):

@@ -94,7 +94,9 @@ def valid_datetime(arg):
 
 def valid_datetime_ref(arg):
     dt = datetime.now().replace(hour=0, minute=0, second=0)
-    if arg.lower() == 'yesterday':
+    if arg.lower() == 'day':
+        return(arg, dt)
+    elif arg.lower() == 'yesterday':
         return (arg, dt - timedelta(days=1))
     elif arg.lower() == 'week':
         return (arg, dt - timedelta(days=dt.weekday()))
@@ -245,7 +247,22 @@ def main():
     times.add_argument('--monitor', action='store_true',
                        help="Updates result every second")
     burn = reports.add_parser('burndown')
+    burn.add_argument('--clear', action='store_true',
+                       help="Clears screen before printing")
+    burn.add_argument('--monitor', action='store_true',
+                       help="Updates result every second")
     graph = reports.add_parser('graph')
+    graph.add_argument('--group', nargs='?',
+                       choices=['all', 'pending', 'completed'],
+                       default='all', help="Shows groups of tasks")
+    graph.add_argument('--clear', action='store_true',
+                       help="Clears screen before printing")
+    graph.add_argument('--monitor', action='store_true',
+                       help="Updates result every second")
+    graph.add_argument('start', nargs='?',
+                       type=valid_datetime_ref, help="Datetime range begining")
+    graph.add_argument('stop', nargs='?',
+                       type=valid_datetime_ref, help="Datetime range ending")
     parser.set_default_subparser('list')
     args = parser.parse_args()
     print(args)
