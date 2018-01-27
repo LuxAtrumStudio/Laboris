@@ -248,9 +248,15 @@ def main():
                        help="Updates result every second")
     burn = reports.add_parser('burndown')
     burn.add_argument('--clear', action='store_true',
-                       help="Clears screen before printing")
+                      help="Clears screen before printing")
     burn.add_argument('--monitor', action='store_true',
-                       help="Updates result every second")
+                      help="Updates result every second")
+    burn.add_argument('--trim', action='store_true',
+                       help="Removes un-tracked days on either end of tracked days")
+    burn.add_argument('start', nargs='?',
+                      type=valid_datetime_ref, help="Datetime range begining")
+    burn.add_argument('stop', nargs='?',
+                       type=valid_datetime_ref, help="Datetime range ending")
     graph = reports.add_parser('graph')
     graph.add_argument('--group', nargs='?',
                        choices=['all', 'pending', 'completed'],

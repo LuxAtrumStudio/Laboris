@@ -2,6 +2,7 @@ import time
 import calendar
 import os
 import random
+import math
 import laboris.settings as sett
 import laboris.printer as printer
 
@@ -40,7 +41,6 @@ def report(args, reset=False):
         burndown(args, reset)
     elif args.report == 'graph':
         graph(args, reset)
-
 
 
 def summary(args, reset):
@@ -183,8 +183,108 @@ def times(args, reset):
     if reset is True:
         print('\033[{}F'.format(len(display)), end='')
 
+
 def burndown(args, reset):
-    pass
+    start, end = get_range(args)
+    if start.date() == end.date():
+        start -= timedelta(7)
+    if end.date() == datetime.now().date():
+        end += timedelta(1)
+    diff = (end.date() - start.date()).days
+    data = {date: [0, 0, 0]
+            for date in (start.date() + timedelta(n) for n in range(diff))}
+    if end.date() >= datetime.now().date():
+        end  = datetime.now() + timedelta(1)
+    height, width = os.popen('stty size', 'r').read().split()
+    height = int(height)
+    width = int(width)
+    for task in sett.pending:
+        if task.entry_date > end:
+            continue
+        if len(task.times) != 0:
+            started = task.times[0].start
+            if started < start:
+                started = start
+        else:
+            started = datetime.now() + timedelta(1)
+        if task.entry_date < start:
+            entry = start
+        else:
+            entry = task.entry_date
+        diff = (started.date() - entry.date()).days
+        for date in (entry.date() + timedelta(n) for n in range(diff)):
+            data[date] = [data[date][0] + 1, data[date][1], data[date][2]]
+        diff = (end.date() - started.date()).days
+        for date in (started.date() + timedelta(n) for n in range(diff)):
+            data[date] = [data[date][0], data[date][1] + 1, data[date][2]]
+    for task in sett.done:
+        if task.entry_date > end:
+            continue
+        if task.entry_date < start:
+            entry = start
+        else:
+            entry = task.entry_date
+        if task.done_date < start:
+            done = start
+        else:
+            done = task.done_date
+        if len(task.times) != 0:
+            started = task.times[0].start
+            if started < start:
+                started = start
+        else:
+            started = done
+        diff = (started.date() - entry.date()).days
+        for date in (entry.date() + timedelta(n) for n in range(diff)):
+            data[date] = [data[date][0] + 1, data[date][1], data[date][2]]
+        diff = (done.date() - started.date()).days
+        for date in (started.date() + timedelta(n) for n in range(diff)):
+            data[date] = [data[date][0], data[date][1] + 1, data[date][2]]
+        diff = (end.date() - done.date()).days
+        for date in (done.date() + timedelta(n) for n in range(diff)):
+            data[date] = [data[date][0], data[date][1], data[date][2] + 1]
+    max_count = 0
+    for key, value in data.items():
+        max_count= max(max_count, sum(value))
+    max_count = int(math.ceil(max_count / 10.0)) * 10
+    for key, value in data.items():
+        data[key] = [value[0] / max_count, value[1] / max_count, value[2] / max_count]
+    data = sorted(list(data.items()), key=lambda x: x[0])
+    if args.trim is True:
+        tmp = list()
+        store = 0
+        for key, value in data:
+            if store == 0 and value != [0,0,0]:
+                store = 1
+            if store == 1:
+                tmp.append((key, value))
+        store = 0
+        data = tmp
+        tmp = list()
+        for key, value in reversed(data):
+            if store == 0 and value != [0,0,0]:
+                store = 1
+            if store == 1:
+                tmp.append((key, value))
+        data = reversed(tmp)
+    print(display.print_aligned(sett.theme.get_color('title') + start.strftime('%a %b %d, %Y') +
+                                ' -- ' + end.strftime('%a %b %d, %Y') + sett.theme.reset(), 'c', width))
+    print(' ' * 18, end='')
+    wid = int((width - 18) / 4)
+    for r in range(0, max_count, int(math.ceil(max_count/40.0)) * 10):
+        print("{:<{}}".format(r, wid - len(str(r))), end='')
+    print(max_count)
+    width -= 18
+    for key, value in data:
+        print(key.strftime("%a %b %d, %Y"), end='  ')
+        print(sett.theme.get_color("reports.burndown.pending"), end='')
+        print(' ' * int(width * value[0]), end='')
+        print(sett.theme.get_color("reports.burndown.started"), end='')
+        print(' ' * int(width * value[1]), end='')
+        print(sett.theme.get_color("reports.burndown.done"), end='')
+        print(' ' * int(width * value[2]), end='')
+        print(sett.theme.reset())
+
 
 def graph(args, reset):
     hour_start = 0
@@ -200,7 +300,7 @@ def graph(args, reset):
     width = int(width)
     print(hour_range)
     data = {}
-    totals= {'total': 0}
+    totals = {'total': 0}
     if args.group == 'all' or args.group == 'pending':
         for task in sett.pending:
             for t in task.times:
@@ -211,9 +311,11 @@ def graph(args, reset):
                     totals[t.start.date()] += t.get_duration()
                     totals['total'] += t.get_duration()
                     if t.end is not None:
-                        data[t.start.date()].append(((task.description, task.project), t.start, t.end))
+                        data[t.start.date()].append(
+                            ((task.description, task.project), t.start, t.end))
                     else:
-                        data[t.start.date()].append(((task.description, task.project), t.start, datetime.now()))
+                        data[t.start.date()].append(
+                            ((task.description, task.project), t.start, datetime.now()))
     if args.group == 'all' or args.group == 'completed':
         for task in sett.done:
             for t in task.times:
@@ -224,9 +326,11 @@ def graph(args, reset):
                     totals[t.start.date()] += t.get_duration()
                     totals['total'] += t.get_duration()
                     if t.end is not None:
-                        data[t.start.date()].append(((task.description, task.project), t.start, t.end))
+                        data[t.start.date()].append(
+                            ((task.description, task.project), t.start, t.end))
                     else:
-                        data[t.start.date()].append(((task.description, task.project), t.start, datetime.now()))
+                        data[t.start.date()].append(
+                            ((task.description, task.project), t.start, datetime.now()))
     for x in data:
         data[x] = sorted(data[x], key=lambda x: x[1])
     if args.trim_all is False:
@@ -253,10 +357,12 @@ def graph(args, reset):
                 tmp.append((key, value))
         data = reversed(tmp)
     if start.date() == end.date():
-        print(display.print_aligned(sett.theme.get_color('title') + start.strftime('%a %b %d, %Y') + sett.theme.reset(), 'c', width))
+        print(display.print_aligned(sett.theme.get_color('title') +
+                                    start.strftime('%a %b %d, %Y') + sett.theme.reset(), 'c', width))
         hour = (width - 7) / hour_range
     else:
-        print(display.print_aligned(sett.theme.get_color('title') + start.strftime('%a %b %d, %Y') + ' -- ' + end.strftime('%a %b %d, %Y') + sett.theme.reset(), 'c', width))
+        print(display.print_aligned(sett.theme.get_color('title') + start.strftime('%a %b %d, %Y') +
+                                    ' -- ' + end.strftime('%a %b %d, %Y') + sett.theme.reset(), 'c', width))
         hour = (width - 18) / hour_range
         print(' ' * 11, end='')
     for i in range(hour_start, hour_end):
@@ -267,7 +373,8 @@ def graph(args, reset):
     for key, value in data:
         if start.date() != end.date():
             print(key.strftime('%d-%m-%Y'), end=' ')
-        current = datetime.combine(key, datetime.min.time()).replace(hour=hour_start)
+        current = datetime.combine(
+            key, datetime.min.time()).replace(hour=hour_start)
         day_end = datetime.combine(key, datetime.max.time())
         step = (3600 * hour_range) / (int(hour) * hour_range)
         index = 0
@@ -288,7 +395,7 @@ def graph(args, reset):
                             rem_col = list(range(255))[17:-25]
                         colors[color_ref] = random.choice(rem_col)
                         rem_col.remove(colors[color_ref])
-                print(color.get_color(colors[color_ref], True),end='')
+                print(color.get_color(colors[color_ref], True), end='')
                 char_index = 0
                 active = 1
             if (active in (1, 2, 3)) and current > value[index][2]:
@@ -299,7 +406,8 @@ def graph(args, reset):
                 else:
                     active = 4
             if current.date() == datetime.today().date() and current > datetime.now() and current - timedelta(seconds=step) < datetime.now():
-                print(sett.theme.get_color("reports.graph.active") + "\u2503" + sett.theme.reset(),end='')
+                print(sett.theme.get_color("reports.graph.active") +
+                      "\u2503" + sett.theme.reset(), end='')
             elif active == 2 or active == 0 or active == 4:
                 print(' ', end='')
             elif active == 1:
@@ -318,7 +426,8 @@ def graph(args, reset):
             current += timedelta(seconds=step)
         print('\033[0m', end=' ')
         if day_end.date() in totals:
-            print("{:02}:{:02}".format(divmod(divmod(totals[day_end.date()], 60)[0], 60)[0], divmod(divmod(totals[day_end.date()], 60)[0], 60)[1]))
+            print("{:02}:{:02}".format(divmod(divmod(totals[day_end.date()], 60)[0], 60)[
+                  0], divmod(divmod(totals[day_end.date()], 60)[0], 60)[1]))
         else:
             print("00:00")
     total = end.date() - start.date()
@@ -332,16 +441,20 @@ def graph(args, reset):
     print(' ' * (int(hour) * hour_range), '\033[4m      \033[24m')
     if start.date() != end.date():
         print(' ' * 10, end='')
-    print(' ' * (int(hour)* hour_range), "{:3}:{:02}".format(divmod(divmod(totals['total'], 60)[0], 60)[0], divmod(divmod(totals['total'], 60)[0], 60)[1]))
+    print(' ' * (int(hour) * hour_range), "{:3}:{:02}".format(divmod(divmod(
+        totals['total'], 60)[0], 60)[0], divmod(divmod(totals['total'], 60)[0], 60)[1]))
     if start.date() != end.date():
         print(' ' * 10, end='')
-    print("Tracked:   {:>15}".format("{}:{:02}:{:02}".format(divmod(divmod(totals['total'], 60)[0], 60)[0], divmod(divmod(totals['total'], 60)[0], 60)[1], divmod(totals['total'], 60)[1])))
+    print("Tracked:   {:>15}".format("{}:{:02}:{:02}".format(divmod(divmod(totals['total'], 60)[
+          0], 60)[0], divmod(divmod(totals['total'], 60)[0], 60)[1], divmod(totals['total'], 60)[1])))
     if start.date() != end.date():
         print(' ' * 10, end='')
-    print("Available: {:>15}".format("{}:{:02}:{:02}".format(divmod(divmod(diff, 60)[0], 60)[0], divmod(divmod(diff, 60)[0], 60)[1], divmod(diff, 60)[1])))
+    print("Available: {:>15}".format("{}:{:02}:{:02}".format(divmod(divmod(diff, 60)[
+          0], 60)[0], divmod(divmod(diff, 60)[0], 60)[1], divmod(diff, 60)[1])))
     if start.date() != end.date():
         print(' ' * 10, end='')
-    print("Total:     {:>15}".format("{}:{:02}:{:02}".format(divmod(divmod(total, 60)[0], 60)[0], divmod(divmod(total, 60)[0], 60)[1], divmod(total, 60)[1])))
+    print("Total:     {:>15}".format("{}:{:02}:{:02}".format(divmod(divmod(total, 60)[
+          0], 60)[0], divmod(divmod(total, 60)[0], 60)[1], divmod(total, 60)[1])))
     print()
 
 

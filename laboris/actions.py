@@ -62,11 +62,13 @@ def run_done(args):
     else:
         if len(tasks[0]) != 0:
             task = tasks[0][0]
+            task.done_date = datetime.now()
             sett.done.append(task)
             sett.pending.remove(task)
             printer.print_action("done", task)
         else:
             task = tasks[1][0]
+            task.done_date = None
             sett.pending.append(task)
             sett.done.remove(task)
             printer.print_action("undone", task)
@@ -77,6 +79,7 @@ def run_undone(args):
         printer.print_error("undone", "No task found")
     else:
         task = tasks[1][0]
+        task.done_date = None
         sett.pending.append(task)
         sett.done.remove(task)
         printer.print_action("undone", task)
