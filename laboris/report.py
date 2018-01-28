@@ -152,7 +152,6 @@ def times(args, reset):
                         True), t.print_end(True), t.print_duration(True)))
                     data[t.start.date()][0] += t.get_duration()
                     total += t.get_duration()
-    from pprint import pprint
     data = sorted(list(data.items()), key=lambda x: x[0])
     display = [["Date/Description", "Start", "End", "Duration"]]
     table = Table()
@@ -266,7 +265,7 @@ def burndown(args, reset):
                 store = 1
             if store == 1:
                 tmp.append((key, value))
-        data = reversed(tmp)
+        data = list(reversed(tmp))
     print(display.print_aligned(sett.theme.get_color('title') + start.strftime('%a %b %d, %Y') +
                                 ' -- ' + end.strftime('%a %b %d, %Y') + sett.theme.reset(), 'c', width))
     print(' ' * 18, end='')
@@ -284,6 +283,8 @@ def burndown(args, reset):
         print(sett.theme.get_color("reports.burndown.done"), end='')
         print(' ' * int(width * value[2]), end='')
         print(sett.theme.reset())
+    if reset is True:
+        print('\033[{}F'.format(len(data) + 2), end='')
 
 
 def graph(args, reset):
@@ -298,7 +299,6 @@ def graph(args, reset):
     height, width = os.popen('stty size', 'r').read().split()
     height = int(height)
     width = int(width)
-    print(hour_range)
     data = {}
     totals = {'total': 0}
     if args.group == 'all' or args.group == 'pending':
@@ -456,6 +456,8 @@ def graph(args, reset):
     print("Total:     {:>15}".format("{}:{:02}:{:02}".format(divmod(divmod(total, 60)[
           0], 60)[0], divmod(divmod(total, 60)[0], 60)[1], divmod(total, 60)[1])))
     print()
+    if reset is True:
+        print('\033[{}F'.format(len(data) + 8), end='')
 
 
 def get_range(args):
