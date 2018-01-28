@@ -171,7 +171,7 @@ def main():
     parser.add_argument('--version', action='version', version="%(prog)s 2.0")
     subparsers = parser.add_subparsers(
         help="Possible actions to preform", dest="command")
-    add = subparsers.add_parser('add')
+    add = subparsers.add_parser('add', help="Create new task")
     add.add_argument('description', type=str,
                      nargs='+', help="Task description")
     add.add_argument('--priority', '-p', type=int,
@@ -181,21 +181,21 @@ def main():
     add.add_argument('--tag', '-t', type=str, nargs='*', help="Task tags")
     add.add_argument('--project', '-pr', type=str,
                      nargs='*', help="Task projects")
-    done = subparsers.add_parser('done')
+    done = subparsers.add_parser('done', help="Complete specified task")
     done.add_argument('task', help="Task to complete")
-    undone = subparsers.add_parser('undone')
+    undone = subparsers.add_parser('undone', help="Remove specified task from completed list")
     undone.add_argument('task', type=str, help="Task to un-complete")
-    start = subparsers.add_parser('start')
+    start = subparsers.add_parser('start', help="Begin tracking time for specified task")
     start.add_argument('task', help="Task to start work on")
     start.add_argument('time', nargs='?', type=valid_datetime,
                        help="Date/Time work started on task")
-    stop = subparsers.add_parser('stop')
+    stop = subparsers.add_parser('stop', help="Stop tracking time for specified task")
     stop.add_argument('task', help="Task to stop work on")
     stop.add_argument('time', nargs='?', type=valid_datetime,
                       help="Date/Time work stoped on task")
-    delete = subparsers.add_parser('delete')
+    delete = subparsers.add_parser('delete', help="Delete specified task")
     delete.add_argument('task', help='Task to delete')
-    modify = subparsers.add_parser('modify')
+    modify = subparsers.add_parser('modify', help="Modify specified task entry")
     modify.add_argument('task', help='Task to modify')
     modify.add_argument('description', type=str,
                         nargs='*', help="Task description")
@@ -206,7 +206,7 @@ def main():
     modify.add_argument('--tag', '-t', type=str, nargs='*', help="Task tags")
     modify.add_argument('--project', '-pr', type=str,
                         nargs='*', help="Task projects")
-    lis = subparsers.add_parser('list')
+    lis = subparsers.add_parser('list', help="List information of tasks or single task")
     lis.add_argument('task', nargs='?', help="Task search string")
     lis.add_argument('--sort', nargs='?',
                      choices=["urgency", "description", "due",
@@ -219,7 +219,7 @@ def main():
                      default='pending', help="Shows groups of tasks")
     lis.add_argument('--format', nargs='?', type=str,
                      help="Format of task table")
-    report = subparsers.add_parser('report')
+    report = subparsers.add_parser('report', help="Display information in formated report")
     reports = report.add_subparsers(
         help="different report formats", dest="report")
     summary = reports.add_parser('summary')
@@ -273,11 +273,12 @@ def main():
                        type=valid_datetime_ref, help="Datetime range begining")
     graph.add_argument('stop', nargs='?',
                        type=valid_datetime_ref, help="Datetime range ending")
-    parser.set_default_subparser('list')
+    #  parser.set_default_subparser('list')
     args = parser.parse_args()
-    print(args)
+    if args.command is None:
+        args = argparse.Namespace(command='list', format=None, group='pending', sort=None, task=None)
+    #  print(args)
     sett.init()
-    #  sett._theme.parse_file(os.path.expanduser("~/.laboris/default.json"))
     action.run_action(args)
     sett.term()
 

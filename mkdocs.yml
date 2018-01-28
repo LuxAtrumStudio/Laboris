@@ -1,0 +1,31 @@
+site_name: Laboris
+theme: 'material'
+extra:
+  feature:
+    tabs: true
+  palette:
+    primary: 'deep orange'
+    accent: 'teal'
+extra_javascript:
+  - 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=Tex-MML-AM_CHTML'
+markdown_extensions:
+  - admonition
+  - codehilite(guess_lang=false)
+  - toc(permalink=true)
+  - meta
+  - markdown.extensions.def_list
+  - pymdownx.betterem(smart_enable=all)
+  - pymdownx.superfences
+  - pymdownx.tasklist
+  - pymdownx.tilde
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.mark
+  - pymdownx.arithmatex
+repo_name: 'Laboris'
+repo_url: 'https://github.com/LuxAtrumStudio/Laboris'
+edit_uri: ""
+pages:
+  - Home: 'index.md'
+  - Usage:
+    - CLI: 'usage/cli.md'
