@@ -4,8 +4,8 @@ import os
 
 
 def load_data():
-    path_pending = os.path.expanduser("~/.laboris/pending.json")
-    path_done = os.path.expanduser("~/.laboris/done.json")
+    path_pending = os.path.expanduser("~/.config/laboris/pending.json")
+    path_done = os.path.expanduser("~/.config/laboris/done.json")
     with open(path_pending) as data:
         pending_data = json.load(data)
     with open(path_done) as data:
@@ -41,11 +41,11 @@ def save_data(pending_tasks, done_tasks):
     ndue = sorted(ndue, key=lambda task: task.entry_date)
     pending_tasks = due + ndue
     done_tasks = sorted(done_tasks, key=lambda task: task.entry_date)
-    path_pending = os.path.expanduser("~/.laboris/pending.json")
+    path_pending = os.path.expanduser("~/.config/laboris/pending.json")
     pending_data = []
     for t in pending_tasks:
         pending_data.append(t.get_json())
-    path_done = os.path.expanduser("~/.laboris/done.json")
+    path_done = os.path.expanduser("~/.config/laboris/done.json")
     done_data = []
     for t in done_tasks:
         done_data.append(t.get_json())

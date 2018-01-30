@@ -41,6 +41,8 @@ def report(args, reset=False):
         burndown(args, reset)
     elif args.report == 'graph':
         graph(args, reset)
+    elif args.report == 'calendar':
+        cal(args, reset)
 
 
 def summary(args, reset):
@@ -193,7 +195,7 @@ def burndown(args, reset):
     data = {date: [0, 0, 0]
             for date in (start.date() + timedelta(n) for n in range(diff))}
     if end.date() >= datetime.now().date():
-        end  = datetime.now() + timedelta(1)
+        end = datetime.now() + timedelta(1)
     height, width = os.popen('stty size', 'r').read().split()
     height = int(height)
     width = int(width)
@@ -244,16 +246,18 @@ def burndown(args, reset):
             data[date] = [data[date][0], data[date][1], data[date][2] + 1]
     max_count = 0
     for key, value in data.items():
-        max_count= max(max_count, sum(value))
-    max_count = int(math.ceil(max_count / 10.0)) * 10
+        max_count = max(max_count, sum(value))
+    if max_count > 10:
+        max_count = int(math.ceil(max_count / 10.0)) * 10
     for key, value in data.items():
-        data[key] = [value[0] / max_count, value[1] / max_count, value[2] / max_count]
+        data[key] = [value[0] / max_count, value[1] /
+                     max_count, value[2] / max_count]
     data = sorted(list(data.items()), key=lambda x: x[0])
     if args.trim is True:
         tmp = list()
         store = 0
         for key, value in data:
-            if store == 0 and value != [0,0,0]:
+            if store == 0 and value != [0, 0, 0]:
                 store = 1
             if store == 1:
                 tmp.append((key, value))
@@ -261,7 +265,7 @@ def burndown(args, reset):
         data = tmp
         tmp = list()
         for key, value in reversed(data):
-            if store == 0 and value != [0,0,0]:
+            if store == 0 and value != [0, 0, 0]:
                 store = 1
             if store == 1:
                 tmp.append((key, value))
@@ -269,10 +273,16 @@ def burndown(args, reset):
     print(display.print_aligned(sett.theme.get_color('title') + start.strftime('%a %b %d, %Y') +
                                 ' -- ' + end.strftime('%a %b %d, %Y') + sett.theme.reset(), 'c', width))
     print(' ' * 18, end='')
-    wid = int((width - 18) / 4)
-    for r in range(0, max_count, int(math.ceil(max_count/40.0)) * 10):
-        print("{:<{}}".format(r, wid - len(str(r))), end='')
-    print(max_count)
+    if max_count > 10:
+        wid = int((width - 18) / 4)
+        for r in range(0, max_count, int(math.ceil(max_count / 40.0)) * 10):
+            print("{:<{}}".format(r, wid - len(str(r))), end='')
+        print(max_count)
+    else:
+        wid = int((width - 18) / max_count)
+        for r in range(0, max_count):
+            print("{:<{}}".format(r, wid - len(str(r))), end='')
+        print(max_count)
     width -= 18
     for key, value in data:
         print(key.strftime("%a %b %d, %Y"), end='  ')
@@ -458,6 +468,105 @@ def graph(args, reset):
     print()
     if reset is True:
         print('\033[{}F'.format(len(data) + 8), end='')
+
+
+def daterange(start_date, end_date, inc='day'):
+    if inc == 'day':
+        for n in range((end_date - start_date).days + 1):
+            yield start_date + timedelta(n)
+    elif inc == 'month':
+        start_ym = 12 * start_date.year + start_date.month - 1
+        end_ym = 12 * end_date.year + end_date.month - 1
+        for ym in range(start_ym, end_ym):
+            yield datetime(year=divmod(ym, 12)[0], month=divmod(ym, 12)[1] + 1, day=1)
+
+
+def cal(args, reset):
+    if args.start is None:
+        args.start = datetime.now()
+    if args.stop is None:
+        args.stop = datetime.now().replace(day=calendar.monthrange(datetime.now().year, args.start.month + 1)[1], month=(args.start.month + 1) % 12)
+    else:
+        year_up = ((args.stop.month+1)%12)
+        if year_up != 1:
+            year_up = 0
+        args.stop = args.stop.replace(month=(args.stop.month + 1) % 12, year=args.stop.year + year_up, day=calendar.monthrange(args.stop.year, args.stop.month)[1] - 1)
+    data = {}
+    for task in sett.pending:
+        if task.due_date is not None:
+            if task.is_overdue() is True:
+                if task.due_date.date() in data:
+                    data[task.due_date.date()] = min(data[task.due_date.date()], 1)
+                else:
+                    data[task.due_date.date()] = 1
+            if task.due_today() is True:
+                if task.due_date.date() in data:
+                    data[task.due_date.date()] = min(data[task.due_date.date()], 2)
+                else:
+                    data[task.due_date.date()] = 2
+            else:
+                if task.due_date.date() in data:
+                    data[task.due_date.date()] = min(data[task.due_date.date()], 3)
+                else:
+                    data[task.due_date.date()] = 3
+    mon_count = sum(1 for _ in daterange(args.start, args.stop, 'month'))
+    width = 20
+    if mon_count >= 3:
+        width = 64
+    elif mon_count == 2:
+        width = 42
+    year = 0
+    index = 0
+    for month in daterange(args.start, args.stop, 'month'):
+        if month.year != year:
+            year = month.year
+            print(display.print_aligned(sett.theme.get_color('title') + "  {}  ".format(year) + sett.theme.reset(), 'c', width))
+        lines = 4
+        indent = 0
+        if index % 3 == 1:
+            indent = 22
+        elif index % 3 == 2:
+            indent = 44
+        days = calendar.monthrange(month.year, month.month)[1]
+        dow = (month.replace(day=1).weekday() + 1) % 7
+        if indent != 0:
+            print("\033[G\033[{}C{:^20}".format(indent, month.strftime("%B %Y")))
+            print("\033[G\033[{}CSu Mo Tu We Th Fr Sa".format(indent))
+        else:
+            print("{:^20}".format(month.strftime("%B %Y")))
+            print("Su Mo Tu We Th Fr Sa")
+        for dt in daterange(month, month.replace(day=calendar.monthrange(month.year, month.month)[1])):
+            space = (dt.weekday() + 1) % 7
+            if dt.date() == datetime.now().date() and dt.date() not in data:
+                print("\033[7m", end='')
+            if space == 0 or space == 6:
+                print("\033[40m", end='')
+            if dt.date() in data:
+                if data[dt.date()] == 1:
+                    print("\033[90;101m", end='')
+                if data[dt.date()] == 2:
+                    print("\033[97;41m", end='')
+                if data[dt.date()] == 3:
+                    print("\033[90;41m", end='')
+            if space != 0 or indent != 0:
+                print("\033[G\033[{}C{:2}".format((3 * space) + indent, dt.day), end='')
+            else:
+                print("{:2}".format(dt.day), end='')
+            if dt.date() in data:
+                print("\033[39;49m", end='')
+            if space == 0 or space == 6:
+                print("\033[49m", end='')
+            if dt.date() == datetime.now().date():
+                print("\033[27m", end='')
+            if space == 6:
+                print()
+                lines += 1
+        print()
+        if index != mon_count - 1:
+            print("\033[{}F".format(lines))
+        index += 1
+        if index % 3 == 0 and index != mon_count:
+            print("\n" * 9, end='')
 
 
 def get_range(args):

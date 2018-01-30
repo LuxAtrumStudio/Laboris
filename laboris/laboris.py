@@ -115,6 +115,19 @@ def valid_datetime_ref(arg):
     else:
         return (arg, valid_datetime(arg))
 
+def valid_month(arg):
+    mon = ["%b", "%B"]
+    my = ["%b %Y", "%b %y", "%B %Y", "%B %y", "%b, %y", "%B, %y", "%b, %Y", "%B, %Y"]
+    dt = datetime.now().replace(day=1, hour=0, minute=0, second=0)
+    adt = try_date_format_set(arg, mon)
+    if adt is not False:
+        return dt.replace(month=adt.month)
+    adt = try_date_format_set(arg, my)
+    if adt is not False:
+        return dt.replace(month=adt.month, year=adt.year)
+    raise argparse.ArgumentTypeError(
+        "Not a valid date/time \"{0}\"".format(arg))
+
 
 def set_default_subparser(self, name, args=None):
     """default subparser selection. Call after setup, just before parse_args()
@@ -183,19 +196,23 @@ def main():
                      nargs='*', help="Task projects")
     done = subparsers.add_parser('done', help="Complete specified task")
     done.add_argument('task', help="Task to complete")
-    undone = subparsers.add_parser('undone', help="Remove specified task from completed list")
+    undone = subparsers.add_parser(
+        'undone', help="Remove specified task from completed list")
     undone.add_argument('task', type=str, help="Task to un-complete")
-    start = subparsers.add_parser('start', help="Begin tracking time for specified task")
+    start = subparsers.add_parser(
+        'start', help="Begin tracking time for specified task")
     start.add_argument('task', help="Task to start work on")
     start.add_argument('time', nargs='?', type=valid_datetime,
                        help="Date/Time work started on task")
-    stop = subparsers.add_parser('stop', help="Stop tracking time for specified task")
+    stop = subparsers.add_parser(
+        'stop', help="Stop tracking time for specified task")
     stop.add_argument('task', help="Task to stop work on")
     stop.add_argument('time', nargs='?', type=valid_datetime,
                       help="Date/Time work stoped on task")
     delete = subparsers.add_parser('delete', help="Delete specified task")
     delete.add_argument('task', help='Task to delete')
-    modify = subparsers.add_parser('modify', help="Modify specified task entry")
+    modify = subparsers.add_parser(
+        'modify', help="Modify specified task entry")
     modify.add_argument('task', help='Task to modify')
     modify.add_argument('description', type=str,
                         nargs='*', help="Task description")
@@ -206,7 +223,8 @@ def main():
     modify.add_argument('--tag', '-t', type=str, nargs='*', help="Task tags")
     modify.add_argument('--project', '-pr', type=str,
                         nargs='*', help="Task projects")
-    lis = subparsers.add_parser('list', help="List information of tasks or single task")
+    lis = subparsers.add_parser(
+        'list', help="List information of tasks or single task")
     lis.add_argument('task', nargs='?', help="Task search string")
     lis.add_argument('--sort', nargs='?',
                      choices=["urgency", "description", "due",
@@ -219,7 +237,8 @@ def main():
                      default='pending', help="Shows groups of tasks")
     lis.add_argument('--format', nargs='?', type=str,
                      help="Format of task table")
-    report = subparsers.add_parser('report', help="Display information in formated report")
+    report = subparsers.add_parser(
+        'report', help="Display information in formated report")
     reports = report.add_subparsers(
         help="different report formats", dest="report")
     summary = reports.add_parser('summary')
@@ -252,11 +271,11 @@ def main():
     burn.add_argument('--monitor', action='store_true',
                       help="Updates result every second")
     burn.add_argument('--trim', action='store_true',
-                       help="Removes un-tracked days on either end of tracked days")
+                      help="Removes un-tracked days on either end of tracked days")
     burn.add_argument('start', nargs='?',
                       type=valid_datetime_ref, help="Datetime range begining")
     burn.add_argument('stop', nargs='?',
-                       type=valid_datetime_ref, help="Datetime range ending")
+                      type=valid_datetime_ref, help="Datetime range ending")
     graph = reports.add_parser('graph')
     graph.add_argument('--group', nargs='?',
                        choices=['all', 'pending', 'completed'],
@@ -273,10 +292,21 @@ def main():
                        type=valid_datetime_ref, help="Datetime range begining")
     graph.add_argument('stop', nargs='?',
                        type=valid_datetime_ref, help="Datetime range ending")
+    cal = reports.add_parser('calendar',
+                             help="Displays upcoming and past tasks in a calendar format")
+    cal.add_argument('start', nargs='?', type=valid_month,
+                     help="Number of month ago to start display")
+    cal.add_argument('stop', nargs='?', type=valid_month,
+                     help="Number of month ago to start display")
+    cal.add_argument('--clear', action='store_true',
+                       help="Clears screen before printing")
+    cal.add_argument('--monitor', action='store_true',
+                       help="Updates result every second")
     #  parser.set_default_subparser('list')
     args = parser.parse_args()
     if args.command is None:
-        args = argparse.Namespace(command='list', format=None, group='pending', sort=None, task=None)
+        args = argparse.Namespace(
+            command='list', format=None, group='pending', sort=None, task=None)
     #  print(args)
     sett.init()
     action.run_action(args)

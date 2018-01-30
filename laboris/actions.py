@@ -63,6 +63,8 @@ def run_done(args):
         if len(tasks[0]) != 0:
             task = tasks[0][0]
             task.done_date = datetime.now()
+            if len(task.times) > 0 and task.times[-1].is_done() is False:
+                task.times[-1].stop()
             sett.done.append(task)
             sett.pending.remove(task)
             printer.print_action("done", task)
@@ -124,11 +126,11 @@ def run_delete(args):
     elif len(tasks[0]) != 0:
         task = tasks[0][0]
         sett.pending.remove(task)
-        printer.print_action("delete", tasks)
+        printer.print_action("delete", task)
     elif len(tasks[1]) != 0:
         task = tasks[1][0]
         sett.done.remove(task)
-        printer.print_action("delete", tasks)
+        printer.print_action("delete", task)
 
 
 def run_modify(args):
