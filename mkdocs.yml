@@ -1,0 +1,36 @@
+site_name: Laboris
+theme: 'material'
+extra:
+  palette:
+    primary: 'deep orange'
+    accent: 'teal'
+markdown_extensions:
+  - admonition
+  - codehilite(guess_lang=false)
+  - toc(permalink=true)
+  - meta
+  - markdown.extensions.def_list
+  - pymdownx.betterem(smart_enable=all)
+  - pymdownx.superfences
+  - pymdownx.tasklist
+  - pymdownx.tilde
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.arithmatex
+repo_name: 'Laboris'
+repo_url: 'https://github.com/LuxAtrumStudio/Laboris'
+edit_uri: ""
+pages:
+  - Home: 'index.md'
+  - Reports:
+    - Summary: 'report/summary.md'
+    - Active: 'report/active.md'
+    - Times: 'report/times.md'
+    - Burndown: 'report/burndown.md'
+    - Graph: 'report/graph.md'
+    - Calendar: 'report/calendar.md'
+  - Options:
+    - DateTime: 'options/datetime.md'
+    - DateTime Reference: 'options/datetime_ref.md'
+    - Month: 'options/month.md'
+

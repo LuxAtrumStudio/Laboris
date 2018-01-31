@@ -60,9 +60,6 @@ instance/
 # Scrapy stuff:
 .scrapy
 
-# Sphinx documentation
-docs/build/
-
 # PyBuilder
 target/
 
@@ -90,3 +87,5 @@ ENV/
 .ropeproject
 
 .mypy_cache
+
+site/

@@ -2,7 +2,10 @@ from datetime import datetime
 
 
 class Interval:
+
     def __init__(self, start=datetime.now(), end=None):
+        if start is None:
+            start = datetime.now()
         self.start = start
         self.end = end
 
@@ -15,8 +18,21 @@ class Interval:
         else:
             return True
 
-    def stop(self):
-        self.end = datetime.now()
+    def stop(self, date=None):
+        if date is None:
+            self.end = datetime.now()
+        else:
+            self.end = date
+
+    def duration(self):
+        if self.start is None:
+            return 0
+        elif self.end is None:
+            t = datetime.now() - self.start
+            return t.seconds
+        else:
+            t = self.end - self.start
+            return t.seconds
 
     def parse_json(self, data):
         if len(data) > 0:
@@ -34,7 +50,14 @@ class Interval:
 
     def print_start(self, sec=False):
         if self.start is None:
-            return "NOW"
+            dt = datetime.now()
+            if sec is True:
+                return dt.strftime("%H:%M:%S")
+            elif sec is False:
+                return dt.strftime("%H:%M:%S")
+            return " - "
+        if type(sec) is str:
+            return self.start.strftime(sec)
         if sec is True:
             return self.start.strftime("%H:%M:%S")
         elif sec is False:
@@ -42,11 +65,26 @@ class Interval:
 
     def print_end(self, sec=False):
         if self.end is None:
-            return "NOW"
+            dt = datetime.now()
+            if sec is True:
+                return dt.strftime("%H:%M:%S")
+            elif sec is False:
+                return dt.strftime("%H:%M")
+            return " - "
+        if type(sec) is str:
+            return self.end.strftime(sec)
         if sec is True:
             return self.end.strftime("%H:%M:%S")
         elif sec is False:
             return self.end.strftime("%H:%M")
+
+    def get_duration(self):
+        if self.start is None:
+            return 0
+        elif self.end is None:
+            return (datetime.now() - self.start).seconds
+        else:
+            return (self.end - self.start).seconds
 
     def print_duration(self, sec=False):
         if self.start is None:
