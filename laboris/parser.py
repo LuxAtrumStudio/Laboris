@@ -1,4 +1,5 @@
 import re
+import sys
 from enum import Enum
 from datetime import datetime, timedelta
 
@@ -7,7 +8,6 @@ import laboris.sorter as sorter
 import laboris.task as task
 import laboris.printer as printer
 import laboris.interval as interval
-import sys
 import laboris.report as report
 
 args = list()

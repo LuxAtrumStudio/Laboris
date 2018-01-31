@@ -6,9 +6,8 @@ import math
 import laboris.settings as sett
 import laboris.printer as printer
 
-from ioterm.table import Table
-import ioterm.display as display
-import ioterm.color as color
+from laboris.table import Table
+import laboris.display as display
 from datetime import datetime, timedelta
 
 
@@ -270,6 +269,7 @@ def burndown(args, reset):
             if store == 1:
                 tmp.append((key, value))
         data = list(reversed(tmp))
+    # TODO(Arden): Remove display requierment
     print(display.print_aligned(sett.theme.get_color('title') + start.strftime('%a %b %d, %Y') +
                                 ' -- ' + end.strftime('%a %b %d, %Y') + sett.theme.reset(), 'c', width))
     print(' ' * 18, end='')
@@ -367,10 +367,12 @@ def graph(args, reset):
                 tmp.append((key, value))
         data = reversed(tmp)
     if start.date() == end.date():
+        #TODO
         print(display.print_aligned(sett.theme.get_color('title') +
                                     start.strftime('%a %b %d, %Y') + sett.theme.reset(), 'c', width))
         hour = (width - 7) / hour_range
     else:
+        #TODO
         print(display.print_aligned(sett.theme.get_color('title') + start.strftime('%a %b %d, %Y') +
                                     ' -- ' + end.strftime('%a %b %d, %Y') + sett.theme.reset(), 'c', width))
         hour = (width - 18) / hour_range
@@ -405,7 +407,8 @@ def graph(args, reset):
                             rem_col = list(range(255))[17:-25]
                         colors[color_ref] = random.choice(rem_col)
                         rem_col.remove(colors[color_ref])
-                print(color.get_color(colors[color_ref], True), end='')
+                #TODO
+                print(sett.theme.get_color_escape(colors[color_ref], True), end='')
                 char_index = 0
                 active = 1
             if (active in (1, 2, 3)) and current > value[index][2]:
@@ -520,6 +523,7 @@ def cal(args, reset):
     for month in daterange(args.start, args.stop, 'month'):
         if month.year != year:
             year = month.year
+            #TODO
             print(display.print_aligned(sett.theme.get_color('title') + "  {}  ".format(year) + sett.theme.reset(), 'c', width))
         lines = 4
         indent = 0
