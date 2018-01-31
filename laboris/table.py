@@ -1,6 +1,6 @@
 import os
-import ioterm.color as color
-import ioterm.display as display
+import laboris.settings as sett
+import laboris.display as display
 import math
 from enum import Enum
 
@@ -171,20 +171,20 @@ class Table(object):
         if self.col_pri:
             for j in range(max(self.size_data["rows"], self.flags["min_height"])):
                 if self.flags["zebra"] is True and j % 2 != 0:
-                    print(color.get_color(0, True), end='')
+                    print(sett.theme.bg(), end='')
                 self.vert(0)
                 for i, col in enumerate(self.data):
                     if j < len(col):
                         color_attr  = None
                         if self.flags["zebra"] is True and j % 2 != 0:
-                            color_attr = color.get_color(0, True)
+                            color_attr = sett.theme.bg()
                         item = display.print_aligned(col[j], self.alignment[i][j], self.size_data["col_size"][i], color_attr)
                         item = display.truncate(item, self.size_data["col_size"][i])
                         if i in self.flags["title_col"] or j in self.flags["title_row"]:
                             print(self.title_fmt[0], end='')
                         print(item, end='')
                         if self.flags["zebra"] is True and j % 2 != 0:
-                            print(color.get_color(0, True), end='')
+                            print(sett.theme.bg(), end='')
                         if i in self.flags["title_col"] or j in self.flags["title_row"]:
                             print(self.title_fmt[1], end='')
                         if i != self.size_data["cols"] - 1:
@@ -195,14 +195,14 @@ class Table(object):
                             self.vert()
                 self.vert(2)
                 if self.flags["zebra"] is True and j % 2 != 0:
-                    print(color.get_color('default', True), end='')
+                    print(sett.theme.reset(), end='')
                 if j != max(self.size_data["rows"], self.flags["min_height"]) - 1:
                     self.horz()
 
         else:
             for j, row in enumerate(self.data):
                 if self.flags["zebra"] is True and j % 2 != 0:
-                    print(color.get_color(0, True), end='')
+                    print(sett.theme.bg(), end='')
                 self.vert(0)
                 for i, item in enumerate(row):
                     item = display.print_aligned(
@@ -212,7 +212,7 @@ class Table(object):
                         print(self.title_fmt[0], end='')
                     print(item, end='')
                     if self.flags["zebra"] is True and j % 2 != 0:
-                        print(color.get_color(0, True), end='')
+                        print(sett.theme.bg(), end='')
                     if i in self.flags["title_col"] or j in self.flags["title_row"]:
                         print(self.title_fmt[1], end='')
                     if i != self.size_data["cols"] - 1:
@@ -223,12 +223,12 @@ class Table(object):
                         self.vert()
                 self.vert(2)
                 if self.flags["zebra"] is True and j % 2 != 0:
-                    print(color.get_color("default", True), end='')
+                    print(sett.theme.reset(), end='')
                 if j != len(self.data) - 1 or self.flags["min_height"] > len(self.data):
                     self.horz()
             for j in range(len(self.data), self.flags["min_height"]):
                 if self.flags["zebra"] is True and j % 2 != 0:
-                    print(color.get_color(0, True), end='')
+                    print(sett.theme.bg(), end='')
                 self.vert(0)
                 for i in range(self.size_data["cols"]):
                     print(' ' * self.size_data["col_size"][i], end='')
@@ -236,7 +236,7 @@ class Table(object):
                         self.vert()
                 self.vert(2)
                 if self.flags["zebra"] is True and j % 2 != 0:
-                    print(color.get_color("default", True), end='')
+                    print(sett.theme.reset(), end='')
                 if j != self.flags["min_height"] - 1:
                     self.horz()
         self.horz(2)
