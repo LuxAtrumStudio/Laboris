@@ -27,5 +27,14 @@ repo_url: 'https://github.com/LuxAtrumStudio/Laboris'
 edit_uri: ""
 pages:
   - Home: 'index.md'
+  - Reports:
+    - Index: 'report/index.md'
+    - Summary: 'report/summary.md'
+    - Active: 'report/active.md'
+    - Times: 'report/times.md'
+    - Burndown: 'report/burndown.md'
+    - Graph: 'report/graph.md'
+    - Calendar: 'report/calendar.md'
+
   - Usage:
     - CLI: 'usage/cli.md'

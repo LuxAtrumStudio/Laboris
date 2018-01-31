@@ -409,7 +409,7 @@ def graph(args, reset):
                 char_index = 0
                 active = 1
             if (active in (1, 2, 3)) and current > value[index][2]:
-                print("\033[0m", end='')
+                print(sett.theme.reset(), end='')
                 active = 0
                 if len(value) > index + 1:
                     index += 1
@@ -499,16 +499,16 @@ def cal(args, reset):
                     data[task.due_date.date()] = min(data[task.due_date.date()], 1)
                 else:
                     data[task.due_date.date()] = 1
-            if task.due_today() is True:
+            elif task.due_today() is True:
                 if task.due_date.date() in data:
                     data[task.due_date.date()] = min(data[task.due_date.date()], 2)
                 else:
                     data[task.due_date.date()] = 2
             else:
                 if task.due_date.date() in data:
-                    data[task.due_date.date()] = min(data[task.due_date.date()], 3)
+                    data[task.due_date.date()] = min(data[task.due_date.date()], -(int(task.urgency) - 13))
                 else:
-                    data[task.due_date.date()] = 3
+                    data[task.due_date.date()] = -(int(task.urgency) - 13)
     mon_count = sum(1 for _ in daterange(args.start, args.stop, 'month'))
     width = 20
     if mon_count >= 3:
@@ -538,26 +538,22 @@ def cal(args, reset):
         for dt in daterange(month, month.replace(day=calendar.monthrange(month.year, month.month)[1])):
             space = (dt.weekday() + 1) % 7
             if dt.date() == datetime.now().date() and dt.date() not in data:
-                print("\033[7m", end='')
+                print(sett.theme.get_color('reports.calendar.active'), end='')
             if space == 0 or space == 6:
-                print("\033[40m", end='')
+                print(sett.theme.get_color('reports.calendar.weekend'), end='')
             if dt.date() in data:
                 if data[dt.date()] == 1:
-                    print("\033[90;101m", end='')
-                if data[dt.date()] == 2:
-                    print("\033[97;41m", end='')
-                if data[dt.date()] == 3:
-                    print("\033[90;41m", end='')
+                    print(sett.theme.get_color('reports.calendar.overdue'), end='')
+                elif data[dt.date()] == 2:
+                    print(sett.theme.get_color('reports.calendar.due_today'), end='')
+                else:
+                    print(sett.theme.get_color('reports.calendar.urg{}'.format(13 - data[dt.date()])), end='')
             if space != 0 or indent != 0:
                 print("\033[G\033[{}C{:2}".format((3 * space) + indent, dt.day), end='')
             else:
                 print("{:2}".format(dt.day), end='')
-            if dt.date() in data:
-                print("\033[39;49m", end='')
-            if space == 0 or space == 6:
-                print("\033[49m", end='')
-            if dt.date() == datetime.now().date():
-                print("\033[27m", end='')
+            if dt.date() in data or space in (0, 6) or dt.date() == datetime.now().date():
+                print(sett.theme.reset(), end='')
             if space == 6:
                 print()
                 lines += 1
