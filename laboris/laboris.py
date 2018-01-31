@@ -45,18 +45,17 @@ def try_date_format_set(arg, fmts):
 
 def valid_datetime(arg):
     arg = arg.replace("@", "T")
+    arg = arg.replace('/', '-')
     dmy = [
         "%d-%m-%Y", "%d-%m-%y", "%m-%d-%Y", "%m-%d-%y", "%Y-%m-%d", "%y-%m-%d",
-        "%d/%m/%Y", "%d/%m/%y", "%m/%d/%Y", "%m/%d/%y", "%Y/%m/%d", "%y/%m/%d"
     ]
     dmyhm = [
         "%d-%m-%YT%H:%M", "%d-%m-%yT%H:%M", "%m-%d-%YT%H:%M", "%m-%d-%yT%H:%M",
-        "%Y-%m-%dT%H:%M", "%y-%m-%dT%H:%M", "%d/%m/%YT%H:%M", "%d/%m/%yT%H:%M",
-        "%m/%d/%YT%H:%M", "%m/%d/%yT%H:%M", "%Y/%m/%dT%H:%M", "%y/%m/%dT%H:%M"
+        "%Y-%m-%dT%H:%M", "%y-%m-%dT%H:%M"
     ]
-    a = ["%A"]
-    ahm = ["%AT%H:%M", "%AT%H:%M:%S"]
-    dm = ["%d-%m", "%m-%d", "%d/%m", "%m/%d"]
+    a = ["%A", "%a"]
+    ahm = ["%AT%H:%M", "%AT%H:%M:%S", "%aT%H:%M", "%aT%H:%M:%S"]
+    dm = ["%d-%m", "%m-%d"]
     hms = ["%H:%M", "%H.%M", "%H:%M:%S", "%H.%M.%S"]
 
     arg = arg.replace(
@@ -117,7 +116,7 @@ def valid_datetime_ref(arg):
 
 def valid_month(arg):
     mon = ["%b", "%B"]
-    my = ["%b %Y", "%b %y", "%B %Y", "%B %y", "%b, %y", "%B, %y", "%b, %Y", "%B, %Y"]
+    my = ["%b %Y", "%b %y", "%B %Y", "%B %y"]
     dt = datetime.now().replace(day=1, hour=0, minute=0, second=0)
     adt = try_date_format_set(arg, mon)
     if adt is not False:
@@ -126,7 +125,7 @@ def valid_month(arg):
     if adt is not False:
         return dt.replace(month=adt.month, year=adt.year)
     raise argparse.ArgumentTypeError(
-        "Not a valid date/time \"{0}\"".format(arg))
+        "Not a valid month \"{0}\"".format(arg))
 
 
 def set_default_subparser(self, name, args=None):

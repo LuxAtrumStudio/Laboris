@@ -2,7 +2,7 @@
 
 The active report displays the current active tasks, and the duration of time
 that has been spent in that interval. The same global report options apply
-aswell.
+as well.
 
 The output of the active report follows this format:
 

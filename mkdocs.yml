@@ -1,13 +1,9 @@
 site_name: Laboris
 theme: 'material'
 extra:
-  feature:
-    tabs: true
   palette:
     primary: 'deep orange'
     accent: 'teal'
-extra_javascript:
-  - 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=Tex-MML-AM_CHTML'
 markdown_extensions:
   - admonition
   - codehilite(guess_lang=false)
@@ -20,7 +16,6 @@ markdown_extensions:
   - pymdownx.tilde
   - pymdownx.caret
   - pymdownx.mark
-  - pymdownx.mark
   - pymdownx.arithmatex
 repo_name: 'Laboris'
 repo_url: 'https://github.com/LuxAtrumStudio/Laboris'
@@ -28,13 +23,14 @@ edit_uri: ""
 pages:
   - Home: 'index.md'
   - Reports:
-    - Index: 'report/index.md'
     - Summary: 'report/summary.md'
     - Active: 'report/active.md'
     - Times: 'report/times.md'
     - Burndown: 'report/burndown.md'
     - Graph: 'report/graph.md'
     - Calendar: 'report/calendar.md'
+  - Options:
+    - DateTime: 'options/datetime.md'
+    - DateTime Reference: 'options/datetime_ref.md'
+    - Month: 'options/month.md'
 
-  - Usage:
-    - CLI: 'usage/cli.md'
