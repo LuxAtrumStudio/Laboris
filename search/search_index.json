@@ -1,0 +1,264 @@
+{
+    "docs": [
+        {
+            "location": "/",
+            "text": "Laboris\n\u00b6\n\n\n\n\nTask and time tracker and manager utility\n\n\n\n\nLaboris is primarily a task tracker/manager, which has also incorporated time\ntracking of the tasks. The aim of Laboris is to simplify the effort that is\nexpended in prioritizing tasks, and keeping track of what needs to be done.\nThen on top of that it helps in tracking the progress on a task, by tracking\nthe time spent on any given task.",
+            "title": "Home"
+        },
+        {
+            "location": "/#laboris",
+            "text": "Task and time tracker and manager utility   Laboris is primarily a task tracker/manager, which has also incorporated time\ntracking of the tasks. The aim of Laboris is to simplify the effort that is\nexpended in prioritizing tasks, and keeping track of what needs to be done.\nThen on top of that it helps in tracking the progress on a task, by tracking\nthe time spent on any given task.",
+            "title": "Laboris"
+        },
+        {
+            "location": "/report/summary/",
+            "text": "Summary\n\u00b6\n\n\nThe summary report displays the progress of each project. Counting the number\nof total tasks and completed tasks for each project. By default it only shows\nthe projects with active tasks. The same global report options apply as well.\n\n\nThe output of the summary report follows this format:\n\n\nProject Name, Remaining Tasks, Total Tasks, Average Age of Tasks, Completed\nTasks, Bar graph showing completion\n\n\n\n\nOptions\n\u00b6\n\n\nThere is only one option \n--all\n.\n\n\n--all\n will make the report display projects where all the tasks have been\ncompleted.\n\n\nSample Summary Report\n\u00b6",
+            "title": "Summary"
+        },
+        {
+            "location": "/report/summary/#summary",
+            "text": "The summary report displays the progress of each project. Counting the number\nof total tasks and completed tasks for each project. By default it only shows\nthe projects with active tasks. The same global report options apply as well.  The output of the summary report follows this format:  Project Name, Remaining Tasks, Total Tasks, Average Age of Tasks, Completed\nTasks, Bar graph showing completion",
+            "title": "Summary"
+        },
+        {
+            "location": "/report/summary/#options",
+            "text": "There is only one option  --all .  --all  will make the report display projects where all the tasks have been\ncompleted.",
+            "title": "Options"
+        },
+        {
+            "location": "/report/summary/#sample-summary-report",
+            "text": "",
+            "title": "Sample Summary Report"
+        },
+        {
+            "location": "/report/active/",
+            "text": "Active\n\u00b6\n\n\nThe active report displays the current active tasks, and the duration of time\nthat has been spent in that interval. The same global report options apply\nas well.\n\n\nThe output of the active report follows this format:\n\n\nTask ## 'Project' [HH:MM:SS]\n\n\n\n\nSample Active Report\n\u00b6",
+            "title": "Active"
+        },
+        {
+            "location": "/report/active/#active",
+            "text": "The active report displays the current active tasks, and the duration of time\nthat has been spent in that interval. The same global report options apply\nas well.  The output of the active report follows this format:  Task ## 'Project' [HH:MM:SS]",
+            "title": "Active"
+        },
+        {
+            "location": "/report/active/#sample-active-report",
+            "text": "",
+            "title": "Sample Active Report"
+        },
+        {
+            "location": "/report/times/",
+            "text": "Times\n\u00b6\n\n\nThe times report displays the time intervals spent on any given task, or\nproject. The times report collects all the time intervals spent on tasks, and\ndisplays them if they are within the provided time range. The same global\nreport options apply as well.\n\n\nThe output of the times report follows this format:\n\n\nDate/Description Start End Durration\n.\n.\n.\nTotal: Total Durration\n\n\n\n\nArguments\n\u00b6\n\n\nThere are two arguments in the times report \nstart\n, and \nstop\n.\n\n\nThe \nstart\n arguments must be a \nvalid date time\n. When\nspecified only time intervals that occurred after that date time will be\ndisplayed. This defaults to the beginning of the current day.\n\n\nThe \nstop\n argument must also be a \nvalid date time\n.\nWhen specified only time intervals before that occurs before that date time\nwill be displayed. This defaults to the end of the current day.\n\n\nOptions\n\u00b6\n\n\nThere is only one option and that is \n--group\n.\n\n\nThis option species the group of tasks that are allowed to be seen. The options\nfor \n--group\n are \nall\n, \npending\n, and \ncompleted\n. If \nall\n is selected, then\nintervals from tasks that are either pending or done are displayed, if\n\npending\n is selected, then only intervals from tasks that are pending are\ndisplayed, and if \ndone\n is selected, then only intervals from completed tasks\nare displayed.\n\n\nSample Times Report\n\u00b6",
+            "title": "Times"
+        },
+        {
+            "location": "/report/times/#times",
+            "text": "The times report displays the time intervals spent on any given task, or\nproject. The times report collects all the time intervals spent on tasks, and\ndisplays them if they are within the provided time range. The same global\nreport options apply as well.  The output of the times report follows this format:  Date/Description Start End Durration\n.\n.\n.\nTotal: Total Durration",
+            "title": "Times"
+        },
+        {
+            "location": "/report/times/#arguments",
+            "text": "There are two arguments in the times report  start , and  stop .  The  start  arguments must be a  valid date time . When\nspecified only time intervals that occurred after that date time will be\ndisplayed. This defaults to the beginning of the current day.  The  stop  argument must also be a  valid date time .\nWhen specified only time intervals before that occurs before that date time\nwill be displayed. This defaults to the end of the current day.",
+            "title": "Arguments"
+        },
+        {
+            "location": "/report/times/#options",
+            "text": "There is only one option and that is  --group .  This option species the group of tasks that are allowed to be seen. The options\nfor  --group  are  all ,  pending , and  completed . If  all  is selected, then\nintervals from tasks that are either pending or done are displayed, if pending  is selected, then only intervals from tasks that are pending are\ndisplayed, and if  done  is selected, then only intervals from completed tasks\nare displayed.",
+            "title": "Options"
+        },
+        {
+            "location": "/report/times/#sample-times-report",
+            "text": "",
+            "title": "Sample Times Report"
+        },
+        {
+            "location": "/report/burndown/",
+            "text": "Burndown\n\u00b6\n\n\nThe burdown report displays a burndown graph of the tasks compleation rate of\ntasks. It displays all the tasks according to a color code. Showing the pending\ntasks in one color, started tasks in another, and completed tasks in a final\ncolor. The same global report options apply as well.\n\n\nThe output of the burndown report follows this format:\n\n\nDate Range\n     0...total number of tasks\nDate pending started completed\n\n\n\n\nArguments\n\u00b6\n\n\nThere are two arguments in the burndown report \nstart\n, and \nstop\n.\n\n\nThe \nstart\n arguments must be a \nvalid date time\n. When\nspecified only dates that occurred after that date time will be\ndisplayed. This defaults to one week ago.\n\n\nThe \nstop\n argument must also be a \nvalid date time\n.\nWhen specified only dates before that occurs before that date time\nwill be displayed. This defaults to the current day.\n\n\nOptions\n\u00b6\n\n\nThere is only one option and that is \n--trim\n. \n\n\n--trim\n will remove the dates before and after where there is no data recored.\nThese removed dates will not be displayed.\n\n\nSample Burndown Report\n\u00b6",
+            "title": "Burndown"
+        },
+        {
+            "location": "/report/burndown/#burndown",
+            "text": "The burdown report displays a burndown graph of the tasks compleation rate of\ntasks. It displays all the tasks according to a color code. Showing the pending\ntasks in one color, started tasks in another, and completed tasks in a final\ncolor. The same global report options apply as well.  The output of the burndown report follows this format:  Date Range\n     0...total number of tasks\nDate pending started completed",
+            "title": "Burndown"
+        },
+        {
+            "location": "/report/burndown/#arguments",
+            "text": "There are two arguments in the burndown report  start , and  stop .  The  start  arguments must be a  valid date time . When\nspecified only dates that occurred after that date time will be\ndisplayed. This defaults to one week ago.  The  stop  argument must also be a  valid date time .\nWhen specified only dates before that occurs before that date time\nwill be displayed. This defaults to the current day.",
+            "title": "Arguments"
+        },
+        {
+            "location": "/report/burndown/#options",
+            "text": "There is only one option and that is  --trim .   --trim  will remove the dates before and after where there is no data recored.\nThese removed dates will not be displayed.",
+            "title": "Options"
+        },
+        {
+            "location": "/report/burndown/#sample-burndown-report",
+            "text": "",
+            "title": "Sample Burndown Report"
+        },
+        {
+            "location": "/report/graph/",
+            "text": "Graph\n\u00b6\n\n\nThe graph report displays a timeline graph of the intervals spent on any given\ntask, or project. The graph report collects all the time intervals spent on\ntasks, and displays them if they are within the provided time range. In\nsettings is is posible to set the start and end times for the graph timeline,\ncutting off any tasks that occure before or after these times. The same global\nreport options apply as well.\n\n\nThe output of the graph report follows this format:\n\n\nDate Range\n     HH:MM HH:MM ...\nDate Tasks ...       Total duration for the day\n.    .               .\n.    .               .\n.    .               .\n                     Overall total duration\n\n     Tracked: Total duration\n     Avaliable: Total untracked time\n     Total: Total time\n\n\n\n\nArguments\n\u00b6\n\n\nThere are two arguments in the times report \nstart\n, and \nstop\n.\n\n\nThe \nstart\n arguments must be a \nvalid date time\n. When\nspecified only dates that occurred after that date time will be\ndisplayed. This defaults to one week ago.\n\n\nThe \nstop\n argument must also be a \nvalid date time\n.\nWhen specified only dates before that occurs before that date time\nwill be displayed. This defaults to the current day.\n\n\nOptions\n\u00b6\n\n\nThere are two options \n--trim\n, and \n--trim-all\n.\n\n\n--trim\n will remove the dates before and after where there is no data recored.\nThese removed dates will not be displayed.\n\n\n--trim-all\n will remove any dates that do not have any time interval recored.\nThese removed dates will not be displayed.\n\n\nSample Graph Report\n\u00b6",
+            "title": "Graph"
+        },
+        {
+            "location": "/report/graph/#graph",
+            "text": "The graph report displays a timeline graph of the intervals spent on any given\ntask, or project. The graph report collects all the time intervals spent on\ntasks, and displays them if they are within the provided time range. In\nsettings is is posible to set the start and end times for the graph timeline,\ncutting off any tasks that occure before or after these times. The same global\nreport options apply as well.  The output of the graph report follows this format:  Date Range\n     HH:MM HH:MM ...\nDate Tasks ...       Total duration for the day\n.    .               .\n.    .               .\n.    .               .\n                     Overall total duration\n\n     Tracked: Total duration\n     Avaliable: Total untracked time\n     Total: Total time",
+            "title": "Graph"
+        },
+        {
+            "location": "/report/graph/#arguments",
+            "text": "There are two arguments in the times report  start , and  stop .  The  start  arguments must be a  valid date time . When\nspecified only dates that occurred after that date time will be\ndisplayed. This defaults to one week ago.  The  stop  argument must also be a  valid date time .\nWhen specified only dates before that occurs before that date time\nwill be displayed. This defaults to the current day.",
+            "title": "Arguments"
+        },
+        {
+            "location": "/report/graph/#options",
+            "text": "There are two options  --trim , and  --trim-all .  --trim  will remove the dates before and after where there is no data recored.\nThese removed dates will not be displayed.  --trim-all  will remove any dates that do not have any time interval recored.\nThese removed dates will not be displayed.",
+            "title": "Options"
+        },
+        {
+            "location": "/report/graph/#sample-graph-report",
+            "text": "",
+            "title": "Sample Graph Report"
+        },
+        {
+            "location": "/report/calendar/",
+            "text": "Calendar\n\u00b6\n\n\nThe calendar report displays a monthly calendar with the due-dates and the\ncurrent day highlighted. It can also display multiple months in advance to plan\nfor future due dates. The same global report options apply as well.\n\n\nThe output of the calendar report follows this format where weekends are greyed\nout, due dates are highlighted in the corresponding color, and the current date\nis also highlighted:\n\n\n      Year\n      Month\nSu Mo Tu We Th Fr Sa\n00 01 ...\n.  .\n\n\n\n\nArguments\n\u00b6\n\n\nThere are two arguments \nstart\n, and \nstop\n.\n\n\nThe \nstart\n argument must be a \nvalid month\n. When\nspecified that month will be displayed instead of the current month.\n\n\nThe \nstop\n argument must be a \nvalid month\n. When\nspecified every month between \nstart\n and \nstop\n (inclusivly) are displayed.\n\n\nSample Calendar Report\n\u00b6",
+            "title": "Calendar"
+        },
+        {
+            "location": "/report/calendar/#calendar",
+            "text": "The calendar report displays a monthly calendar with the due-dates and the\ncurrent day highlighted. It can also display multiple months in advance to plan\nfor future due dates. The same global report options apply as well.  The output of the calendar report follows this format where weekends are greyed\nout, due dates are highlighted in the corresponding color, and the current date\nis also highlighted:        Year\n      Month\nSu Mo Tu We Th Fr Sa\n00 01 ...\n.  .",
+            "title": "Calendar"
+        },
+        {
+            "location": "/report/calendar/#arguments",
+            "text": "There are two arguments  start , and  stop .  The  start  argument must be a  valid month . When\nspecified that month will be displayed instead of the current month.  The  stop  argument must be a  valid month . When\nspecified every month between  start  and  stop  (inclusivly) are displayed.",
+            "title": "Arguments"
+        },
+        {
+            "location": "/report/calendar/#sample-calendar-report",
+            "text": "",
+            "title": "Sample Calendar Report"
+        },
+        {
+            "location": "/options/datetime/",
+            "text": "Date Time\n\u00b6\n\n\nA valid date time argument must have one of the following forms:\n\n\nReplacements\n\u00b6\n\n\n\n\n/\n is replaced by \n-\n\n\nT\n is replaced by \n@\n\n\n\n\nDay Month Year\n\u00b6\n\n\n\n\ndd-mm-yyy\n\n\ndd-mm-yy\n\n\nmm-dd-yyyy\n\n\nmm-dd-yy\n\n\nyyyy-mm-dd\n\n\nyy-mm-dd\n\n\n\n\nDay Month Year Hour Minute\n\u00b6\n\n\n\n\ndd-mm-yyyy@HH:MM\n\n\ndd-mm-yy@HH:MM\n\n\nmm-dd-yyyy@HH:MM\n\n\nmm-dd-yy@HH:MM\n\n\nyyyy-mm-dd@HH:MM\n\n\nyy-mm-dd@HH:MM\n\n\n\n\nDay\n\u00b6\n\n\n\n\nWeekday\n\n\nDay\n\n\n\n\nDay Hour Minute\n\u00b6\n\n\n\n\nWeekday@HH:MM\n\n\nDay@HH:MM\n\n\n\n\nDay Month\n\u00b6\n\n\n\n\ndd-mm\n\n\nmm-dd\n\n\n\n\nHour Minute Second\n\u00b6\n\n\n\n\nHH:MM\n\n\nHH.MM\n\n\nHH:MM:SS\n\n\nHH.MM.SS\n\n\n\n\nRelative\n\u00b6\n\n\n\n\nyesterday\n, \nYesterday\n\n\ntoday\n, \nToday\n\n\ntomorrow\n, \nTomorrow",
+            "title": "DateTime"
+        },
+        {
+            "location": "/options/datetime/#date-time",
+            "text": "A valid date time argument must have one of the following forms:",
+            "title": "Date Time"
+        },
+        {
+            "location": "/options/datetime/#replacements",
+            "text": "/  is replaced by  -  T  is replaced by  @",
+            "title": "Replacements"
+        },
+        {
+            "location": "/options/datetime/#day-month-year",
+            "text": "dd-mm-yyy  dd-mm-yy  mm-dd-yyyy  mm-dd-yy  yyyy-mm-dd  yy-mm-dd",
+            "title": "Day Month Year"
+        },
+        {
+            "location": "/options/datetime/#day-month-year-hour-minute",
+            "text": "dd-mm-yyyy@HH:MM  dd-mm-yy@HH:MM  mm-dd-yyyy@HH:MM  mm-dd-yy@HH:MM  yyyy-mm-dd@HH:MM  yy-mm-dd@HH:MM",
+            "title": "Day Month Year Hour Minute"
+        },
+        {
+            "location": "/options/datetime/#day",
+            "text": "Weekday  Day",
+            "title": "Day"
+        },
+        {
+            "location": "/options/datetime/#day-hour-minute",
+            "text": "Weekday@HH:MM  Day@HH:MM",
+            "title": "Day Hour Minute"
+        },
+        {
+            "location": "/options/datetime/#day-month",
+            "text": "dd-mm  mm-dd",
+            "title": "Day Month"
+        },
+        {
+            "location": "/options/datetime/#hour-minute-second",
+            "text": "HH:MM  HH.MM  HH:MM:SS  HH.MM.SS",
+            "title": "Hour Minute Second"
+        },
+        {
+            "location": "/options/datetime/#relative",
+            "text": "yesterday ,  Yesterday  today ,  Today  tomorrow ,  Tomorrow",
+            "title": "Relative"
+        },
+        {
+            "location": "/options/datetime_ref/",
+            "text": "Date Time Reference\n\u00b6\n\n\nA valid date time reference argument must have one of the following forms:\n\n\nReplacements\n\u00b6\n\n\n\n\n/\n is replaced by \n-\n\n\nT\n is replaced by \n@\n\n\n\n\nDay Month Year\n\u00b6\n\n\n\n\ndd-mm-yyy\n\n\ndd-mm-yy\n\n\nmm-dd-yyyy\n\n\nmm-dd-yy\n\n\nyyyy-mm-dd\n\n\nyy-mm-dd\n\n\n\n\nDay Month Year Hour Minute\n\u00b6\n\n\n\n\ndd-mm-yyyy@HH:MM\n\n\ndd-mm-yy@HH:MM\n\n\nmm-dd-yyyy@HH:MM\n\n\nmm-dd-yy@HH:MM\n\n\nyyyy-mm-dd@HH:MM\n\n\nyy-mm-dd@HH:MM\n\n\n\n\nDay\n\u00b6\n\n\n\n\nWeekday\n\n\nDay\n\n\n\n\nDay Hour Minute\n\u00b6\n\n\n\n\nWeekday@HH:MM\n\n\nDay@HH:MM\n\n\n\n\nDay Month\n\u00b6\n\n\n\n\ndd-mm\n\n\nmm-dd\n\n\n\n\nHour Minute Second\n\u00b6\n\n\n\n\nHH:MM\n\n\nHH.MM\n\n\nHH:MM:SS\n\n\nHH.MM.SS\n\n\n\n\nRelative\n\u00b6\n\n\n\n\nyesterday\n, \nYesterday\n\n\ntoday\n, \nToday\n\n\ntomorrow\n, \nTomorrow\n\n\nday\n \u2192 \ntoday\n\n\nweek\n \u2192 Start of current week\n\n\nlastweek\n \u2192 Start of last week\n\n\nall\n \u2192 \n01/01/0001\n\n\nmonth\n \u2192 Start of current month\n\n\nlastmonth\n \u2192 Start of last month\n\n\nyear\n \u2192 Start of current year\n\n\nlastyear\n \u2192 Start of last year",
+            "title": "DateTime Reference"
+        },
+        {
+            "location": "/options/datetime_ref/#date-time-reference",
+            "text": "A valid date time reference argument must have one of the following forms:",
+            "title": "Date Time Reference"
+        },
+        {
+            "location": "/options/datetime_ref/#replacements",
+            "text": "/  is replaced by  -  T  is replaced by  @",
+            "title": "Replacements"
+        },
+        {
+            "location": "/options/datetime_ref/#day-month-year",
+            "text": "dd-mm-yyy  dd-mm-yy  mm-dd-yyyy  mm-dd-yy  yyyy-mm-dd  yy-mm-dd",
+            "title": "Day Month Year"
+        },
+        {
+            "location": "/options/datetime_ref/#day-month-year-hour-minute",
+            "text": "dd-mm-yyyy@HH:MM  dd-mm-yy@HH:MM  mm-dd-yyyy@HH:MM  mm-dd-yy@HH:MM  yyyy-mm-dd@HH:MM  yy-mm-dd@HH:MM",
+            "title": "Day Month Year Hour Minute"
+        },
+        {
+            "location": "/options/datetime_ref/#day",
+            "text": "Weekday  Day",
+            "title": "Day"
+        },
+        {
+            "location": "/options/datetime_ref/#day-hour-minute",
+            "text": "Weekday@HH:MM  Day@HH:MM",
+            "title": "Day Hour Minute"
+        },
+        {
+            "location": "/options/datetime_ref/#day-month",
+            "text": "dd-mm  mm-dd",
+            "title": "Day Month"
+        },
+        {
+            "location": "/options/datetime_ref/#hour-minute-second",
+            "text": "HH:MM  HH.MM  HH:MM:SS  HH.MM.SS",
+            "title": "Hour Minute Second"
+        },
+        {
+            "location": "/options/datetime_ref/#relative",
+            "text": "yesterday ,  Yesterday  today ,  Today  tomorrow ,  Tomorrow  day  \u2192  today  week  \u2192 Start of current week  lastweek  \u2192 Start of last week  all  \u2192  01/01/0001  month  \u2192 Start of current month  lastmonth  \u2192 Start of last month  year  \u2192 Start of current year  lastyear  \u2192 Start of last year",
+            "title": "Relative"
+        },
+        {
+            "location": "/options/month/",
+            "text": "Month\n\u00b6\n\n\nA valid month argument must have one of the following forms:\n\n\nMonth\n\u00b6\n\n\n\n\nMonth\n\n\nMon\n\n\n\n\nMonth Year\n\u00b6\n\n\n\n\nMon yyyy\n\n\nMon yy\n\n\nMonth yyyy\n\n\nMonth yy",
+            "title": "Month"
+        },
+        {
+            "location": "/options/month/#month",
+            "text": "A valid month argument must have one of the following forms:",
+            "title": "Month"
+        },
+        {
+            "location": "/options/month/#month_1",
+            "text": "Month  Mon",
+            "title": "Month"
+        },
+        {
+            "location": "/options/month/#month-year",
+            "text": "Mon yyyy  Mon yy  Month yyyy  Month yy",
+            "title": "Month Year"
+        }
+    ]
+}
