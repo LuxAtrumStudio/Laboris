@@ -172,11 +172,6 @@ def set_default_subparser(self, name, args=None):
 
 
 def main():
-    #  sett.init()
-    #  sett._theme.parse_file(os.path.expanduser("~/.laboris/default.json"))
-    #  par.parse_args()
-    #  sett.term()
-    #  return
     argparse.ArgumentParser.set_default_subparser = set_default_subparser
     parser = argparse.ArgumentParser(
         description="Task priority tracker, and manager.")
@@ -301,12 +296,8 @@ def main():
                        help="Clears screen before printing")
     cal.add_argument('--monitor', action='store_true',
                        help="Updates result every second")
-    #  parser.set_default_subparser('list')
+    parser.set_default_subparser('list')
     args = parser.parse_args()
-    if args.command is None:
-        args = argparse.Namespace(
-            command='list', format=None, group='pending', sort=None, task=None)
-    #  print(args)
     sett.init()
     action.run_action(args)
     sett.term()
