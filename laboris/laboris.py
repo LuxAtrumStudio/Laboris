@@ -114,6 +114,7 @@ def valid_datetime_ref(arg):
     else:
         return (arg, valid_datetime(arg))
 
+
 def valid_month(arg):
     mon = ["%b", "%B"]
     my = ["%b %Y", "%b %y", "%B %Y", "%B %y"]
@@ -227,8 +228,8 @@ def main():
                               "priority"],
                      help="Object to sort list by")
     lis.add_argument('--group', nargs='?',
-                     choices=['all', 'pending', 'completed'],
-                     default='pending', help="Shows groups of tasks")
+                     choices=['due', 'all', 'pending', 'completed'],
+                     default='due', help="Shows groups of tasks")
     lis.add_argument('--format', nargs='?', type=str,
                      help="Format of task table")
     report = subparsers.add_parser(
@@ -293,9 +294,9 @@ def main():
     cal.add_argument('stop', nargs='?', type=valid_month,
                      help="Number of month ago to start display")
     cal.add_argument('--clear', action='store_true',
-                       help="Clears screen before printing")
+                     help="Clears screen before printing")
     cal.add_argument('--monitor', action='store_true',
-                       help="Updates result every second")
+                     help="Updates result every second")
     parser.set_default_subparser('list')
     args = parser.parse_args()
     sett.init()

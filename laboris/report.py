@@ -367,12 +367,12 @@ def graph(args, reset):
                 tmp.append((key, value))
         data = reversed(tmp)
     if start.date() == end.date():
-        #TODO
+        # TODO
         print(display.print_aligned(sett.theme.get_color('title') +
                                     start.strftime('%a %b %d, %Y') + sett.theme.reset(), 'c', width))
         hour = (width - 7) / hour_range
     else:
-        #TODO
+        # TODO
         print(display.print_aligned(sett.theme.get_color('title') + start.strftime('%a %b %d, %Y') +
                                     ' -- ' + end.strftime('%a %b %d, %Y') + sett.theme.reset(), 'c', width))
         hour = (width - 18) / hour_range
@@ -407,8 +407,9 @@ def graph(args, reset):
                             rem_col = list(range(255))[17:-25]
                         colors[color_ref] = random.choice(rem_col)
                         rem_col.remove(colors[color_ref])
-                #TODO
-                print(sett.theme.get_color_escape(colors[color_ref], True), end='')
+                # TODO
+                print(sett.theme.get_color_escape(
+                    colors[color_ref], True), end='')
                 char_index = 0
                 active = 1
             if (active in (1, 2, 3)) and current > value[index][2]:
@@ -488,28 +489,33 @@ def cal(args, reset):
     if args.start is None:
         args.start = datetime.now()
     if args.stop is None:
-        args.stop = datetime.now().replace(day=calendar.monthrange(datetime.now().year, args.start.month + 1)[1], month=(args.start.month + 1) % 12)
+        args.stop = datetime.now().replace(day=calendar.monthrange(datetime.now().year,
+                                                                   args.start.month + 1)[1], month=(args.start.month + 1) % 12)
     else:
-        year_up = ((args.stop.month+1)%12)
+        year_up = ((args.stop.month + 1) % 12)
         if year_up != 1:
             year_up = 0
-        args.stop = args.stop.replace(month=(args.stop.month + 1) % 12, year=args.stop.year + year_up, day=calendar.monthrange(args.stop.year, args.stop.month)[1] - 1)
+        args.stop = args.stop.replace(month=(args.stop.month + 1) % 12, year=args.stop.year +
+                                      year_up, day=calendar.monthrange(args.stop.year, args.stop.month)[1] - 1)
     data = {}
     for task in sett.pending:
         if task.due_date is not None:
             if task.is_overdue() is True:
                 if task.due_date.date() in data:
-                    data[task.due_date.date()] = min(data[task.due_date.date()], 1)
+                    data[task.due_date.date()] = min(
+                        data[task.due_date.date()], 1)
                 else:
                     data[task.due_date.date()] = 1
             elif task.due_today() is True:
                 if task.due_date.date() in data:
-                    data[task.due_date.date()] = min(data[task.due_date.date()], 2)
+                    data[task.due_date.date()] = min(
+                        data[task.due_date.date()], 2)
                 else:
                     data[task.due_date.date()] = 2
             else:
                 if task.due_date.date() in data:
-                    data[task.due_date.date()] = min(data[task.due_date.date()], -(int(task.urgency) - 13))
+                    data[task.due_date.date()] = min(
+                        data[task.due_date.date()], -(int(task.urgency) - 13))
                 else:
                     data[task.due_date.date()] = -(int(task.urgency) - 13)
     mon_count = sum(1 for _ in daterange(args.start, args.stop, 'month'))
@@ -523,8 +529,9 @@ def cal(args, reset):
     for month in daterange(args.start, args.stop, 'month'):
         if month.year != year:
             year = month.year
-            #TODO
-            print(display.print_aligned(sett.theme.get_color('title') + "  {}  ".format(year) + sett.theme.reset(), 'c', width))
+            # TODO
+            print(display.print_aligned(sett.theme.get_color('title') +
+                                        "  {}  ".format(year) + sett.theme.reset(), 'c', width))
         lines = 4
         indent = 0
         if index % 3 == 1:
@@ -534,7 +541,8 @@ def cal(args, reset):
         days = calendar.monthrange(month.year, month.month)[1]
         dow = (month.replace(day=1).weekday() + 1) % 7
         if indent != 0:
-            print("\033[G\033[{}C{:^20}".format(indent, month.strftime("%B %Y")))
+            print("\033[G\033[{}C{:^20}".format(
+                indent, month.strftime("%B %Y")))
             print("\033[G\033[{}CSu Mo Tu We Th Fr Sa".format(indent))
         else:
             print("{:^20}".format(month.strftime("%B %Y")))
@@ -547,13 +555,19 @@ def cal(args, reset):
                 print(sett.theme.get_color('reports.calendar.weekend'), end='')
             if dt.date() in data:
                 if data[dt.date()] == 1:
-                    print(sett.theme.get_color('reports.calendar.overdue'), end='')
+                    print(sett.theme.get_color(
+                        'reports.calendar.overdue'), end='')
                 elif data[dt.date()] == 2:
-                    print(sett.theme.get_color('reports.calendar.due_today'), end='')
+                    print(sett.theme.get_color(
+                        'reports.calendar.due_today'), end='')
                 else:
-                    print(sett.theme.get_color('reports.calendar.urg{}'.format(13 - data[dt.date()])), end='')
+                    if 13 - data[dt.date()] > 10:
+                        data[dt.date()] = 3
+                    print(sett.theme.get_color(
+                        'reports.calendar.urg{}'.format(13 - data[dt.date()])), end='')
             if space != 0 or indent != 0:
-                print("\033[G\033[{}C{:2}".format((3 * space) + indent, dt.day), end='')
+                print("\033[G\033[{}C{:2}".format(
+                    (3 * space) + indent, dt.day), end='')
             else:
                 print("{:2}".format(dt.day), end='')
             if dt.date() in data or space in (0, 6) or dt.date() == datetime.now().date():

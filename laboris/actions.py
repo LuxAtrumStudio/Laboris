@@ -55,6 +55,7 @@ def run_add(args):
     sett.pending.append(tsk)
     printer.print_action("add", tsk)
 
+
 def run_done(args):
     tasks = find_task(args.task, True)
     if len(tasks[0]) == 0 and len(tasks[1]) == 0:
@@ -74,6 +75,7 @@ def run_done(args):
             sett.pending.append(task)
             sett.done.remove(task)
             printer.print_action("undone", task)
+
 
 def run_undone(args):
     tasks = find_task(args.task, True)
@@ -119,6 +121,7 @@ def run_stop(args):
             printer.print_error(
                 'stop', "Task {} has not been started".format(task.print_id()))
 
+
 def run_delete(args):
     tasks = find_task(args.task, True)
     if len(tasks[0]) == 0 and len(tasks[1]) == 0:
@@ -152,6 +155,7 @@ def run_modify(args):
             task.tag = args.tag
         printer.print_action('modify', task)
 
+
 def run_list(args):
     tasks = find_task(args.task)
     if len(tasks[0]) == 0 and len(tasks[1]) == 0:
@@ -164,6 +168,14 @@ def run_list(args):
         if args.format is None:
             args.format = "uuid;short|entry;date|done;date|age;abbr|p|project|due;date|description"
         tasks = tasks[1]
+    elif args.group == 'due':
+        if args.format is None:
+            args.format = "id|p|age;abbr|project|due;abbr|description|urg"
+        tmp = list()
+        for tsk in tasks[0]:
+            if tsk.is_due() is True:
+                tmp.append(tsk)
+        tasks = tmp
     else:
         if args.format is None:
             args.format = "id|p|age;abbr|project|due;abbr|description|urg"

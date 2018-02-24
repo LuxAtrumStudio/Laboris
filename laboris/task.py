@@ -208,7 +208,7 @@ class Task:
                 return self.times[index].print_duration(sec)
             elif fmt == "all":
                 return self.times[index].print_start(sec) + " - " + self.times[index].print_end(sec) + ": " +\
-                        self.times[index].print_duration(sec)
+                    self.times[index].print_duration(sec)
         return ""
 
     def print_fmt(self, fmt, sizes=None):
@@ -352,6 +352,11 @@ class Task:
         elif self.due_date < datetime.now():
             return True
         return False
+
+    def is_due(self):
+        if self.due_date is None:
+            return False
+        return True
 
     def due_today(self):
         if self.due_date is None:
