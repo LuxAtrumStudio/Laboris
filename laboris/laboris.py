@@ -229,7 +229,7 @@ def main():
                      help="Object to sort list by")
     lis.add_argument('--group', nargs='?',
                      choices=['due', 'all', 'pending', 'completed'],
-                     default='due', help="Shows groups of tasks")
+                     default='pending', help="Shows groups of tasks")
     lis.add_argument('--format', nargs='?', type=str,
                      help="Format of task table")
     report = subparsers.add_parser(

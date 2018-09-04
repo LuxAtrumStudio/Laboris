@@ -14,7 +14,7 @@ def package_files(directory):
     for (path, directories, filenames) in os.walk(directory):
         for filename in filenames:
             paths.append(os.path.join('..', path, filename))
-    return paths
+            return paths
 
 
 #  extra_files = package_files('')
@@ -22,7 +22,7 @@ def package_files(directory):
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
