@@ -10,17 +10,16 @@ LAST_CHECKED = None
 
 def check_network():
     global HAS_ACCESS, LAST_CHECKED
-    if LAST_CHECKED and LAST_CHECKED + datetime.timedelta(hour=1) < datetime.datetime.now():
+    if LAST_CHECKED is None or LAST_CHECKED + datetime.timedelta(hour=1) < datetime.datetime.now():
         LAST_CHECKED = datetime.datetime.now()
         try:
-            requests.get('http://google.com', timeout=0.5)
+            requests.get('http://google.com', timeout=0.1)
             HAS_ACCESS = True
         except:
-            pass
+            HAS_ACCESS = False
 
 def pull():
     check_network()
     if not HAS_ACCESS:
         return None
-    try:
         # PULL WEB DATA
