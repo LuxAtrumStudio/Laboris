@@ -1,3 +1,0 @@
-[submodule "external/cli"]
-	path = external/cli
-	url = https://github.com/LuxAtrumStudio/cli

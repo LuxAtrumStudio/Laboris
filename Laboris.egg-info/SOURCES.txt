@@ -1,8 +1,0 @@
-README.md
-Laboris.egg-info/PKG-INFO
-Laboris.egg-info/SOURCES.txt
-Laboris.egg-info/dependency_links.txt
-Laboris.egg-info/entry_points.txt
-Laboris.egg-info/top_level.txt
-laboris/__init__.py
-laboris/laboris.py
