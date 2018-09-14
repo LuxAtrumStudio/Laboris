@@ -1,0 +1,3 @@
+[console_scripts]
+laboris = laboris.laboris:main
+
