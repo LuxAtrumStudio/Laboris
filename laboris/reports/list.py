@@ -39,7 +39,9 @@ def date_abbrev(lhs, rhs):
 
 def print_task(fmt, tsk, title_pad, project_pad, tag_pad, use_color=True):
     data = {
-        'id': tsk['id'],
+        'id': tsk['id'] if 'id' in tsk else '',
+        'uuid': tsk['uuid'],
+        'uuidShort': tsk['uuid'][:8],
         'priority': tsk['priority'],
         'p': tsk['priority'] if tsk['priority'] != -1 else 0,
         'dueShort': date_abbrev(datetime.datetime.now(), tsk['dueDate']),
@@ -59,6 +61,8 @@ def print_task(fmt, tsk, title_pad, project_pad, tag_pad, use_color=True):
 def print_title(fmt, title_pad, project_pad, tag_pad):
     data = {
         'id': 'Id',
+        'uuid': 'Uuid',
+        'uuidShort': 'Uuid',
         'p': 'P',
         'age': 'Age',
         'due': 'Due',
@@ -74,12 +78,22 @@ def print_title(fmt, title_pad, project_pad, tag_pad):
     return fmt.format(data)
 
 
-def list_report():
+def list_report(args):
     longest_title = len('Title')
     longest_project = len('Projects')
     longest_tag = len('Tags')
     fmt = "{0[id]:2} {0[p]:1} {0[due]:>3} {0[title]} {0[projects]} {0[tags]} {0[urg]:5.3f}"
-    for uuid in task.PENDING_ID:
+    tasks = task.PENDING_ID
+    if args:
+        if args[0].lower() == 'all':
+            tasks = task.PENDING_ID + task.COMPLETED_ID
+            fmt = "{0[uuidShort]:8} {0[p]:1} {0[due]:>4} {0[title]} {0[projects]} {0[tags]} {0[urg]:5.3f}"
+        elif args[0].lower() == 'completed':
+            tasks = task.COMPLETED_ID
+            fmt = "{0[uuidShort]:8} {0[p]:1} {0[due]:>4} {0[title]} {0[projects]} {0[tags]} {0[urg]:5.3f}"
+        elif args[0].lower() == 'pending':
+            tasks = task.PENDING_ID
+    for uuid in tasks:
         longest_title = max(longest_title, len(task.get_uuid(uuid[1])['title']))
         longest_tag = max(longest_tag,
                           len(" ".join(task.get_uuid(uuid[1])['tags'])))
@@ -87,7 +101,7 @@ def list_report():
                               len(" ".join(task.get_uuid(uuid[1])['projects'])))
     print(print_title(fmt, longest_title, longest_project, longest_tag))
     for i, uuid in enumerate(
-            sorted(task.PENDING_ID, key=lambda x: x[2], reverse=True)):
+            sorted(tasks, key=lambda x: x[2], reverse=True)):
         if task.get_uuid(uuid[1])['times'] and len(
                 task.get_uuid(uuid[1])['times'][-1]) == 1:
             print(

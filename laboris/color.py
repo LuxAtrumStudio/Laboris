@@ -57,8 +57,14 @@ def GetAttr(attr_a, attr_b=None, attr_c=None, bg=False):
                                            rgb[1], rgb[2])
     return ""
 
-def Attr(src, attr_a, attr_b=None, attr_c=None, bg=False):
+def Color(src, attr_a, attr_b=None, attr_c=None, bg=False):
     return GetAttr(attr_a, attr_b, attr_c, bg) + src + "\033[39;49m"
+
+def Attr(src, attr_a, attr_b=None, attr_c=None, bg=False):
+    return GetAttr(attr_a, attr_b, attr_c, bg) + src + "\033[0m"
+
+def NoReset(src, attr_a, attr_b=None, attr_c=None, bg=False):
+    return GetAttr(attr_a, attr_b, attr_c, bg) + src
 
 def Title(src):
     return Attr('# {:^38} #'.format(src), 'bold', 'blue')
