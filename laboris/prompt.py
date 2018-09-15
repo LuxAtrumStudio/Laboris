@@ -16,6 +16,73 @@ class pmt(IntFlag):
     HORIZONTAL = 32
 
 
+class se(IntFlag):
+    NUMBER = 1
+
+
+def yn_choice(msg,
+              default=None,
+              style=None,
+              suggestion_style=None,
+              default_style=None):
+    if style is None:
+        style = ""
+    if suggestion_style is None:
+        suggestion_style = style
+    if default_style is None:
+        default_style = suggestion_style
+    print(
+        "{}\033[0m {}(Y/N)\033[0m{}: {}".format(msg, suggestion_style, (
+            "{}[Y]\033[0m".format(default_style) if default is True else
+            ('{}[N]\033[0m'.format(default_style) if default is False else "")),
+                                                style),
+        end='',
+        flush=True)
+    while True:
+        ch = getch()
+        if ch in ('y', 'Y', '1', 't', 'T'):
+            print('True\033[0m')
+            return True
+        elif ch in ('n', 'N', '0', 'f', 'F'):
+            print('False\033[0m')
+            return False
+        elif ord(ch) == 13 and default is not None:
+            print(('True\033[0m' if default is True else 'False\033[0m'))
+            return default
+
+
+def select(msg,
+           options=None,
+           select_style="\033[1m",
+           default=0,
+           flags=se.NUMBER):
+    print("{}{}".format(msg, "\033[0m"))
+    i = default
+    number = flags & se.NUMBER
+    while True:
+        for j, x in enumerate(options):
+            if j == i:
+                print("{}{}{}{}".format(select_style, '{}: '.format(j) if number else '', x, "\033[0m"))
+            else:
+                print("{}{}{}".format("{}: ".format(j) if number else '', x, "\033[0m"))
+        ch = getch()
+        if ord(ch) == 13:
+            break
+        elif ord(ch) == 9:
+            i = (i + 1) % len(options)
+        elif ord(ch) == 27:
+            i = (i - 1) % len(options)
+        elif number:
+            if 48 <= ord(ch) <= 58 and ord(ch) - 48 < len(options):
+                i = ord(ch) - 48
+        for x in options:
+            print("\033[A\033[2K\033[G", end='')
+    for x in options:
+        print("\033[A\033[2K\033[G", end='')
+    print("\033[2Z\033[A\033[2Z\033[G{}{}{}".format(msg, "\033[0m", options[i]))
+    return i
+
+
 def prompt(msg,
            options=None,
            style=None,
@@ -55,10 +122,9 @@ def prompt(msg,
             if horizontal:
                 print(
                     "\n\033[2K{}\033[A\033[G".format(" ".join([
-                        "{}{}{}".format((select_style
-                                         if i == j else suggestion_style), x,
-                                        "\033[0m")
-                        for j, x in enumerate(suggestions)
+                        "{}{}{}".format(
+                            (select_style if i == j else suggestion_style), x,
+                            "\033[0m") for j, x in enumerate(suggestions)
                     ])),
                     end='',
                     flush=True)
