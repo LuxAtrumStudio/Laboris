@@ -74,8 +74,15 @@ def load_pending():
         PENDING = {x['uuid']: x for x in data}
         PENDING_ID = sorted([gen_id(x) for _, x in PENDING.items()],
                             key=lambda x: get_uuid(x[1])['entryDate'])
-        for i, index in enumerate(PENDING_ID):
-            PENDING[index[1]]['id'] = i + 1
+        index = 0
+        for task_id in PENDING_ID:
+            if PENDING[task_id[1]]['dueDate']:
+                PENDING[task_id[1]]['id'] = index + 1
+                index += 1
+        for task_id in PENDING_ID:
+            if not PENDING[task_id[1]]['dueDate']:
+                PENDING[task_id[1]]['id'] = index + 1
+                index += 1
 
 
 def save_pending():
@@ -183,7 +190,10 @@ def fmt_task_uuid(uuid):
 def get_task(string):
     task_id = []
     if string.isdigit() and int(string) - 1 < len(PENDING_ID):
-        return PENDING_ID[int(string) - 1]
+        match_id = int(string)
+        for task in PENDING_ID:
+            if get_uuid(task[1])['id'] == match_id:
+                return task
     for i in PENDING_ID:
         if i[0].lower().startswith(string.lower()) or i[1].startswith(string):
             task_id.append(i)

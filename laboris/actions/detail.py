@@ -28,7 +28,13 @@ def get_diff(start, end):
 
 def get_total(times):
     sec = 0
-    for start, stop in times:
+    for interval in times:
+        if len(interval) == 2:
+            start = interval[0]
+            stop = interval[1]
+        else:
+            start = interval[0]
+            stop = int(datetime.datetime.now().timestamp())
         sec += (stop - start)
     minutes = sec // 60
     sec -= minutes * 60
@@ -69,7 +75,13 @@ def detail_action(task, args):
                 print("{} {:<{}}\033[0m".format(Attr("{:{}}".format(key, key_width), 'bold'), value, value_width))
             line += 1
     if task['times']:
-        for start, stop in task['times']:
+        for interval in task['times']:
+            if len(interval) == 2:
+                start = interval[0]
+                stop = interval[1]
+            else:
+                start = interval[0]
+                stop = int(datetime.datetime.now().timestamp())
             fmt = "{} - {}   {}".format(datetime.datetime.fromtimestamp(start).strftime("%d-%m %H:%M"), datetime.datetime.fromtimestamp(stop).strftime("%d-%m %H:%M"), get_diff(start, stop))
             if line % 2 == 1:
                 print(Attr("{:>{}}".format(fmt, key_width + 1 + value_width), CONFIG.get_color('background'), bg=True))

@@ -19,9 +19,10 @@ def help():
 
 
 def parse():
-    task_actions = ['detail', 'start', 'stop', 'done', 'undone', 'modify',
-                    'delete']
-    non_task_actions = ['add']
+    task_actions = [
+        'detail', 'start', 'stop', 'done', 'undone', 'modify', 'delete'
+    ]
+    non_task_actions = ['add', 'create', 'new']
     reports = ['list']
     require_ref = False
     action = None

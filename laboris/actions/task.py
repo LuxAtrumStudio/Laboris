@@ -72,10 +72,6 @@ def undone_action(task, args):
                  CONFIG.get_color('action.add')))
 
 
-def modify_action(task, args):
-    pass
-
-
 def delete_action(task, args):
     task = laboris.task.get_uuid(task[1])
     if prompt.yn_choice(

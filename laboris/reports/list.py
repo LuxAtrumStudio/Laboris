@@ -82,15 +82,15 @@ def list_report(args):
     longest_title = len('Title')
     longest_project = len('Projects')
     longest_tag = len('Tags')
-    fmt = "{0[id]:2} {0[p]:1} {0[due]:>3} {0[title]} {0[projects]} {0[tags]} {0[urg]:5.3f}"
+    fmt = "{0[id]:2} {0[p]:1} {0[due]:>3} {0[title]} {0[projects]} {0[tags]} {0[urg]:6.3f}"
     tasks = task.PENDING_ID
     if args:
         if args[0].lower() == 'all':
             tasks = task.PENDING_ID + task.COMPLETED_ID
-            fmt = "{0[uuidShort]:8} {0[p]:1} {0[due]:>4} {0[title]} {0[projects]} {0[tags]} {0[urg]:5.3f}"
+            fmt = "{0[uuidShort]:8} {0[p]:1} {0[due]:>4} {0[title]} {0[projects]} {0[tags]} {0[urg]:6.3f}"
         elif args[0].lower() == 'completed':
             tasks = task.COMPLETED_ID
-            fmt = "{0[uuidShort]:8} {0[p]:1} {0[due]:>4} {0[title]} {0[projects]} {0[tags]} {0[urg]:5.3f}"
+            fmt = "{0[uuidShort]:8} {0[p]:1} {0[due]:>4} {0[title]} {0[projects]} {0[tags]} {0[urg]:6.3f}"
         elif args[0].lower() == 'pending':
             tasks = task.PENDING_ID
     for uuid in tasks:
