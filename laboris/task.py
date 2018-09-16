@@ -187,6 +187,27 @@ def fmt_task_uuid(uuid):
     return fmt_task(get_uuid(uuid))
 
 
+def active_tasks():
+    for _, task in PENDING.items():
+        if task['times'] and len(task['times'][-1]) == 1:
+            print(start_active(task))
+
+def due_tasks():
+    for _, task in PENDING.items():
+        if task['dueDate'] and datetime.datetime.fromtimestamp(task['dueDate']).date() == datetime.datetime.now().date():
+            print("DUE TODAY!")
+
+def overdue_tasks():
+    for _, task in PENDING.items():
+        if task['dueDate'] and datetime.datetime.fromtimestamp(task['dueDate']).date() < datetime.datetime.now().date():
+            print("OVERDUE!")
+
+def notes():
+    overdue_tasks()
+    due_tasks()
+    active_tasks()
+
+
 def get_task(string):
     task_id = []
     if string.isdigit() and int(string) - 1 < len(PENDING_ID):

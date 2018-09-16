@@ -3,6 +3,7 @@ Reports core structure for Laboris project
 """
 
 from laboris.reports.list import list_report
+from laboris.reports.active import active_report
 
 from laboris.actions.detail import detail_action
 from laboris.actions.create import create_action, modify_action
@@ -12,6 +13,8 @@ from laboris.actions.task import start_action, stop_action, done_action, undone_
 def run_report(report=None, task=None, args=[]):
     if report is None or report.lower() == "list":
         list_report(args)
+    elif report == "active":
+        active_report(args)
 
 def run_nt_action(action=None, args=[]):
     if action in ['add', 'create', 'new']:
@@ -37,7 +40,7 @@ def run_task_action(action=None, task=None, args=[]):
 def run_action(action=None, task=None, args=[]):
     if (action is None and
             task is None) or (action is not None and
-                              action in ['list']):
+                              action in ['list', 'active']):
         run_report(action, task, args)
     elif (action is None and
           task is not None) or (action is not None and

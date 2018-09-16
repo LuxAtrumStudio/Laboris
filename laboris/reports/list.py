@@ -53,7 +53,8 @@ def print_task(fmt, tsk, title_pad, project_pad, tag_pad, use_color=True):
         'tags': "{:{}}".format(" ".join(tsk['tags']), tag_pad)
     }
     if use_color:
-        return color.Attr(fmt.format(data), CONFIG.get_color('urgency', tsk['urg']))
+        return color.Attr(
+            fmt.format(data), CONFIG.get_color('urgency', tsk['urg']))
     else:
         return fmt.format(data)
 
@@ -79,6 +80,7 @@ def print_title(fmt, title_pad, project_pad, tag_pad):
 
 
 def list_report(args):
+    task.notes()
     longest_title = len('Title')
     longest_project = len('Projects')
     longest_tag = len('Tags')
@@ -100,16 +102,33 @@ def list_report(args):
         longest_project = max(longest_project,
                               len(" ".join(task.get_uuid(uuid[1])['projects'])))
     print(print_title(fmt, longest_title, longest_project, longest_tag))
-    for i, uuid in enumerate(
-            sorted(tasks, key=lambda x: x[2], reverse=True)):
+    for i, uuid in enumerate(sorted(tasks, key=lambda x: x[2], reverse=True)):
+        tsk = task.get_uuid(uuid[1])
         if task.get_uuid(uuid[1])['times'] and len(
                 task.get_uuid(uuid[1])['times'][-1]) == 1:
             print(
-                color.Attr(color.Attr(
-                    print_task(fmt, task.get_uuid(uuid[1]), longest_title,
-                               longest_project, longest_tag, use_color=False),
-                    CONFIG.get_color('status.active.fg'),
-                    bg=False), CONFIG.get_color('status.active.bg'), bg=True))
+                color.Attr(
+                    print_task(fmt, task.get_uuid(uuid[1]),
+                    longest_title,
+                    longest_project,
+                    longest_tag,
+                    use_color=False), CONFIG.get_color('status.active')))
+        elif tsk['status'] == 'PENDING' and tsk['dueDate'] and datetime.datetime.fromtimestamp(tsk['dueDate']).date() == datetime.datetime.now().date():
+            print(
+                color.Attr(
+                    print_task(fmt, task.get_uuid(uuid[1]),
+                    longest_title,
+                    longest_project,
+                    longest_tag,
+                    use_color=False), CONFIG.get_color('status.due-today')))
+        elif tsk['status'] == 'PENDING' and tsk['dueDate'] and datetime.datetime.fromtimestamp(tsk['dueDate']).date() < datetime.datetime.now().date():
+            print(
+                color.Attr(
+                    print_task(fmt, task.get_uuid(uuid[1]),
+                    longest_title,
+                    longest_project,
+                    longest_tag,
+                    use_color=False), CONFIG.get_color('status.overdue')))
         elif i % 2 == 1:
             print(
                 color.Attr(
