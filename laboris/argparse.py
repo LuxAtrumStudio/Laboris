@@ -23,7 +23,10 @@ def parse():
         'detail', 'start', 'stop', 'done', 'undone', 'modify', 'delete'
     ]
     non_task_actions = ['add', 'create', 'new']
-    reports = ['list', 'active']
+    reports = [
+        'list', 'active', 'calendar', 'graph', ' burndown', 'wpd', 'times',
+        'project', 'summary', 'cal'
+    ]
     require_ref = False
     action = None
     task = None

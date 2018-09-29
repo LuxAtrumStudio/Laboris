@@ -5,6 +5,7 @@ Task query system
 import os
 import json
 import datetime
+from math import exp, log
 
 from laboris.color import Attr
 from laboris.config import CONFIG
@@ -15,49 +16,99 @@ PENDING_ID = []
 COMPLETED = {}
 COMPLETED_ID = []
 
-PENDING_FILE = "new.json"
+PENDING_FILE = "pending.json"
 
 
-def urgency_age(task):
-    diff = datetime.datetime.now() - datetime.datetime.fromtimestamp(
-        task['entryDate'])
-    age = diff.days + (diff.seconds / 86400)
-    return age / 400
+def date_diff(start, end):
+    diff = start - end
+    return diff.days + (diff.seconds / 86400)
 
+# Double S Curve?
+# =============================================================================
+# def urgency_due(task):
+#     if task['dueDate'] is None:
+#         return 0.0
+#     due = date_diff(datetime.datetime.now(),
+#                     datetime.datetime.fromtimestamp(task['dueDate']))
 
+# Single S Curve?
+# =============================================================================
 def urgency_due(task):
     if task['dueDate'] is None:
         return 0.0
-    late = False
-    if datetime.datetime.now() > datetime.datetime.fromtimestamp(
-            task['dueDate']):
-        diff = datetime.datetime.now() - datetime.datetime.fromtimestamp(
-            task['dueDate'])
-        late = True
+    due = date_diff(datetime.datetime.now(),
+                    datetime.datetime.fromtimestamp(task['dueDate']))
+    k = 0.7
+    # x0=(log(10.0/8.9-1.0)/k) - 1
+    # alpha = (log(9.0/0.2-1.0)/(-k))+x0
+    x0=-3.98677299562
+    alpha = -6.95740376945
+    if due < alpha:
+        return 0.2
     else:
-        diff = datetime.datetime.fromtimestamp(
-            task['dueDate']) - datetime.datetime.now()
-    overdue = diff.days + (diff.seconds / 86400)
-    if late is False:
-        overdue *= -1
-    if overdue > 7:
-        return 1.0
-    elif overdue >= -14:
-        return float((overdue + 14.0) * 0.8 / 21.0) + 0.2
-    return 0.2
+        return 1.0 / (1 + exp(-k * (due - x0)))
+
+# Single S Curve?
+# =============================================================================
+# def urgency_due(task):
+#     if task['dueDate'] is None:
+#         return 0.0
+#     due = date_diff(datetime.datetime.now(),
+#                     datetime.datetime.fromtimestamp(task['dueDate']))
+#     k = 1
+#     x0=-5
+#     return 1.0 / (1 + exp(-k * (due - x0)))
+
+
 
 
 def calc_urg(task):
     urg = 0.0
-    urg += abs(2.00 * urgency_age(task))
-    urg += abs(12.0 * urgency_due(task))
-    urg += abs(1.00 * task['priority'])
-    urg += abs(0.20 * len(task['tags']))
-    urg += abs(1.00 * len(task['projects']))
+    urg += abs(0.01429 * date_diff(
+        datetime.datetime.fromtimestamp(task['entryDate']),
+                                        datetime.datetime.now()))
+    urg += abs(9.0000 * urgency_due(task))
+    urg += abs(1.00000 * len(task['projects']))
+    urg += abs(0.20000 * len(task['tags']))
+    urg += abs(1.00000 * task['priority'])
     urg += abs(4.0 if task['times'] and len(task['times'][-1]) == 1 else 0.0)
-    urg = 0 if task['status'] == 'COMPLETED' else urg
-    urg = 0 if task['priority'] == -1 else urg
+    if task['status'] == 'COMPLETED' or task['priority'] == -1:
+        urg = 0.0
     return urg
+
+
+# def urgency_due(task):
+#     if task['dueDate'] is None:
+#         return 0.0
+#     late = False
+#     if datetime.datetime.now() > datetime.datetime.fromtimestamp(
+#             task['dueDate']):
+#         diff = datetime.datetime.now() - datetime.datetime.fromtimestamp(
+#             task['dueDate'])
+#         late = True
+#     else:
+#         diff = datetime.datetime.fromtimestamp(
+#             task['dueDate']) - datetime.datetime.now()
+#     overdue = diff.days + (diff.seconds / 86400)
+#     if late is False:
+#         overdue *= -1
+#     if overdue > 7:
+#         return 1.0
+#     elif overdue >= -14:
+#         return float((overdue + 14.0) * 0.8 / 21.0) + 0.2
+#     return 0.2
+
+# def calc_urg(task):
+#     urg = 0.0
+#     urg += abs(2.00 * urgency_age(task))
+#     urg += abs(12.0 * urgency_due(task))
+#     urg += abs(1.00 * task['priority'])
+#     urg += abs(0.20 * len(task['tags']))
+#     urg += abs(1.00 * len(task['projects']))
+#     urg += abs(4.0 if task['times'] and len(task['times'][-1]) == 1 else 0.0)
+#     urg = 0 if task['status'] == 'COMPLETED' else urg
+#     urg = 0 if task['priority'] == -1 else urg
+#     return urg
 
 
 def gen_id(task):
@@ -72,8 +123,9 @@ def load_pending():
         data = json.load(
             open(os.path.expanduser('~/.config/laboris/' + PENDING_FILE)))
         PENDING = {x['uuid']: x for x in data}
-        PENDING_ID = sorted([gen_id(x) for _, x in PENDING.items()],
-                            key=lambda x: get_uuid(x[1])['entryDate'])
+        PENDING_ID = sorted(
+            [gen_id(x) for _, x in PENDING.items()],
+            key=lambda x: get_uuid(x[1])['entryDate'])
         index = 0
         for task_id in PENDING_ID:
             if PENDING[task_id[1]]['dueDate']:
@@ -101,9 +153,9 @@ def save_pending():
         'times': x['times'],
         'uuid': x['uuid']
     } for _, x in PENDING.items()]
-    json.dump(
-        data, open(
-            os.path.expanduser('~/.config/laboris/' + PENDING_FILE), 'w'))
+    json.dump(data,
+              open(
+                  os.path.expanduser('~/.config/laboris/' + PENDING_FILE), 'w'))
 
 
 def load_completed():
@@ -143,18 +195,23 @@ def get_uuid(uuid):
 
 
 def fmt_task(tsk):
-    return Attr(tsk['title'], CONFIG.get_color('urgency', tsk['urg'])) + (Attr(
+    task_color = CONFIG.get_color('urgency', tsk['urg'])
+    if tsk['dueDate'] and datetime.datetime.fromtimestamp(tsk['dueDate']).date() == datetime.datetime.now().date():
+        task_color = CONFIG.get_color('status.due-today')
+    elif tsk['dueDate'] and datetime.datetime.fromtimestamp(tsk['dueDate']).date() < datetime.datetime.now().date():
+        task_color = CONFIG.get_color('status.overdue')
+    return Attr(tsk['title'], task_color) + (Attr(
         " +" + " +".join(tsk['projects']),
-        CONFIG.get_color('comp.project')) if tsk['projects'] else '') + (Attr(
-            " @" + " @".join(tsk['tags']),
-            CONFIG.get_color('comp.tag')) if tsk['tags'] else '')
+        CONFIG.get_color('comp.project')) if tsk['projects'] else '') + (
+            Attr(" @" + " @".join(tsk['tags']), CONFIG.get_color('comp.tag'))
+            if tsk['tags'] else '')
 
 
 def task_long_name(task):
-    return "{}{}{}".format(
-        task['title'],
-        (' +' + ' +'.join(task['projects']) if task['projects'] else ''),
-        (' @' + ' @'.join(task['tags']) if task['tags'] else ''))
+    return "{}{}{}".format(task['title'], (' +' + ' +'.join(task['projects'])
+                                           if task['projects'] else ''),
+                           (' @' + ' @'.join(task['tags'])
+                            if task['tags'] else ''))
 
 
 def start_active(tsk):
@@ -164,10 +221,10 @@ def start_active(tsk):
     minutes = diff // 60
     hour = minutes // 60
     minutes -= hour * 60
-    return Attr(
-        "Task {} \"{}\" [{}]".format(tsk['id'], task_long_name(tsk),
-                                     "{:02}:{:02}".format(hour, minutes)),
-        CONFIG.get_color('action.start'))
+    return Attr("Task {} \"{}\" [{}]".format(tsk['id'], task_long_name(tsk),
+                                             "{:02}:{:02}".format(
+                                                 hour, minutes)),
+                CONFIG.get_color('action.start'))
 
 
 def stop_active(tsk):
@@ -177,10 +234,10 @@ def stop_active(tsk):
     minutes = diff // 60
     hour = minutes // 60
     minutes -= hour * 60
-    return Attr(
-        "Task {} \"{}\" [{}]".format(tsk['id'], task_long_name(tsk),
-                                     "{:02}:{:02}".format(hour, minutes)),
-        CONFIG.get_color('action.stop'))
+    return Attr("Task {} \"{}\" [{}]".format(tsk['id'], task_long_name(tsk),
+                                             "{:02}:{:02}".format(
+                                                 hour, minutes)),
+                CONFIG.get_color('action.stop'))
 
 
 def fmt_task_uuid(uuid):
@@ -192,15 +249,20 @@ def active_tasks():
         if task['times'] and len(task['times'][-1]) == 1:
             print(start_active(task))
 
+
 def due_tasks():
     for _, task in PENDING.items():
-        if task['dueDate'] and datetime.datetime.fromtimestamp(task['dueDate']).date() == datetime.datetime.now().date():
-            print("DUE TODAY!")
+        if task['dueDate'] and datetime.datetime.fromtimestamp(
+                task['dueDate']).date() == datetime.datetime.now().date():
+            print(fmt_task(task))
+
 
 def overdue_tasks():
     for _, task in PENDING.items():
-        if task['dueDate'] and datetime.datetime.fromtimestamp(task['dueDate']).date() < datetime.datetime.now().date():
-            print("OVERDUE!")
+        if task['dueDate'] and datetime.datetime.fromtimestamp(
+                task['dueDate']).date() < datetime.datetime.now().date():
+            print(fmt_task(task))
+
 
 def notes():
     overdue_tasks()

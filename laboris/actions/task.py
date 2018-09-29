@@ -19,6 +19,7 @@ def start_action(task, args):
         print(laboris.task.start_active(task))
     else:
         task['times'].append([int(time.timestamp())])
+        task['modifiedDate'] = int(datetime.datetime.now().timestamp())
         print(Attr("Starting Task", CONFIG.get_color('action.start')))
         print(laboris.task.start_active(task))
 
@@ -34,6 +35,7 @@ def stop_action(task, args):
                  CONFIG.get_color('msg.warning')))
     else:
         task['times'][-1].append(int(time.timestamp()))
+        task['modifiedDate'] = int(datetime.datetime.now().timestamp())
         print(Attr("Stoping Task", CONFIG.get_color('action.stop')))
         print(laboris.task.stop_active(task))
 
@@ -48,6 +50,7 @@ def done_action(task, args):
                 CONFIG.get_color('msg.note')))
     else:
         task['status'] = 'COMPLETED'
+        task['modifiedDate'] = int(datetime.datetime.now().timestamp())
         laboris.task.PENDING.pop(task['uuid'])
         laboris.task.COMPLETED[task['uuid']] = task
         print(
@@ -65,6 +68,7 @@ def undone_action(task, args):
                 CONFIG.get_color('msg.note')))
     else:
         task['status'] = 'PENDING'
+        task['modifiedDate'] = int(datetime.datetime.now().timestamp())
         laboris.task.COMPLETED.pop(task['uuid'])
         laboris.task.PENDING[task['uuid']] = task
         print(

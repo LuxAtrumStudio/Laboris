@@ -4,6 +4,7 @@ Reports core structure for Laboris project
 
 from laboris.reports.list import list_report
 from laboris.reports.active import active_report
+from laboris.reports.cal import cal_report
 
 from laboris.actions.detail import detail_action
 from laboris.actions.create import create_action, modify_action
@@ -15,10 +16,16 @@ def run_report(report=None, task=None, args=[]):
         list_report(args)
     elif report == "active":
         active_report(args)
+    elif report == "cal":
+        cal_report(args)
+    elif report == "calendar":
+        print("Calendar Report is a WIP")
+
 
 def run_nt_action(action=None, args=[]):
     if action in ['add', 'create', 'new']:
         create_action(args)
+
 
 def run_task_action(action=None, task=None, args=[]):
     if action is None or action.lower() == "detail":
@@ -38,14 +45,15 @@ def run_task_action(action=None, task=None, args=[]):
 
 
 def run_action(action=None, task=None, args=[]):
-    if (action is None and
-            task is None) or (action is not None and
-                              action in ['list', 'active']):
+    if (action is None and task is None) or (action is not None and action in [
+            'list', 'active', 'calendar', 'graph', 'burndown', 'wpd', 'times',
+            'project', 'summary', 'cal'
+    ]):
         run_report(action, task, args)
     elif (action is None and
-          task is not None) or (action is not None and
-                                action in ['detail', 'start', 'stop', 'done',
-                                           'undone', 'modify', 'delete']):
+          task is not None) or (action is not None and action in [
+              'detail', 'start', 'stop', 'done', 'undone', 'modify', 'delete'
+          ]):
         run_task_action(action, task, args)
     elif action is not None and action in ['add', 'create', 'new']:
         run_nt_action(action, args)

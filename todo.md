@@ -5,6 +5,8 @@
 * Burndown
 * Hours/Day
 * Times
+* Project
+* Summary
 
 # Settings #
 

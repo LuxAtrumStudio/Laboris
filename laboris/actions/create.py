@@ -68,6 +68,7 @@ def create_action(args):
 def modify_action(task, args):
     task = ltask.get_uuid(task[1])
     data = parse_args(args)
+    task['modifiedDate'] = int(datetime.datetime.now().timestamp())
     for key in data:
         if data[key] is not None and key != 'dueDate':
             task[key] = data[key]
