@@ -16,6 +16,10 @@ def help():
     print("Laboris Task Manager(CLI) V2.0")
     print()
     print("  -h, --help     show list of command line options")
+    print("Reports:")
+    print("  list           show list of all tasks")
+    print("  active         display currently active tasks")
+    print("  calendar cal   display calendar of upcoming due dates")
 
 
 def parse():

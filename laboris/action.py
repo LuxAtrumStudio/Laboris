@@ -5,6 +5,7 @@ Reports core structure for Laboris project
 from laboris.reports.list import list_report
 from laboris.reports.active import active_report
 from laboris.reports.cal import cal_report
+from laboris.reports.summary import summary_report
 
 from laboris.actions.detail import detail_action
 from laboris.actions.create import create_action, modify_action
@@ -20,6 +21,18 @@ def run_report(report=None, task=None, args=[]):
         cal_report(args)
     elif report == "calendar":
         print("Calendar Report is a WIP")
+    elif report == "graph":
+        print("Graph Report is a WIP")
+    elif report == "burndown":
+        print("Burndown Report is a WIP")
+    elif report == "wpd":
+        print("WPD Report is a WIP")
+    elif report == "times":
+        print("Times Report is a WIP")
+    elif report == "project":
+        print("Project Report is a WIP")
+    elif report == "summary":
+        summary_report(args)
 
 
 def run_nt_action(action=None, args=[]):

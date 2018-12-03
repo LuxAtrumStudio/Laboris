@@ -51,6 +51,7 @@ def done_action(task, args):
     else:
         task['status'] = 'COMPLETED'
         task['modifiedDate'] = int(datetime.datetime.now().timestamp())
+        task['doneDate'] = int(datetime.datetime.now().timestamp())
         laboris.task.PENDING.pop(task['uuid'])
         laboris.task.COMPLETED[task['uuid']] = task
         print(
@@ -69,6 +70,7 @@ def undone_action(task, args):
     else:
         task['status'] = 'PENDING'
         task['modifiedDate'] = int(datetime.datetime.now().timestamp())
+        task['doneDate'] = None
         laboris.task.COMPLETED.pop(task['uuid'])
         laboris.task.PENDING[task['uuid']] = task
         print(

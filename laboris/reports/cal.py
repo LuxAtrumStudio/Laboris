@@ -77,4 +77,3 @@ def cal_report(args):
         months.append(mon)
         for lin in mon:
             print(lin)
-        # pprint(mon)

@@ -62,10 +62,12 @@ def new_timedelta(string):
         dt = try_date_fmt(arg)
         if dt is not None:
             all_false = False
-            cdt += datetime.timedelta(days=dt[0], seconds=(3600 * dt[1]) + (60 * dt[2]) + dt[3])
+            cdt += datetime.timedelta(
+                days=dt[0], seconds=(3600 * dt[1]) + (60 * dt[2]) + dt[3])
     if all_false:
         return None
     return cdt
+
 
 def new_datetime(string):
     """
@@ -128,16 +130,16 @@ def new_datetime(string):
                 while cdt.strftime('%a').lower() != arg.lower():
                     cdt += datetime.timedelta(days=1)
                 return cdt.replace(hour=0, minute=0, second=0)
-            elif fmt.startswith("%AT") and arg.split("T")[0].lower() in (
+            elif fmt.startswith("%A@") and arg.split("@")[0].lower() in (
                     'sunday', 'monday', 'tuesday', 'wednesday', 'thursday',
                     'friday', 'saturday'):
-                name = arg.split("T")[0]
+                name = arg.split("@")[0]
                 cdt += datetime.timedelta(days=1)
                 while cdt.strftime('%A').lower() != name.lower():
                     cdt += datetime.timedelta(days=1)
-            elif fmt.startswith("%aT") and arg.split("T")[0].lower() in (
+            elif fmt.startswith("%a@") and arg.split("@")[0].lower() in (
                     'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'):
-                name = arg.split("T")[0]
+                name = arg.split("@")[0]
                 cdt += datetime.timedelta(days=1)
                 while cdt.strftime('%a').lower() != name.lower():
                     cdt += datetime.timedelta(days=1)
@@ -172,24 +174,27 @@ def new_datetime(string):
         except ValueError:
             return None
         return None
-
-    string = string.replace('@', 'T')
+    if string[0] == 'T':
+        string = string.replace('T', '@')
+        string = "T" + string[1:]
+    else:
+        string = string.replace('T', '@')
     string = string.replace('/', '-')
     formats = [
-        "%d-%m-%YT%H:%M:%S", "%d-%m-%YT%H:%M", "%d-%m-%YT%H",
-        "%m-%d-%YT%H:%M:%S", "%m-%d-%YT%H:%M", "%m-%d-%YT%H",
-        "%d-%m-%yT%H:%M:%S", "%d-%m-%yT%H:%M", "%d-%m-%yT%H", "%d-%m-%Y",
-        "%m-%d-%Y", "%d-%m-%y", "%m-%d-%Y", "%d-%mT%H:%M:%S", "%d-%mT%H:%M",
-        "%d-%mT%H", "%m-%dT%H:%M:%S", "%m-%dT%H:%M", "%m-%dT%H", "%d-%m",
-        "%m-%d", "%dT%H:%M:%S", "%dT%H:%M", "%dT%H", "%d", "%H:%M:%S", "%H:%M",
-        "%d-%m-%YT%I:%M:%S%p", "%d-%m-%YT%I:%M%p", "%d-%m-%YT%I%p",
-        "%m-%d-%YT%I:%M:%S%p", "%m-%d-%YT%I:%M%p", "%m-%d-%YT%I%p",
-        "%d-%m-%yT%I:%M:%S%p", "%d-%m-%yT%I:%M%p", "%d-%m-%yT%I%p",
-        "%d-%mT%I:%M:%S%p", "%d-%mT%I:%M%p", "%d-%mT%I%p", "%m-%dT%I:%M:%S%p",
-        "%m-%dT%I:%M%p", "%m-%dT%I%p", "%dT%I:%M:%S%p", "%dT%I:%M%p", "%dT%I%p",
-        "%I:%M:%S%p", "%I:%M%p", "%AT%H:%M:%S", "%AT%H:%M", "%AT%H", "%A",
-        "%aT%H:%M:%S", "%aT%H:%M", "%aT%H", "%a", "%AT%I:%M:%S%p", "%AT%I:%M%p",
-        "%AT%I%p", "%aT%I:%M:%S%p", "%aT%I:%M%p", "%aT%I%p"
+        "%d-%m-%Y@%H:%M:%S", "%d-%m-%Y@%H:%M", "%d-%m-%Y@%H",
+        "%m-%d-%Y@%H:%M:%S", "%m-%d-%Y@%H:%M", "%m-%d-%Y@%H",
+        "%d-%m-%y@%H:%M:%S", "%d-%m-%y@%H:%M", "%d-%m-%y@%H", "%d-%m-%Y",
+        "%m-%d-%Y", "%d-%m-%y", "%m-%d-%Y", "%d-%m@%H:%M:%S", "%d-%m@%H:%M",
+        "%d-%m@%H", "%m-%d@%H:%M:%S", "%m-%d@%H:%M", "%m-%d@%H", "%d-%m",
+        "%m-%d", "%Y", "%d@%H:%M:%S", "%d@%H:%M", "%d@%H", "%d", "%H:%M:%S",
+        "%H:%M", "%d-%m-%Y@%I:%M:%S%p", "%d-%m-%Y@%I:%M%p", "%d-%m-%Y@%I%p",
+        "%m-%d-%Y@%I:%M:%S%p", "%m-%d-%Y@%I:%M%p", "%m-%d-%Y@%I%p",
+        "%d-%m-%y@%I:%M:%S%p", "%d-%m-%y@%I:%M%p", "%d-%m-%y@%I%p",
+        "%d-%m@%I:%M:%S%p", "%d-%m@%I:%M%p", "%d-%m@%I%p", "%m-%d@%I:%M:%S%p",
+        "%m-%d@%I:%M%p", "%m-%d@%I%p", "%d@%I:%M:%S%p", "%d@%I:%M%p", "%d@%I%p",
+        "%I:%M:%S%p", "%I:%M%p", "%A@%H:%M:%S", "%A@%H:%M", "%A@%H", "%A",
+        "%a@%H:%M:%S", "%a@%H:%M", "%a@%H", "%a", "%A@%I:%M:%S%p", "%A@%I:%M%p",
+        "%A@%I%p", "%a@%I:%M:%S%p", "%a@%I:%M%p", "%a@%I%p"
     ]
     dt = None
     for fmt in formats:
@@ -198,10 +203,9 @@ def new_datetime(string):
             break
     return dt
 
+
 def new(string):
     dt = new_datetime(string)
     if dt is None:
         return new_timedelta(string)
     return dt
-
-

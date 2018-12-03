@@ -73,6 +73,20 @@ def Attr(src, attr_a, attr_b=None, attr_c=None, bg=False):
     else:
         return GetAttr(attr_a, attr_b, attr_c, bg) + src + "\033[0m"
 
+def WAttr(src, width, attr_a, attr_b=None, attr_c=None, bg=False):
+    if isinstance(attr_a, dict):
+        res = GetAttr(attr_a['bg'], attr_b, attr_c, True) + GetAttr(
+            attr_a['fg']) + src + "\033[0m"
+    else:
+        res = GetAttr(attr_a, attr_b, attr_c, bg) + src + "\033[0m"
+    pad = width - len(src)
+    if pad <= 0:
+        return res
+    if width < 0:
+        return (" " * pad) + res
+    else:
+        return res + (" " * pad)
+
 
 def NoReset(src, attr_a, attr_b=None, attr_c=None, bg=False):
     return GetAttr(attr_a, attr_b, attr_c, bg) + src
