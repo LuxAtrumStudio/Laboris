@@ -37,7 +37,7 @@ def cal_report(args):
     if end < start:
         end += 12
     months = []
-    year = 2018
+    year = 2019
     dues = {}
     for uuid, task in ltask.PENDING.items():
         if task['dueDate'] is not None:

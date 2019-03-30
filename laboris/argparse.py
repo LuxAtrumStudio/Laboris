@@ -39,7 +39,7 @@ def parse():
         help()
         exit(0)
     for arg in sys.argv[1:]:
-        if arg.lower() in reports:
+        if arg.lower() in reports and action is None:
             action = arg.lower()
         elif arg.lower() in non_task_actions:
             action = arg.lower()

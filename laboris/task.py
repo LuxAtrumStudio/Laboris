@@ -31,6 +31,17 @@ def date_diff(start, end):
 #     due = date_diff(datetime.datetime.now(),
 #                     datetime.datetime.fromtimestamp(task['dueDate']))
 
+# Linear?
+# =============================================================================
+# def urgency_due(task):
+#     if task['dueDate'] is None:
+#         return 0.0
+#     due = date_diff(datetime.datetime.now(), datetime.datetime.fromtimestamp(task['dueDate']))
+#     if due < -4:
+#         return 0.2
+#     else:
+#         return 0.25*due+1.2
+
 # Single S Curve?
 # =============================================================================
 def urgency_due(task):
@@ -39,10 +50,8 @@ def urgency_due(task):
     due = date_diff(datetime.datetime.now(),
                     datetime.datetime.fromtimestamp(task['dueDate']))
     k = 0.7
-    # x0=(log(10.0/8.9-1.0)/k) - 1
-    # alpha = (log(9.0/0.2-1.0)/(-k))+x0
     x0=-3.98677299562
-    alpha = -6.95740376945
+    alpha = -5.966
     if due < alpha:
         return 0.2
     else:

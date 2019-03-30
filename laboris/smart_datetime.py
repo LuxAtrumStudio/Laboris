@@ -184,7 +184,7 @@ def new_datetime(string):
         "%d-%m-%Y@%H:%M:%S", "%d-%m-%Y@%H:%M", "%d-%m-%Y@%H",
         "%m-%d-%Y@%H:%M:%S", "%m-%d-%Y@%H:%M", "%m-%d-%Y@%H",
         "%d-%m-%y@%H:%M:%S", "%d-%m-%y@%H:%M", "%d-%m-%y@%H", "%d-%m-%Y",
-        "%m-%d-%Y", "%d-%m-%y", "%m-%d-%Y", "%d-%m@%H:%M:%S", "%d-%m@%H:%M",
+        "%m-%d-%Y", "%d-%m-%y", "%m-%d-%y", "%d-%m@%H:%M:%S", "%d-%m@%H:%M",
         "%d-%m@%H", "%m-%d@%H:%M:%S", "%m-%d@%H:%M", "%m-%d@%H", "%d-%m",
         "%m-%d", "%Y", "%d@%H:%M:%S", "%d@%H:%M", "%d@%H", "%d", "%H:%M:%S",
         "%H:%M", "%d-%m-%Y@%I:%M:%S%p", "%d-%m-%Y@%I:%M%p", "%d-%m-%Y@%I%p",

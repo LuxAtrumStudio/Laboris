@@ -29,11 +29,14 @@ def gen_progres_bar(width, perc):
 
 def summary_report(args):
     cat = 'ndone'
+    types = 'both'
     start = None
     end = None
     for arg in args:
         if arg in ['pending', 'all', 'completed', 'ndone']:
             cat = arg
+        elif arg in ['both', 'project', 'task']:
+            types = arg
         elif start is None:
             start = new(arg).timestamp()
         elif end is None:
@@ -43,6 +46,8 @@ def summary_report(args):
     if end is None:
         end = datetime.datetime.now().timestamp()
     projects = {}
+    
+    print(cat, types)
 
     def append_proj(proj, contrib):
         if proj in projects:
@@ -64,8 +69,9 @@ def summary_report(args):
                             tt += (
                                 datetime.datetime.now().timestamp() - time[0])
                 for proj in task['projects']:
-                    append_proj(proj, [1, 0, tt])
-                if not task['projects']:
+                    if types in ('both', 'project'):
+                        append_proj(proj, [1, 0, tt])
+                if not task['projects'] and types in ('both', 'task'):
                     append_proj(task['title'], [1, 0, tt])
     if cat in ('all', 'completed', 'ndone'):
         for uuid, task in ltask.COMPLETED.items():
@@ -75,11 +81,11 @@ def summary_report(args):
                     if start < time[0] < end:
                         tt += (time[1] - time[0])
                 for proj in task['projects']:
-                    if cat == 'ndone' and proj in projects:
+                    if cat == 'ndone' and proj in projects and types in ('both', 'project'):
                         append_proj(proj, [1, 1, tt])
-                    elif cat != 'ndone':
+                    elif cat != 'ndone' and types in ('both', 'project'):
                         append_proj(proj, [1, 1, tt])
-                if not task['projects']:
+                if not task['projects'] and types in ('both', 'task'):
                     if cat != 'ndone':
                         append_proj(task['title'], [1, 1, tt])
 
