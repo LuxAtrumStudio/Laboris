@@ -1,7 +1,3 @@
-"""
-Datetime reference system
-"""
-
 import datetime
 
 
@@ -174,6 +170,7 @@ def new_datetime(string):
         except ValueError:
             return None
         return None
+
     if string[0] == 'T':
         string = string.replace('T', '@')
         string = "T" + string[1:]

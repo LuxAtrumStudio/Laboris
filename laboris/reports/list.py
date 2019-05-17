@@ -1,12 +1,7 @@
-"""
-List report
-"""
+import laboris.config as cfg
+import laboris.data as dat
 
 import datetime
-
-import laboris.task as task
-import laboris.color as color
-from laboris.config import CONFIG
 
 
 def date_abbrev(lhs, rhs):
@@ -37,108 +32,50 @@ def date_abbrev(lhs, rhs):
     return output
 
 
-def print_task(fmt, tsk, title_pad, project_pad, tag_pad, use_color=True):
-    data = {
-        'id': tsk['id'] if 'id' in tsk else '',
-        'uuid': tsk['uuid'],
-        'uuidShort': tsk['uuid'][:8],
-        'priority': tsk['priority'],
-        'p': tsk['priority'] if tsk['priority'] != -1 else 0,
-        'dueShort': date_abbrev(datetime.datetime.now(), tsk['dueDate']),
-        'due': date_abbrev(datetime.datetime.now(), tsk['dueDate']),
-        'title': "{:{}}".format(tsk['title'], title_pad),
-        'age': date_abbrev(tsk['entryDate'], datetime.datetime.now()),
-        'urg': tsk['urg'],
-        'projects': "{:{}}".format(" ".join(tsk['projects']), project_pad),
-        'tags': "{:{}}".format(" ".join(tsk['tags']), tag_pad)
-    }
-    if use_color:
-        return color.Attr(
-            fmt.format(data), CONFIG.get_color('urgency', tsk['urg']))
-    else:
-        return fmt.format(data)
+def print_task(task):
+    pass
 
 
-def print_title(fmt, title_pad, project_pad, tag_pad):
-    data = {
-        'id': 'Id',
-        'uuid': 'Uuid',
-        'uuidShort': 'Uuid',
-        'p': 'P',
-        'age': 'Age',
-        'due': 'Due',
-        'dueShort': 'Due',
-        'title': "{:{}}".format('Title', title_pad),
-        'projects': "{:{}}".format('Projects', project_pad),
-        'tags': "{:{}}".format("Tags", tag_pad),
-        'urg': 'Urg'
-    }
-    fmt = fmt.replace('{', color.GetAttr(CONFIG.get_color('title')) + '{')
-    fmt = fmt.replace('}', '}' + color.GetAttr('reset'))
-    fmt = fmt.replace('f}', '}')
-    return fmt.format(data)
+def print_entry(task, fmt, ind, spacing):
+    data = {'id': ind, **task}
+    data['due'] = date_abbrev(datetime.datetime.now, task['dueDate'])
+    data['title'] = "{:{}}".format(task['title'], spacing[0])
+    data['projects'] = "{:{}}".format(" ".join(task['projects']), spacing[1])
+    data['tags'] = "{:{}}".format(" ".join(task['tags']), spacing[2])
+    data['p'] = task['priority']
+    print("{}{}{}\033[0m".format("" if ind % 2 == 1 else cfg.CONFIG['theme']['bg'], cfg.get_urg(data['urg']),
+          fmt.format(data)))
 
 
-def list_report(args):
-    task.notes()
-    longest_title = len('Title')
-    longest_project = len('Projects')
-    longest_tag = len('Tags')
+def status(args):
     fmt = "{0[id]:2} {0[p]:1} {0[due]:>3} {0[title]} {0[projects]} {0[tags]} {0[urg]:6.3f}"
-    tasks = task.PENDING_ID
-    if args:
-        if args[0].lower() == 'all':
-            tasks = task.PENDING_ID + task.COMPLETED_ID
-            fmt = "{0[uuidShort]:8} {0[p]:1} {0[due]:>4} {0[title]} {0[projects]} {0[tags]} {0[urg]:6.3f}"
-        elif args[0].lower() == 'completed':
-            tasks = task.COMPLETED_ID
-            fmt = "{0[uuidShort]:8} {0[p]:1} {0[due]:>4} {0[title]} {0[projects]} {0[tags]} {0[urg]:6.3f}"
-        elif args[0].lower() == 'pending':
-            tasks = task.PENDING_ID
-    for uuid in tasks:
-        longest_title = max(longest_title, len(task.get_uuid(uuid[1])['title']))
-        longest_tag = max(longest_tag,
-                          len(" ".join(task.get_uuid(uuid[1])['tags'])))
-        longest_project = max(longest_project,
-                              len(" ".join(task.get_uuid(uuid[1])['projects'])))
-    print(print_title(fmt, longest_title, longest_project, longest_tag))
-    for i, uuid in enumerate(sorted(tasks, key=lambda x: x[2], reverse=True)):
-        tsk = task.get_uuid(uuid[1])
-        if task.get_uuid(uuid[1])['times'] and len(
-                task.get_uuid(uuid[1])['times'][-1]) == 1:
-            print(
-                color.Attr(
-                    print_task(fmt, task.get_uuid(uuid[1]),
-                    longest_title,
-                    longest_project,
-                    longest_tag,
-                    use_color=False), CONFIG.get_color('status.active')))
-        elif tsk['status'] == 'PENDING' and tsk['dueDate'] and datetime.datetime.fromtimestamp(tsk['dueDate']).date() == datetime.datetime.now().date():
-            print(
-                color.Attr(
-                    print_task(fmt, task.get_uuid(uuid[1]),
-                    longest_title,
-                    longest_project,
-                    longest_tag,
-                    use_color=False), CONFIG.get_color('status.due-today')))
-        elif tsk['status'] == 'PENDING' and tsk['dueDate'] and datetime.datetime.fromtimestamp(tsk['dueDate']).date() < datetime.datetime.now().date():
-            print(
-                color.Attr(
-                    print_task(fmt, task.get_uuid(uuid[1]),
-                    longest_title,
-                    longest_project,
-                    longest_tag,
-                    use_color=False), CONFIG.get_color('status.overdue')))
-        elif i % 2 == 1:
-            print(
-                color.Attr(
-                    print_task(fmt, task.get_uuid(uuid[1]), longest_title,
-                               longest_project, longest_tag),
-                    CONFIG.get_color('background'),
-                    bg=True))
-        else:
-            print(
-                print_task(fmt, task.get_uuid(uuid[1]), longest_title,
-                           longest_project, longest_tag))
-        # print("{0[id]} {0[priority]} {0[due]}".format(task.get_uuid(uuid[1])))
-        # print_task("{.id:2} {p:}"task.get_uuid(uuid[1]))
+    if 'fmt' in args:
+        fmt = args.fmt
+    spacing = [5, 8, 4]
+    for task in dat.DATA[0]:
+        spacing[0] = max(spacing[0], len(task['title']))
+        spacing[1] = max(spacing[1], len(" ".join(task['projects'])))
+        spacing[2] = max(spacing[2], len(" ".join(task['tags'])))
+        if task['times'] and len(task['times'][-1]) == 1:
+            print_task(task)
+        elif task['dueDate'] and datetime.datetime.fromtimestamp(
+                task['dueDate']).date() <= datetime.datetime.now().date():
+            print_task(task)
+    data = {
+        'id': "ID",
+        'uuid': "UUID",
+        'p': "P",
+        'age': "Age",
+        'due': "Due",
+        'dueShort': "Due",
+        'title': "{:{}}".format("Title", spacing[0]),
+        'projects': "{:{}}".format("Projects", spacing[1]),
+        'tags': "{:{}}".format("Tags", spacing[2]),
+        'urg': "Urg"
+    }
+    tmp_fmt = fmt.replace('{', cfg.CONFIG['theme']['title'] + '{')
+    tmp_fmt = tmp_fmt.replace('}', '}\033[0m')
+    tmp_fmt = tmp_fmt.replace('f}', '}')
+    print(tmp_fmt.format(data))
+    for i, task in enumerate(dat.DATA[0]):
+        print_entry(task, fmt, i, spacing)
