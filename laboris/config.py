@@ -1,5 +1,6 @@
 import json
 import os
+import math
 
 
 def gen_config():
@@ -8,7 +9,7 @@ def gen_config():
         os.makedirs(os.path.expanduser('~/.config/laboris'))
     CONFIG = {
         "synced": 0,
-        "syncTime": 60,
+        "syncTime": 600,
         "url": input("\033[35;1mServer URL\033[0m: "),
         "theme": {
             "bg": "\033[40m",
@@ -29,7 +30,7 @@ def gen_config():
             "staOverdue": "\033[30;1;4;41m",
             "staDueToday": "\033[31;1;43m",
             "urgency": {
-                "0-3": "\033[39m",
+                "0-3": ["\033[39m"],
                 "3-6": ["#2196f3", "#6caf50"],
                 "6-8": ["#6caf50", "#FFEB3B"],
                 "8-9": ["#ffeb3b", "#f44336"],
@@ -64,22 +65,36 @@ def note(msg):
 
 
 def get_urg(urg):
+    res = ""
+    a , b, col = None, None, None
     for key in CONFIG['theme']['urgency']:
         if '-' in key:
             start, end = map(float, key.split('-'))
         elif key[-1] == '+':
             start = float(key[:-1])
-            end = inf
+            end = math.inf
         if start <= urg < end:
             if len(CONFIG['theme']['urgency'][key]) == 1:
-                a = tuple(
-                    int(CONFIG['theme']['urgency'][key][0][i:i + 2], 16)
-                    for i in (0, 2, 4))
+                if CONFIG['theme']['urgency'][key][0][0] == '#':
+                    a = tuple(
+                            int(CONFIG['theme']['urgency'][key][0][1:][i:i + 2], 16)
+                        for i in (0, 2, 4))
+                else:
+                    res = CONFIG['theme']['urgency'][key][0]
             else:
-                a = tuple(
-                    int(CONFIG['theme']['urgency'][key][0][i:i + 2], 16)
-                    for i in (0, 2, 4))
-                b = tuple(
-                    int(CONFIG['theme']['urgency'][key][1][i:i + 2], 16)
-                    for i in (0, 2, 4))
+                if CONFIG['theme']['urgency'][key][0][0] == '#':
+                    a = tuple(
+                            int(CONFIG['theme']['urgency'][key][0][1:][i:i + 2], 16)
+                        for i in (0, 2, 4))
+                if CONFIG['theme']['urgency'][key][1][0] == '#':
+                    b = tuple(
+                            int(CONFIG['theme']['urgency'][key][1][1:][i:i + 2], 16)
+                        for i in (0, 2, 4))
+            if a and b:
+                urg = urg -  float(key.split('-')[0])
+                dt = (b[0] - a[0], b[1]-a[1], b[2] - a[2])
+                col = (a[0] + dt[0]*urg, a[1] + dt[1]*urg, a[2] + dt[2]*urg)
+            if col:
+                res = "\033[38;2;{};{};{}m".format(int(col[0]), int(col[1]), int(col[2]))
+    return res
 

@@ -5,6 +5,8 @@ import datetime
 
 
 def date_abbrev(lhs, rhs):
+    if not rhs or rhs <= 0:
+        return ""
     output = ""
     if isinstance(lhs, int):
         lhs = datetime.datetime.fromtimestamp(lhs)
@@ -38,7 +40,7 @@ def print_task(task):
 
 def print_entry(task, fmt, ind, spacing):
     data = {'id': ind, **task}
-    data['due'] = date_abbrev(datetime.datetime.now, task['dueDate'])
+    data['due'] = date_abbrev(datetime.datetime.now, task['dueDate'] if 'dueDate' in task else -1)
     data['title'] = "{:{}}".format(task['title'], spacing[0])
     data['projects'] = "{:{}}".format(" ".join(task['projects']), spacing[1])
     data['tags'] = "{:{}}".format(" ".join(task['tags']), spacing[2])
@@ -58,7 +60,7 @@ def status(args):
         spacing[2] = max(spacing[2], len(" ".join(task['tags'])))
         if task['times'] and len(task['times'][-1]) == 1:
             print_task(task)
-        elif task['dueDate'] and datetime.datetime.fromtimestamp(
+        elif 'dueDate' in task and task['dueDate'] and datetime.datetime.fromtimestamp(
                 task['dueDate']).date() <= datetime.datetime.now().date():
             print_task(task)
     data = {
@@ -79,3 +81,6 @@ def status(args):
     print(tmp_fmt.format(data))
     for i, task in enumerate(dat.DATA[0]):
         print_entry(task, fmt, i, spacing)
+
+def detail(args):
+    task = dat.find(args.task)

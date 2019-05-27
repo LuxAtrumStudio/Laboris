@@ -3,6 +3,7 @@ import datetime
 import os
 import requests
 import laboris.config as cfg
+from laboris.fuzz import weighted_fuzz
 
 from math import exp
 
@@ -13,7 +14,7 @@ def datediff(a, b):
 
 
 def urgdue(task):
-    if task['dueDate'] is None:
+    if 'dueDate' not in task or task['dueDate'] is None:
         return 0.0
     due = datediff(datetime.datetime.now(),
                    datetime.datetime.fromtimestamp(task['dueDate']))
@@ -43,12 +44,11 @@ def calc_urg(task):
 
 def sync():
     global DATA
-    if datetime.datetime.now().timestamp(
-    ) > cfg.CONFIG['synced'] + cfg.CONFIG['syncTime']:
+    if 'synced' not in cfg.CONFIG or datetime.datetime.now().timestamp() > cfg.CONFIG['synced'] + cfg.CONFIG['syncTime']:
         cfg.note("Syncing to \"{}\"".format(cfg.CONFIG['url']))
         cfg.save_config()
         raw = requests.post(
-            url=cfg.CONFIG['url'] + "sync",
+            url=cfg.CONFIG['url'] + "/sync",
             data={
                 "datetime": int(cfg.CONFIG['synced'])
             }).json()
@@ -130,6 +130,20 @@ def find_uuid(uuid, pending=None):
             if ent['uuid'] == uuid or ent['uuid'].startswith(uuid):
                 matches.append(-i - 1)
     return matches
+
+def find(arg):
+    matches = []
+    if arg.isdigit():
+        return int(arg)
+    else:
+        for i, ent in enumerate(DATA[0]):
+            if ent['uuid'] == arg or ent['uuid'].startswith(arg):
+                matches.append(i)
+    if not matches:
+        data = [[x['title'], calc_urg(x)] for x in DATA[0]]
+        matches = weighted_fuzz(arg, data)
+        print(matches)
+
 
 
 def create(args):
