@@ -40,7 +40,7 @@ def print_task(task):
 
 def print_entry(task, fmt, ind, spacing):
     data = {'id': ind, **task}
-    data['due'] = date_abbrev(datetime.datetime.now, task['dueDate'] if 'dueDate' in task else -1)
+    data['due'] = date_abbrev(datetime.datetime.now(), task['dueDate'] if 'dueDate' in task else -1)
     data['title'] = "{:{}}".format(task['title'], spacing[0])
     data['projects'] = "{:{}}".format(" ".join(task['projects']), spacing[1])
     data['tags'] = "{:{}}".format(" ".join(task['tags']), spacing[2])
@@ -83,4 +83,4 @@ def status(args):
         print_entry(task, fmt, i, spacing)
 
 def detail(args):
-    task = dat.find(args.task)
+    task = dat.find(args['task'])

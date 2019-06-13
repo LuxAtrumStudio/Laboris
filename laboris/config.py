@@ -10,6 +10,7 @@ def gen_config():
     CONFIG = {
         "synced": 0,
         "syncTime": 600,
+        "autoSync": True,
         "url": input("\033[35;1mServer URL\033[0m: "),
         "theme": {
             "bg": "\033[40m",

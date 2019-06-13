@@ -1,9 +1,12 @@
 import json
 import datetime
 import os
+import sys
 import requests
+import uuid
 import laboris.config as cfg
 from laboris.fuzz import weighted_fuzz
+from laboris.prompt import select, yn_choice
 
 from math import exp
 
@@ -41,17 +44,31 @@ def calc_urg(task):
         urg = 0.0
     return urg
 
+def post(url, data=None, required=False):
+    try:
+        return requests.post(url=url, data=data).json()
+    except:
+        if required is False:
+            return {}
+        else:
+            print("Failed to post to \"{}\"".format(url))
+            sys.exit(3)
 
-def sync():
+
+def sync(force=False, historical=False):
     global DATA
-    if 'synced' not in cfg.CONFIG or datetime.datetime.now().timestamp() > cfg.CONFIG['synced'] + cfg.CONFIG['syncTime']:
+    if 'synced' not in cfg.CONFIG or datetime.datetime.now().timestamp() > cfg.CONFIG['synced'] + cfg.CONFIG['syncTime'] or force:
         cfg.note("Syncing to \"{}\"".format(cfg.CONFIG['url']))
         cfg.save_config()
-        raw = requests.post(
+        if historical is True:
+            cfg.CONFIG['synced'] = 0
+        updated_data = [{i:d[i] for i in d if i not in ('urg')} for d in DATA[0] if d['modifiedDate'] > cfg.CONFIG['synced']]
+        raw = post(
             url=cfg.CONFIG['url'] + "/sync",
             data={
-                "datetime": int(cfg.CONFIG['synced'])
-            }).json()
+                "datetime": int(cfg.CONFIG['synced']),
+                "entries": json.dumps(updated_data)
+            }, required=True)
         for x in raw:
             ind = find_uuid(x['uuid'])
             if not ind:
@@ -59,7 +76,7 @@ def sync():
             elif ind[0] >= 0:
                 del DATA[0][ind[0]]
             elif ind[0] < 0:
-                del DATA[1][-ind[0] + 1]
+                del DATA[1][-ind[0] - 1]
             if x['status'] == 'PENDING':
                 DATA[0].append(x)
             else:
@@ -77,8 +94,8 @@ def update(id):
     else:
         requests.post(
             url=cfg.CONFIG['url'] +
-            "update/{}".format(DATA[1][-id + 1]['uuid']),
-            dat=DATA[1][-id + 1])
+            "update/{}".format(DATA[1][-id - 1]['uuid']),
+            dat=DATA[1][-id - 1])
 
 
 def load_data():
@@ -110,10 +127,25 @@ def load_data():
 
 
 def save_data():
+    print(DATA[0])
+    DATA[0] = [{i:d[i] for i in d if i not in ('urg')} for d in DATA[0]]
     json.dump(DATA[0],
               open(os.path.expanduser('~/.config/laboris/pending.json'), 'w'))
     json.dump(DATA[1],
               open(os.path.expanduser('~/.config/laboris/completed.json'), 'w'))
+
+def format_task(tsk):
+    task_color = cfg.get_urg(calc_urg(tsk))
+    if 'dueDate' in tsk and tsk['dueDate'] and datetime.datetime.fromtimestamp(tsk['dueDate']).date() == datetime.datetime.now().date():
+        task_color = cfg.CONFIG['theme']['staDueToday']
+    elif 'dueDate' in tsk and tsk['dueDate'] and datetime.datetime.fromtimestamp(tsk['dueDate']).date() < datetime.datetime.now().date():
+        task_color = cfg.CONFIG['theme']['staOverdue']
+    elif 'times' in tsk and tsk['times'] and len(tsk['times'][-1]) == 1:
+        task_color = cfg.CONFIG['theme']['staActive']
+    res = "{}{}\033[0m".format(task_color, tsk['title'])
+    res += (" +" + " +".join(tsk['projects']) if tsk['projects'] else '')
+    res += (" @" + " @".join(tsk['tags']) if tsk['tags'] else '')
+    return res
 
 
 def find_uuid(uuid, pending=None):
@@ -139,32 +171,120 @@ def find(arg):
         for i, ent in enumerate(DATA[0]):
             if ent['uuid'] == arg or ent['uuid'].startswith(arg):
                 matches.append(i)
+            if ent['title'] == arg:
+                return i
+            elif ent['title'].lower().startswith(arg.lower()):
+                matches.append(i)
+        if len(matches) > 1:
+            data = sorted([[i, calc_urg(DATA[0][i])] for i in matches], key=lambda x: x[1], reverse=True)
+            selected = select("Specify Task:", [format_task(DATA[0][v[0]]) for v in data])
+            matches = [data[selected][0]]
     if not matches:
-        data = [[x['title'], calc_urg(x)] for x in DATA[0]]
-        matches = weighted_fuzz(arg, data)
-        print(matches)
-
+        for i, ent in enumerate(DATA[1]):
+            if ent['uuid'] == arg or ent['uuid'].startswith(arg):
+                matches.append(i)
+            if ent['title'] == arg:
+                return -i - 1
+        if len(matches) > 1:
+            data = sorted([[i, calc_urg(DATA[1][i])] for i in matches], key=lambda x: x[1], reverse=True)
+            selected = select("Specify Task:", [format_task(DATA[1][v[0]]) for v in data])
+            matches = [-data[selected][0] - 1]
+    return matches[0]
 
 
 def create(args):
     entry = {
-        "title": args.title,
-        "projects": args.project,
-        "tags": args.tag,
-        "priority": args.pri,
-        "dueDate": args.due.timestamp() if args.due else None
+        "title": args['title'],
+        "projects": args['projects'],
+        "tags": args['tags'],
+        "priority": args['priority'],
+        "dueDate": args['dueDate'].timestamp() if 'dueDate' in args else None,
+        "status": 'PENDING',
+        "entryDate": int(datetime.datetime.now()),
+        "modifiedDate": int(datetime.datetime.now()),
+        "times": [],
+        "uuid": uuid.uuid3(uuid.NAMESPACE_URL, "{}{}".format(args['title'], datetime.datetime.now()))
     }
-    raw = requests.post(url=cfg.CONFIG['url'], data=entry).json()
-    DATA[0].append(raw['entry'])
+    DATA[0].append(entry)
+
+    if cfg.CONFIG['autoSync']:
+        post(url=cfg.CONFIG['url'], data=entry).json()
 
 
 def modify(args):
-    entry = {
-        "title": args.title,
-        "projects": args.project,
-        "tags": args.tag,
-        "priority": args.pri,
-        "dueDate": args.due.timestamp() if args.due else None
-    }
-    raw = requests.post(url=cfg.CONFIG['url'], data=entry).json()
-    DATA[0].append(raw['entry'])
+    idx = find(args['uuid'])
+    if idx >= 0:
+        task = DATA[0][idx]
+    else:
+        task = DATA[1][-idx-1]
+    if 'dueDate' in args:
+        args['dueDate'] = int(args['dueDate'].timestamp())
+    args['modifiedDate'] = int(datetime.datetime.now().timestamp())
+    args = {i:args[i] for i in args if i not in ('urg', 'action', 'uuid')}
+    for key in args.keys():
+        task[key]=args[key]
+    if idx >= 0:
+        DATA[0][idx] = task
+    else:
+        DATA[1][-idx-1] = task
+    if cfg.CONFIG['autoSync']:
+        post(url=cfg.CONFIG['url'] + "update/{}".format(task['uuid']), data=args)
+
+def start(args):
+    idx = find(args['uuid'])
+    if idx >= 0:
+        task = DATA[0][idx]
+    else:
+        task = DATA[1][-idx-1]
+    if 'time' in args:
+        task['times'].append([int(args['time'].timestamp())])
+    else:
+        task['times'].append([int(datetime.datetime.now().timestamp())])
+    task['modifiedDate'] = int(datetime.datetime.now().timestamp())
+    if cfg.CONFIG['autoSync']:
+        post(url=cfg.CONFIG['url'] + "update/{}".format(task['uuid']), data=json.dumps(task['times']))
+
+def stop(args):
+    idx = find(args['uuid'])
+    if idx >= 0:
+        task = DATA[0][idx]
+    else:
+        task = DATA[1][-idx-1]
+    if 'time' in args:
+        task['times'][-1].append(int(args['time'].timestamp()))
+    else:
+        task['times'][-1].append(int(datetime.datetime.now().timestamp()))
+    task['modifiedDate'] = int(datetime.datetime.now().timestamp())
+    if cfg.CONFIG['autoSync']:
+        post(url=cfg.CONFIG['url'] + "update/{}".format(task['uuid']), data=json.dumps(task['times']))
+
+def done(args):
+    idx = find(args['uuid'])
+    if idx < 0:
+        print("laboris done warning: Task {}[{}] is already done", DATA[1][-idx-1]['title'], args['uuid'])
+    DATA[1].append(DATA[0][idx])
+    DATA[1][-1]['status']='COMPLETED'
+    DATA[1][-1]['modifiedDate'] = int(datetime.datetime.now().timestamp())
+    del DATA[0][idx]
+    if cfg.CONFIG['autoSync']:
+        post(url=cfg.CONFIG['url'] + "update/{}".format(DATA[1][-1]['uuid']), data={'status': 'COMPLETED'})
+
+def undone(args):
+    idx = find(args['uuid'])
+    if idx >= 0:
+        print("laboris undone warning: Task {}[{}] is already pending", DATA[0][idx]['title'], args['uuid'])
+    DATA[0].append(DATA[1][-idx-1])
+    DATA[0][-1]['status']='PENDING'
+    DATA[0][-1]['modifiedDate'] = int(datetime.datetime.now().timestamp())
+    del DATA[1][-idx-1]
+    if cfg.CONFIG['autoSync']:
+        post(url=cfg.CONFIG['url'] + "update/{}".format(DATA[0][-1]['uuid']), data={'status': 'PENDING'})
+
+def delete(args):
+    idx = find(args['uuid'])
+    if idx >= 0 and yn_choice("Delete: {}".format(format_task(DATA[0][idx]))):
+        post(url=cfg.CONFIG['url'] + "delete/{}".format(DATA[0][idx]['uuid']), required=True)
+        del DATA[0][idx]
+    elif idx < 0 and yn_choice("Delete: {}".format(format_task(DATA[1][-idx-1]))):
+        post(url=cfg.CONFIG['url'] + "delete/{}".format(DATA[1][-idx-1]['uuid']), required=True)
+        del DATA[1][-idx-1]

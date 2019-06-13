@@ -35,6 +35,7 @@ def weighted_fuzz(src, data, dist=levenshtein, size=5):
     results = [(inf, "")] * size
     for string, weight in data:
         distance = dist(src, string) + weight
+        print(distance, src, string, weight)
         for i, pos in enumerate(results):
             if pos[0] > distance:
                 results.insert(i, (distance, string))
