@@ -1,7 +1,8 @@
 from laboris.args import parse_args
 import laboris.config as cfg
 import laboris.data as dat
-from laboris.reports.list import status, detail
+import laboris.reports.list
+import laboris.reports.detail
 
 def main():
     args = parse_args()
@@ -29,9 +30,13 @@ def main():
         dat.delete(args)
         dat.save_data()
     elif args['action'] == 'sync':
-        print(args)
-        dat.sync(True, True if 'all' in args else False)
+        dat.sync(True, True if 'all' in args else False, True if 'completed' in args else False)
+    elif args['action'] == 'report':
+        if args['report'] == 'list':
+            print(args)
+            laboris.reports.list.main(args)
     elif 'task' in args:
-        detail(args)
+        # TODO: Check that the task exists, othersize list, possible search list?
+        laboris.reports.detail.main(args)
     else:
-        status(args)
+        laboris.reports.list.main(args)

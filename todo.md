@@ -1,3 +1,9 @@
+# PRIORITY
+
+* List all tasks, including done ones
+* Fix the index by the entry date
+* Notify user of events
+
 # REPORTS #
 
 * Calendar
@@ -11,6 +17,3 @@
 # Settings #
 
 * Datetime (today, yesterday, etc.)
-
-# OPTIMIZE #
-

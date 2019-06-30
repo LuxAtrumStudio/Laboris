@@ -18,7 +18,7 @@ def print_help(target=None, should_exit=True):
         print("usage: laboris [-h|--help] [action]\n")
         print("Laboris - A CLI interface for the laboris task manager/time tracking system\n")
         print("-h, --help  Displays this help text")
-        print("action      {add, modify, start, stop, done, undone, delete, report}")
+        print("action      {add, modify, start, stop, done, undone, delete, report, sync}")
         print("            Determines the sub action to execute")
     elif target == 'add':
         print("usage: laboris add [-h|--help] [ARGS [ARGS...]]\n")
@@ -86,8 +86,9 @@ def print_help(target=None, should_exit=True):
         print("usage: laboris sync [-h|--help] [-a|--all]\n")
         print("Laboris - A CLI interface for the laboris task manager/time tracking system")
         print("Laboris sync - Manually requests a database sync\n")
-        print("-h, --help  Displays this help text")
-        print("-a, --all   Syncs all historical data with the database, not just the\n            recent data")
+        print("-h, --help       Displays this help text")
+        print("-a, --all        Syncs all historical data with the database, not just the\n                 recent data")
+        print("-c, --completed  Syncs all completed data with the database")
 
 
     print()
@@ -197,8 +198,25 @@ def parse_delete():
     validate_args(args, ['uuid'])
     return args
 
+def parse_report_list():
+    args = {'action': 'report', 'report': 'list'}
+    if len(sys.argv) > 3:
+        if sys.argv[3] in ('-h', '--help'):
+            print_help(args['action'])
+        elif sys.argv[3] in ('-a', '--all', 'all'):
+            args['all'] = True
+    return args
+
 def parse_report():
     args = {'action': 'report'}
+    if len(sys.argv) > 2:
+        if sys.argv[2] in ('-h', '--help'):
+            print_help(args['action'])
+        elif sys.argv[2] == 'list':
+            return parse_report_list()
+        elif sys.argv[2] == 'detail':
+            return parse_report_detail()
+    validate_args(args, ['action', 'report'])
     return args
 
 def parse_sync():
@@ -208,10 +226,19 @@ def parse_sync():
             print_help(args['action'])
         elif sys.argv[2] in ('-a', '--all', 'all'):
             args['all'] = True
+        elif sys.argv[2] in ('-c', '--completed', 'completed'):
+            args['completed'] = True
+    if len(sys.argv) > 3:
+        if sys.argv[3] in ('-h', '--help'):
+            print_help(args['action'])
+        elif sys.argv[3] in ('-a', '--all', 'all'):
+            args['all'] = True
+        elif sys.argv[3] in ('-c', '--completed', 'completed'):
+            args['completed'] = True
     return args
 
 def parse_args():
-    args = {'action': 'report'}
+    args = {'action': ''}
     if len(sys.argv) > 1:
         if sys.argv[1] == 'add':
             return parse_add()

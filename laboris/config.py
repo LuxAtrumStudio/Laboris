@@ -92,9 +92,18 @@ def get_urg(urg):
                             int(CONFIG['theme']['urgency'][key][1][1:][i:i + 2], 16)
                         for i in (0, 2, 4))
             if a and b:
-                urg = urg -  float(key.split('-')[0])
+                urg = (urg - float(key.split('-')[0])) / (float(key.split('-')[1]) - float(key.split('-')[0]))
                 dt = (b[0] - a[0], b[1]-a[1], b[2] - a[2])
                 col = (a[0] + dt[0]*urg, a[1] + dt[1]*urg, a[2] + dt[2]*urg)
+            elif a and not b:
+                attrs = ""
+                if "bold" in CONFIG['theme']['urgency'][key]:
+                    attrs += "1;"
+                if "italic" in CONFIG['theme']['urgency'][key]:
+                    attrs += "3;"
+                if "underline" in CONFIG['theme']['urgency'][key]:
+                    attrs += "4;"
+                res = "\033[{}38;2;{};{};{}m".format(attrs, a[0], a[1], a[2])
             if col:
                 res = "\033[38;2;{};{};{}m".format(int(col[0]), int(col[1]), int(col[2]))
     return res

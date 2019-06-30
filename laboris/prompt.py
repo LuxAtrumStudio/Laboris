@@ -68,9 +68,9 @@ def select(msg,
         ch = getch()
         if ord(ch) == 13:
             break
-        elif ord(ch) == 9:
+        elif ord(ch) == 66:
             i = (i + 1) % len(options)
-        elif ord(ch) == 27:
+        elif ord(ch) == 65:
             i = (i - 1) % len(options)
         elif number:
             if 48 <= ord(ch) <= 58 and ord(ch) - 48 < len(options):
