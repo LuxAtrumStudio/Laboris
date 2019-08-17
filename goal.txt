@@ -1,0 +1,4 @@
+0001  5  3d  Ch.15 12 23 34 45 56  3.542
+             78 92 13
+0002  5      This is the next      0.000
+             entry in the list.
