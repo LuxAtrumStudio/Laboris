@@ -6,9 +6,11 @@ const package = require("./package.json");
 
 var config = new ConfigStore("laboris", {}, { globalConfigPath: true });
 
+const { urgColor } = require("./print.js");
+
 console.log(args);
 
-if (args._[0] === "add") require('./task.js').add(args, config);
+if (args._[0] === "add") require("./action.js").add(args, config);
 else if (args._[0] === "start") console.log(chalk.yellow.bold("START"));
 else if (args._[0] === "stop") console.log(chalk.yellow.bold("STOP"));
 else if (args._[0] === "modify") console.log(chalk.blue.bold("MODIFY"));

@@ -1,5 +1,16 @@
 const _ = require("lodash");
 const chalk = require("chalk");
+const { urgColor, urg } = require("./util.js");
+
+module.exports.urgColor = urg => {
+  if (urg >= 10.0) return chalk.red.bold.underline;
+  else if (urg >= 9.5) return chalk.red.bold;
+  else if (urg >= 9.0) return chalk.red;
+  else if (urg >= 7.0) return chalk.yellow;
+  else if (urg >= 5.0) return chalk.green;
+  else if (urg >= 3.0) return chalk.blue;
+  else return msg => msg;
+};
 
 module.exports.dateDelta = (a, b) => {
   var diff = b - a;
@@ -40,12 +51,17 @@ module.exports.dateDeltaFull = (a, b) => {
   return diff[0] + "w " + diff[1] + "d " + diff[2] + "m " + diff[3] + "s";
 };
 
-module.exports.short = task => {
-  var msg = task._id.slice(0, 4) + " " + task.title;
+module.exports.short = (task, config) => {
+  var msg =
+    "  " +
+    task._id.slice(0, 4) +
+    " " +
+    this.urgColor(urg(task, config))(task.title);
   if (task.tags.length !== 0)
     msg += chalk.yellow.bold(" @" + _.join(task.tags, " @"));
   if (task.parents.length !== 0)
     msg += chalk.blue.bold(" +" + _.join(task.parents, " @"));
   if (task.dueDate) msg += " " + this.dateDeltaMajor(Date.now(), task.dueDate);
+  msg += " " + urg(task, config);
   return msg;
 };

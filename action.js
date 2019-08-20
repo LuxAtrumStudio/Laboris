@@ -32,7 +32,7 @@ const cmdAdd = (args, config) => {
   console.log(chalk.blue.bold("Created new task"));
   post("/", args, config)
     .then(res => {
-      console.log(short(res[0]));
+      console.log(short(res, config));
     })
     .catch(err => {
       console.log(err);
@@ -136,7 +136,7 @@ module.exports.add = (args, config) => {
           : _.find(args._, o => _.startsWith(o, "due:")),
         priority: args.pri
           ? args.pri
-          : _.find(args._, o => _.startsWith(o, "p:")) || 5
+          : _.find(args._, o => _.startsWith(o, "p:")) || "p:5"
       },
       config
     );

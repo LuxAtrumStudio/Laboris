@@ -180,3 +180,43 @@ module.exports.parseDate = str => {
   }
   return res.valueOf();
 };
+
+module.exports.urgDueDate = task => {
+  if (!task.dueDate) return 0.0;
+  const daysDue = (task.dueDate - Date.now()) / 86400000;
+  const totalActive = (task.dueDate - task.entryDate) / 86400000;
+  const k = Math.log(81) / totalActive;
+  const x0 = Math.log(1 / 9) / -k;
+  return 1.0 / (1 + Math.exp(-k * (daysDue + x0)));
+};
+
+module.exports.urg = (task, config) => {
+  if (task.priority === 0) return 0.0;
+  var urg = 0.0;
+  urg += Math.abs(
+    _.toSafeInteger(config.get("urgency.age")) *
+      ((Date.now() - task.entryDate) / 86400000)
+  );
+  urg += Math.abs(
+    _.toSafeInteger(config.get("urgency.due")) * this.urgDueDate(task)
+  );
+  urg += Math.abs(
+    _.toSafeInteger(config.get("urgency.parents")) * task.parents.length
+  );
+  urg += Math.abs(
+    _.toSafeInteger(config.get("urgency.children")) * task.children.length
+  );
+  urg += Math.abs(
+    _.toSafeInteger(config.get("urgency.tags")) * task.tags.length
+  );
+  urg += Math.abs(
+    _.toSafeInteger(config.get("urgency.priority")) * task.priority + 9
+  );
+  urg += Math.abs(
+    _.toSafeInteger(config.get("urgency.active")) * task.times.length !== 0 &&
+      _.last(task.times).length === 1
+      ? 1.0
+      : 0.0
+  );
+  return urg;
+};
