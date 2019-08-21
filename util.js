@@ -183,40 +183,71 @@ module.exports.parseDate = str => {
 
 module.exports.urgDueDate = task => {
   if (!task.dueDate) return 0.0;
-  const daysDue = (task.dueDate - Date.now()) / 86400000;
+  const daysDue = (Date.now() - task.dueDate) / 86400000;
   const totalActive = (task.dueDate - task.entryDate) / 86400000;
-  const k = Math.log(81) / totalActive;
-  const x0 = Math.log(1 / 9) / -k;
-  return 1.0 / (1 + Math.exp(-k * (daysDue + x0)));
+  const a = -4.39449 / totalActive;
+  const b = -2.19722 / a;
+  return 1.0 / (1 + Math.exp(a * (daysDue + b)));
 };
 
 module.exports.urg = (task, config) => {
   if (task.priority === 0) return 0.0;
   var urg = 0.0;
   urg += Math.abs(
-    _.toSafeInteger(config.get("urgency.age")) *
+    parseFloat(config.get("urgency.age")) *
       ((Date.now() - task.entryDate) / 86400000)
   );
   urg += Math.abs(
-    _.toSafeInteger(config.get("urgency.due")) * this.urgDueDate(task)
+    parseFloat(config.get("urgency.due")) * this.urgDueDate(task)
   );
   urg += Math.abs(
-    _.toSafeInteger(config.get("urgency.parents")) * task.parents.length
+    parseFloat(config.get("urgency.parents")) * task.parents.length
   );
   urg += Math.abs(
-    _.toSafeInteger(config.get("urgency.children")) * task.children.length
+    parseFloat(config.get("urgency.children")) * task.children.length
+  );
+  urg += Math.abs(parseFloat(config.get("urgency.tags")) * task.tags.length);
+  urg += Math.abs(
+    parseFloat(config.get("urgency.priority")) * task.priority + 10
   );
   urg += Math.abs(
-    _.toSafeInteger(config.get("urgency.tags")) * task.tags.length
-  );
-  urg += Math.abs(
-    _.toSafeInteger(config.get("urgency.priority")) * task.priority + 9
-  );
-  urg += Math.abs(
-    _.toSafeInteger(config.get("urgency.active")) * task.times.length !== 0 &&
+    parseFloat(config.get("urgency.active")) * task.times.length !== 0 &&
       _.last(task.times).length === 1
       ? 1.0
       : 0.0
   );
   return urg;
+};
+
+module.exports.fmt = (fmt, data) => {
+  data = data[fmt.key];
+  if (data === undefined) return "undefined";
+  if (fmt.type) {
+    if (fmt.type === "f")
+      data = fmt.precision
+        ? parseFloat(data).toFixed(fmt.precision)
+        : parseFloat(data).toString();
+    else if (fmt.type === "d") data = parseInt(data).toString();
+  } else data = data.toString();
+  if (fmt.width) {
+    if (data.length > fmt.width) {
+      if (fmt.wrap === "-")
+        data =
+          fmt.width >= 10
+            ? data.slice(0, fmt.width - 3) + "..."
+            : data.slice(0, fmt.width);
+      else if (fmt.wrap === "+") data = data;
+    } else if (data.length < fmt.width) {
+      if (fmt.align === "<") data = data + " ".repeat(fmt.width - data.length);
+      else if (fmt.align === ">")
+        data = " ".repeat(fmt.width - data.length) + data;
+      else if (fmt.align === "^")
+        data =
+          " ".repeat(Math.ceil((fmt.width - data.length) / 2.0)) +
+          data +
+          " ".repeat(Math.floor((fmt.width - data.length) / 2.0));
+      else data = " ".repeat(fmt.width - data.length) + data;
+    }
+  }
+  return data;
 };

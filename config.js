@@ -10,13 +10,57 @@ const promptConfig = config =>
       {
         type: "input",
         name: "host",
+        message: "Host URL",
         default: config.get("host")
       },
       {
         type: "password",
         name: "token",
         mask: "*",
+        message: "User Token",
         default: config.get("token")
+      },
+      {
+        type: "number",
+        name: "urgency.age",
+        message: "Urgency due to age",
+        default: config.get("urgency.age") || 0.01429
+      },
+      {
+        type: "number",
+        name: "urgency.due",
+        message: "Urgency due to due date",
+        default: config.get("urgency.due") || 9.0
+      },
+      {
+        type: "number",
+        name: "urgency.parents",
+        message: "Urgency due to number of parent tasks",
+        default: config.get("urgency.parents") || 1.0
+      },
+      {
+        type: "number",
+        name: "urgency.children",
+        message: "Urgency due to number of child tasks",
+        default: config.get("urgency.children") || 0.5
+      },
+      {
+        type: "number",
+        name: "urgency.tags",
+        message: "Urgency due to number of tags",
+        default: config.get("urgency.tags") || 0.2
+      },
+      {
+        type: "number",
+        name: "urgency.priority",
+        message: "Urgency related to the priority",
+        default: config.get("urgency.priority") || -2
+      },
+      {
+        type: "number",
+        name: "urgency.active",
+        message: "Urgency increase if task is active",
+        default: config.get("urgency.active") || 4.0
       }
     ])
     .then(settings => {

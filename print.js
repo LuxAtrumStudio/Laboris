@@ -52,16 +52,13 @@ module.exports.dateDeltaFull = (a, b) => {
 };
 
 module.exports.short = (task, config) => {
-  var msg =
-    "  " +
-    task._id.slice(0, 4) +
-    " " +
-    this.urgColor(urg(task, config))(task.title);
+  var urg = task.urg || urg(task, config);
+  var msg = "  " + task._id.slice(0, 4) + " " + this.urgColor(urg)(task.title);
   if (task.tags.length !== 0)
     msg += chalk.yellow.bold(" @" + _.join(task.tags, " @"));
   if (task.parents.length !== 0)
     msg += chalk.blue.bold(" +" + _.join(task.parents, " @"));
   if (task.dueDate) msg += " " + this.dateDeltaMajor(Date.now(), task.dueDate);
-  msg += " " + urg(task, config);
+  msg += " " + urg;
   return msg;
 };

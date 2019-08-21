@@ -18,4 +18,4 @@ else if (args._[0] === "done") console.log(chalk.green.bold("DONE"));
 else if (args._[0] === "sync") console.log(chalk.magenta.bold("SYNC"));
 else if (args._[0] === "config") require("./config.js").cmd(args, config);
 else if (args._.length === 0 && args._.help === true) console.log("HELP");
-else console.log(chalk.bold("LIST"));
+else require("./reports.js").list(args, config);

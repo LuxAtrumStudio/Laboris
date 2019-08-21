@@ -7,7 +7,7 @@ const { printHelp, parseDate } = require("./util.js");
 const { get, post } = require("./remote.js");
 const { short } = require("./print.js");
 
-const cmdAdd = (args, config) => {
+const actionAdd = (args, config) => {
   if (args.title.length === 0) {
     console.log(chalk.red.bold("Task must have a title"));
     return;
@@ -115,7 +115,7 @@ module.exports.add = (args, config) => {
   } else if (args._.length === 1) {
     promptAdd(config);
   } else {
-    cmdAdd(
+    actionAdd(
       {
         title: _.reject(
           args._,
