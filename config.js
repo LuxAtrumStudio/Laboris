@@ -68,16 +68,32 @@ const promptConfig = config =>
       console.log(chalk.cyan.bold("Set config variables"));
     });
 
+const setOrPrint = (args, config, path = "") => {
+  for (var key in args) {
+    if (args[key] === true)
+      console.log(
+        chalk.bold(path + key + ": ") + JSON.stringify(config.get(path + key))
+      );
+    else if (_.isPlainObject(args[key])) {
+      setOrPrint(args[key], config, path + key + ".");
+    } else {
+      config.set(path + key, args[key]);
+      console.log(chalk.cyan.bold("Set config variable " + path + key));
+    }
+  }
+};
+
 module.exports.cmd = (args, config) => {
   if (args.help === true || args.h === true) {
     printHelp(
-      "config [OPTIONS] [--host URL] [--token TOKEN]",
+      "config [OPTIONS] [--host [URL]] [--token [TOKEN]] [--listFormat [FMT]]",
       "Set configuration values, if no arguments are specified. Then an interactive prompt is used",
       {
         "-h,--help": "displays this help text",
         "-d,--delete": "deletes all config variables",
         "--host URL": "URL for remote host server",
-        "--token TOKEN": "user token for remote server"
+        "--token TOKEN": "user token for remote server",
+        "--listFormat FMT": "format for the list report"
       }
     );
   } else if (args.delete === true || args.d === true) {
@@ -95,7 +111,17 @@ module.exports.cmd = (args, config) => {
     );
   } else {
     delete args._;
-    config.set(args);
-    console.log(chalk.cyan.bold("Set config variables"));
+    setOrPrint(args, config);
+    // if (args.host === true)
+    //   console.log(chalk.bold("host: ") + config.get("host"));
+    // else if (args.host) config.set("host", args.host);
+    // if (args.token === true)
+    //   console.log(chalk.bold("token: ") + config.get("token"));
+    // else if (args.host) config.set("token", args.host);
+    // if (args.listFormat === true)
+    //   console.log(chalk.bold("listFormat: ") + config.get("listFormat"));
+    // else if (args.host) config.set("listFormat", args.host);
+    // // config.set(args);
+    // console.log(chalk.cyan.bold("Set config variables"));
   }
 };

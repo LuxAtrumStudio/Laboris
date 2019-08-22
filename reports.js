@@ -23,7 +23,6 @@ module.exports.list = (args, config) => {
       type: match[8]
     };
   });
-  console.log(specifier);
   get("/", config)
     .then(res => {
       res = _.sortBy(
@@ -35,7 +34,8 @@ module.exports.list = (args, config) => {
             tags: _.join(el.tags, " "),
             parents: _.join(el.parents, " "),
             urg: urg(el, config),
-            dueDelta: dateDeltaMajor(Date.now(), el.dueDate)
+            dueDelta: dateDeltaMajor(Date.now(), el.dueDate),
+            ageDelta: dateDeltaMajor(el.entryDate, Date.now())
           };
         }),
         el => -el.urg
@@ -67,12 +67,17 @@ module.exports.list = (args, config) => {
           str += "  " + table[specifier[idx].key][id];
         }
         str = str.slice(2);
-        if (id % 2 === 0) console.log(urgColor(res[id].urg)(str));
+        if (res[id].times.length !== 0 && _.last(res[id].times).length === 1)
+          console.log(chalk.bgGreen(urgColor(res[id].urg)(str)));
+        else if (id % 2 === 0) console.log(urgColor(res[id].urg)(str));
         else console.log(chalk.bgBlack(urgColor(res[id].urg)(str)));
+      }
+      if (res.length === 0) {
+        console.log(chalk.green.bold("  No tasks match search"));
       }
     })
     .catch(err => {
-      console.log(err);
       console.log(chalk.yellow.bold("Network issue, failed to retrieve tasks"));
+      console.log(err);
     });
 };
