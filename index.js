@@ -31,7 +31,6 @@ else if (args._[0] === "start") require("./action.js").start(args, config);
 else if (args._[0] === "stop") require("./action.js").stop(args, config);
 else if (args._[0] === "modify") console.log(chalk.blue.bold("MODIFY"));
 else if (args._[0] === "done") console.log(chalk.green.bold("DONE"));
-else if (args._[0] === "sync") console.log(chalk.magenta.bold("SYNC"));
 else if (args._[0] === "config") require("./config.js").cmd(args, config);
 else if (args._.length === 0 && args._.help === true) console.log("HELP");
 else require("./reports.js").list(args, config);

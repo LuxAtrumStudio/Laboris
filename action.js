@@ -239,7 +239,20 @@ const stopAction = (task, time, config) => {
     post("/stop/", {}, config)
       .then(res => {
         if (res.error) console.log(chalk.yellow.bold("  " + res.error));
-        else console.log(res);
+        else
+          res.forEach(el => {
+            console.log(
+              chalk.yellow.bold(
+                "  Stoping " +
+                  el.title +
+                  " " +
+                  moment(time).format("LT") +
+                  " (" +
+                  duration(_.last(el.times)[0], _.last(el.times)[1]) +
+                  ")"
+              )
+            );
+          });
       })
       .catch(err => {
         console.log(

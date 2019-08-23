@@ -68,7 +68,7 @@ module.exports.list = (args, config) => {
         }
         str = str.slice(2);
         if (res[id].times.length !== 0 && _.last(res[id].times).length === 1)
-          console.log(chalk.bgGreen(urgColor(res[id].urg)(str)));
+          console.log(chalk.bgGreen.black.bold(str));
         else if (id % 2 === 0) console.log(urgColor(res[id].urg)(str));
         else console.log(chalk.bgBlack(urgColor(res[id].urg)(str)));
       }
@@ -78,6 +78,9 @@ module.exports.list = (args, config) => {
     })
     .catch(err => {
       console.log(chalk.yellow.bold("Network issue, failed to retrieve tasks"));
-      console.log(err);
     });
 };
+
+module.exports.detail = (args, config) => {
+
+}

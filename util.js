@@ -211,11 +211,10 @@ module.exports.urg = (task, config) => {
     parseFloat(config.get("urgency.priority")) * task.priority + 10
   );
   urg += Math.abs(
-    parseFloat(config.get("urgency.active")) * task.times &&
-      task.times.length !== 0 &&
-      _.last(task.times).length === 1
-      ? 1.0
-      : 0.0
+    parseFloat(config.get("urgency.active")) *
+      (task.times && task.times.length !== 0 && _.last(task.times).length === 1
+        ? 1.0
+        : 0.0)
   );
   return urg;
 };
