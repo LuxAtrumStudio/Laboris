@@ -14,7 +14,7 @@ const {
 
 const fmtKeys = fmtStr => {
   const fmt = _.map(parseFormat(fmtStr), "key");
-  var keys = ["urg"];
+  var keys = ["urg", "active"];
   if (_.includes(fmt, "id")) {
     keys.push("id");
   }
@@ -140,6 +140,7 @@ const genPrintKeys = task => {
     tagCount: task.tags ? task.tags.length : undefined,
     urg: task.urg,
     hidden: task.hidden,
+    active: task.active,
     ...genDateKeys("due", task.dueDate),
     ...genDateKeys("entry", task.entryDate),
     ...genDateKeys("done", task.doneDate),
@@ -220,8 +221,16 @@ module.exports = (args, config) => {
         for (const key in printData) {
           line += "  " + printData[key][i];
         }
-        if (i % 2 === 0) console.log(urgColor(data.filter[i].urg)(line));
-        else console.log(chalk.bgBlack(urgColor(data.filter[i].urg)(line)));
+        if (i % 2 === 0)
+          console.log(
+            urgColor(data.filter[i].urg, data.filter[i].active)(line)
+          );
+        else
+          console.log(
+            chalk.bgBlack(
+              urgColor(data.filter[i].urg, data.filter[i].active)(line)
+            )
+          );
       }
     })
     .catch(err => error);

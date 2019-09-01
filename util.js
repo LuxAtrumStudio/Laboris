@@ -84,7 +84,8 @@ module.exports.getTask = (queryStr, config, callback) => {
     config
   )
     .then(data => {
-      if (data.find.length <= 1) callback(data.find);
+      if (data.find.length === 0) callback([]);
+      else if (data.find.length === 1) callback(data.find[0].id);
       else {
         const choices = {};
         data.find.forEach(o => {

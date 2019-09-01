@@ -1,6 +1,6 @@
 const _ = require("lodash");
 const chalk = require("chalk");
-const { query, mutation, error } = require("../graphql.js");
+const { query, mutation, errors } = require("../graphql.js");
 const { parseDate } = require("../common.js");
 const { short } = require("../print.js");
 const { printHelp, getTask } = require("../util.js");
@@ -23,11 +23,23 @@ module.exports = (args, config) => {
     console.log(chalk.red.bold("  Must specify a task"));
   } else {
     if (_.last(args._).match(/\+|[0-9]/)) args._ = args._.slice(0, -1);
-    getTask(_.join(args._, " "), config, data => {
+    getTask(_.join(args._, " "), config, id => {
+      var startTime = _.now();
       if (_.last(args.__).match(/[\+-]|[0-9]/)) {
-        console.log(_.last(args.__));
-        console.log(new Date(parseDate(_.last(args.__))));
+        startTime = parseDate(_.last(args.__));
       }
+      console.log(id);
+      mutation(`start(id:\"${id}\", startTime: ${startTime}){id,title}`, config)
+        .then(data => {
+          console.log(
+            chalk.green.bold(
+              `  Started ${data.start.id.slice(0, 4)} ${
+                data.start.title
+              } ${new Date(startTime).toLocaleTimeString()} [00:00]`
+            )
+          );
+        })
+        .catch(errors);
     });
   }
 };

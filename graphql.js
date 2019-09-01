@@ -39,6 +39,10 @@ module.exports.errors = err => {
       )
     );
     console.log(chalk.yellow("    And that you have an internet connection"));
+  } else if (Array.isArray(err)) {
+    err.forEach(msg => {
+      console.log(chalk.yellow.bold(`  ${msg.message}`));
+    });
   } else {
     console.log(chalk.yellow.bold("  Unrecognized Error"));
     console.log(err);

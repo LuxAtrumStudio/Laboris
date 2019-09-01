@@ -28,7 +28,7 @@ console.log(args);
 if (args._[0] === "add") require("./actions/create.js")(args, config);
 else if (args._[0] === "delete") require("./actions/delete.js")(args, config);
 else if (args._[0] === "start") require("./actions/start.js")(args, config);
-// else if (args._[0] === "stop") require("./action.js").stop(args, config);
+else if (args._[0] === "stop") require("./actions/stop.js")(args, config);
 // else if (args._[0] === "modify") console.log(chalk.blue.bold("MODIFY"));
 // else if (args._[0] === "done") console.log(chalk.green.bold("DONE"));
 else if (args._[0] === "config") require("./config.js")(args, config);
