@@ -1,6 +1,5 @@
 const _ = require("lodash");
 const chalk = require("chalk");
-const { urgColor, urg } = require("./util.js");
 
 module.exports.urgColor = urg => {
   if (urg >= 10.0) return chalk.red.bold.underline;
@@ -13,7 +12,9 @@ module.exports.urgColor = urg => {
 };
 
 module.exports.dateDelta = (a, b) => {
-  var diff = b - a;
+  var diff = 0;
+  if (a > b) diff = a - b;
+  else diff = b - a;
   const weeks = Math.floor(diff / 604800000);
   diff -= weeks * 604800000;
   const days = Math.floor(diff / 86400000);
@@ -24,25 +25,27 @@ module.exports.dateDelta = (a, b) => {
   diff -= minutes * 60000;
   const seconds = Math.floor(diff / 1000);
   diff -= seconds * 1000;
-  return [weeks, days, hours, minutes, seconds, diff];
+  if (a > b) return [-weeks, -days, -hours, -minutes, -seconds, -diff];
+  else return [weeks, days, hours, minutes, seconds, diff];
 };
 
 module.exports.dateDeltaMajor = (a, b) => {
   const diff = this.dateDelta(a, b);
-  if (diff[0] > 0) return diff[0] + "w";
-  else if (diff[1] > 0) return diff[1] + "d";
-  else if (diff[2] > 0) return diff[2] + "h";
-  else if (diff[3] > 0) return diff[3] + "m";
+  if (diff[0] !== 0) return diff[0] + "w";
+  else if (diff[1] !== 0) return diff[1] + "d";
+  else if (diff[2] !== 0) return diff[2] + "h";
+  else if (diff[3] !== 0) return diff[3] + "m";
   else return "NOW";
 };
 
 module.exports.dateDeltaMin = (a, b) => {
   const diff = this.dateDelta(a, b);
-  if (diff[0] > 0)
+  if (diff[0] !== 0)
     return diff[0] + "w " + diff[1] + "d " + diff[2] + "h " + diff[3] + "m";
-  else if (diff[1] > 0) return diff[1] + "d " + diff[2] + "h " + diff[3] + "m";
-  else if (diff[2] > 0) return diff[2] + "h " + diff[3] + "m";
-  else if (diff[3] > 0) return diff[3] + "m";
+  else if (diff[1] !== 0)
+    return diff[1] + "d " + diff[2] + "h " + diff[3] + "m";
+  else if (diff[2] !== 0) return diff[2] + "h " + diff[3] + "m";
+  else if (diff[3] !== 0) return diff[3] + "m";
   else return "NOW";
 };
 
@@ -67,15 +70,15 @@ module.exports.duration = (a, b) => {
 };
 
 module.exports.short = (task, config) => {
-  var urgVal = task.urg || urg(task, config);
+  var urgVal = task.urg;
   var msg =
-    "  " + task._id.slice(0, 4) + " " + this.urgColor(urgVal)(task.title);
+    "  " + task.id.slice(0, 4) + " " + this.urgColor(urgVal)(task.title);
   if (task.tags.length !== 0)
     msg += chalk.yellow.bold(" @" + _.join(task.tags, " @"));
   if (task.parents.length !== 0)
-    msg += chalk.blue.bold(" +" + _.join(task.parents, " @"));
-  if (task.dueDate) msg += " " + this.dateDeltaMajor(Date.now(), task.dueDate);
-  msg += " " + urgVal;
+    msg += chalk.blue.bold(" +" + _.join(_.map(task.parents, "title"), " +"));
+  if (task.dueDate) msg += " " + this.dateDeltaMajor(_.now(), task.dueDate);
+  msg += " " + urgVal.toFixed(3);
   return msg;
 };
 

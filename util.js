@@ -1,253 +1,183 @@
 const _ = require("lodash");
+const chalk = require("chalk");
 const moment = require("moment");
+const inquirer = require("inquirer");
+const fuzzy = require("fuzzy");
+const { parseDate } = require("./common.js");
+const { query, mutation, errors } = require("./graphql.js");
+const { short } = require("./print.js");
+const { wrap } = require("./fmt.js");
 
-module.exports.wrap = (txt, padding, firstLine = true, width = 80) => {
-  if (txt.length + padding > width) {
-    words = txt.split(" ");
-    txt = "";
-    line = " ".repeat(padding);
-    for (const id in words) {
-      if (line.length + words[id].length > width) {
-        txt += "\n" + line.slice(1);
-        line = " ".repeat(padding);
-      } else {
-        line += " " + words[id];
-      }
-    }
-    txt += "\n" + line.slice(1);
-    if (firstLine === true) {
-      return txt.slice(1);
-    } else {
-      return txt.slice(padding + 1);
-    }
-  } else if (firstLine === true) {
-    return txt.padStart(padding);
-  } else {
-    return txt;
-  }
-};
+inquirer.registerPrompt(
+  "autocomplete",
+  require("inquirer-autocomplete-prompt")
+);
+inquirer.registerPrompt(
+  "checkbox-plus",
+  require("inquirer-checkbox-plus-prompt")
+);
 
 module.exports.printHelp = (usage, description, args) => {
   console.log("laboris " + usage);
 
   if (description) {
-    console.log("\n" + this.wrap(description, 2, true, 78) + "\n");
+    console.log("\n" + wrap(description, 2, true, 78) + "\n");
   }
 
   const keyLength = _.maxBy(Object.keys(args), k => k.length).length;
   for (const key in args) {
-    help = this.wrap(args[key], keyLength + 4, false);
+    help = wrap(args[key], keyLength + 4, false);
     console.log("  " + key.padEnd(keyLength) + "  " + help);
   }
 };
 
-module.exports.parseDate = str => {
-  if (_.startsWith(str, "due:")) {
-    str = str.slice(4);
+module.exports.prompt = options => {
+  var prompts = [];
+  for (const key in options) {
+    prompt = {
+      name: key
+    };
+    if (!options[key].message) prompt.message = _.startCase(key);
+    else prompt.message = options[key].message;
+    if (!options[key].type && options[key].choices) {
+      if (options[key].multiple) {
+        prompt.type = "checkbox-plus";
+        prompt.searchable = true;
+      } else prompt.type = "autocomplete";
+      if (options[key].only === false) {
+        prompt.suggestOnly = true;
+        prompt.source = (_, input) => {
+          input = input || "";
+          return new Promise(resolve =>
+            resolve(
+              fuzzy
+                .filter(input, options[key].choices.concat(input))
+                .map(el => el.original)
+            )
+          );
+        };
+      } else {
+        prompt.source = (_, input) => {
+          input = input || "";
+          return new Promise(resolve =>
+            resolve(
+              fuzzy.filter(input, options[key].choices).map(el => el.original)
+            )
+          );
+        };
+      }
+    } else if (!options[key].type) prompt.type = "input";
+    else prompt.type = options[key].type;
+    if (options[key].default !== undefined)
+      prompt.default = options[key].default;
+    if (options[key].validator) prompt.validate = options[key].validator;
+    prompts.push(prompt);
   }
-
-  dateFormats = [
-    "",
-    "DD-MM-YYYY",
-    "MM-DD-YYYY",
-    "DD-MM-YY",
-    "MM-DD-YY",
-    "DD-MM",
-    "MM-DD",
-    "DD",
-    "ddd",
-    "dddd"
-  ];
-
-  timeFormats = [
-    "",
-    "hh:MM:SS A",
-    "hh:MM:SSA",
-    "hh:MM A",
-    "hh:MMA",
-    "hh A",
-    "hhA",
-    "HH:MM:SS",
-    "HH:MM",
-    "HH"
-  ];
-
-  validFormats = [
-    "DD-MM-YYYY",
-    "DD-MM-YYYYThh:MM:SS A",
-    "DD-MM-YYYYThh:MM:SSA",
-    "DD-MM-YYYYThh:MM A",
-    "DD-MM-YYYYThh:MMA",
-    "DD-MM-YYYYThh A",
-    "DD-MM-YYYYThhA",
-    "DD-MM-YYYYTHH:MM:SS",
-    "DD-MM-YYYYTHH:MM",
-    "DD-MM-YYYYTHH",
-    "MM-DD-YYYY",
-    "MM-DD-YYYYThh:MM:SS A",
-    "MM-DD-YYYYThh:MM:SSA",
-    "MM-DD-YYYYThh:MM A",
-    "MM-DD-YYYYThh:MMA",
-    "MM-DD-YYYYThh A",
-    "MM-DD-YYYYThhA",
-    "MM-DD-YYYYTHH:MM:SS",
-    "MM-DD-YYYYTHH:MM",
-    "MM-DD-YYYYTHH",
-    "DD-MM-YY",
-    "DD-MM-YYThh:MM:SS A",
-    "DD-MM-YYThh:MM:SSA",
-    "DD-MM-YYThh:MM A",
-    "DD-MM-YYThh:MMA",
-    "DD-MM-YYThh A",
-    "DD-MM-YYThhA",
-    "DD-MM-YYTHH:MM:SS",
-    "DD-MM-YYTHH:MM",
-    "DD-MM-YYTHH",
-    "MM-DD-YY",
-    "MM-DD-YYThh:MM:SS A",
-    "MM-DD-YYThh:MM:SSA",
-    "MM-DD-YYThh:MM A",
-    "MM-DD-YYThh:MMA",
-    "MM-DD-YYThh A",
-    "MM-DD-YYThhA",
-    "MM-DD-YYTHH:MM:SS",
-    "MM-DD-YYTHH:MM",
-    "MM-DD-YYTHH",
-    "DD-MM",
-    "DD-MMThh:MM:SS A",
-    "DD-MMThh:MM:SSA",
-    "DD-MMThh:MM A",
-    "DD-MMThh:MMA",
-    "DD-MMThh A",
-    "DD-MMThhA",
-    "DD-MMTHH:MM:SS",
-    "DD-MMTHH:MM",
-    "DD-MMTHH",
-    "MM-DD",
-    "MM-DDThh:MM:SS A",
-    "MM-DDThh:MM:SSA",
-    "MM-DDThh:MM A",
-    "MM-DDThh:MMA",
-    "MM-DDThh A",
-    "MM-DDThhA",
-    "MM-DDTHH:MM:SS",
-    "MM-DDTHH:MM",
-    "MM-DDTHH",
-    "DD",
-    "DDThh:MM:SS A",
-    "DDThh:MM:SSA",
-    "DDThh:MM A",
-    "DDThh:MMA",
-    "DDThh A",
-    "DDThhA",
-    "DDTHH:MM:SS",
-    "DDTHH:MM",
-    "DDTHH",
-    "ddd",
-    "dddThh:MM:SS A",
-    "dddThh:MM:SSA",
-    "dddThh:MM A",
-    "dddThh:MMA",
-    "dddThh A",
-    "dddThhA",
-    "dddTHH:MM:SS",
-    "dddTHH:MM",
-    "dddTHH",
-    "dddd",
-    "ddddThh:MM:SS A",
-    "ddddThh:MM:SSA",
-    "ddddThh:MM A",
-    "ddddThh:MMA",
-    "ddddThh A",
-    "ddddThhA",
-    "ddddTHH:MM:SS",
-    "ddddTHH:MM",
-    "ddddTHH",
-    "hh:MM:SS A",
-    "hh:MM:SSA",
-    "hh:MM A",
-    "hh:MMA",
-    "hh A",
-    "hhA",
-    "HH:MM:SS",
-    "HH:MM",
-    "HH"
-  ];
-
-  const res = moment(str, validFormats);
-  if (!res.isValid()) {
-    return undefined;
-  }
-  return res.valueOf();
+  return inquirer.prompt(prompts);
 };
 
-module.exports.urgDueDate = task => {
-  if (!task.dueDate) return 0.0;
-  const daysDue = (Date.now() - task.dueDate) / 86400000;
-  const totalActive = (task.dueDate - task.entryDate) / 86400000;
-  const a = -4.39449 / totalActive;
-  const b = -2.19722 / a;
-  return 1.0 / (1 + Math.exp(a * (daysDue + b)));
+module.exports.getTask = (queryStr, config, callback) => {
+  query(
+    `find(query:${JSON.stringify(
+      queryStr
+    )}){id,title,parents{title},children{title},tags,dueDate,urg}`,
+    config
+  )
+    .then(data => {
+      if (data.find.length <= 1) callback(data.find);
+      else {
+        const choices = {};
+        data.find.forEach(o => {
+          choices[short(o)] = o.id;
+        });
+        const keys = Object.keys(choices);
+        inquirer
+          .prompt([
+            {
+              type: "autocomplete",
+              name: "task",
+              message: "Specify task",
+              source: (_, input) => {
+                input = input || "";
+                return new Promise(resolve =>
+                  resolve(fuzzy.filter(input, keys).map(el => el.original))
+                );
+              }
+            }
+          ])
+          .then(data => {
+            callback(choices[data.task]);
+          });
+      }
+    })
+    .catch(errors);
 };
 
-module.exports.urg = (task, config) => {
-  if (task.priority === 0) return 0.0;
-  var urg = 0.0;
-  urg += Math.abs(
-    parseFloat(config.get("urgency.age")) *
-      ((Date.now() - task.entryDate) / 86400000)
+module.exports.extract = {};
+
+module.exports.extract.title = args => {
+  return _.join(
+    _.filter(
+      args._,
+      arg =>
+        !(
+          _.startsWith(arg, "@") ||
+          _.startsWith(arg, "+") ||
+          _.startsWith(arg, "_") ||
+          _.startsWith(arg, "p:") ||
+          _.startsWith(arg, "due:")
+        )
+    ),
+    " "
   );
-  urg += Math.abs(
-    parseFloat(config.get("urgency.due")) * this.urgDueDate(task)
-  );
-  urg += Math.abs(
-    parseFloat(config.get("urgency.parents")) * task.parents.length
-  );
-  urg += Math.abs(
-    parseFloat(config.get("urgency.children")) * task.children.length
-  );
-  urg += Math.abs(parseFloat(config.get("urgency.tags")) * task.tags.length);
-  urg += Math.abs(
-    parseFloat(config.get("urgency.priority")) * task.priority + 10
-  );
-  urg += Math.abs(
-    parseFloat(config.get("urgency.active")) *
-      (task.times && task.times.length !== 0 && _.last(task.times).length === 1
-        ? 1.0
-        : 0.0)
-  );
-  return urg;
 };
 
-module.exports.fmt = (fmt, data) => {
-  data = data[fmt.key];
-  if (data === undefined) return "undefined";
-  if (fmt.type) {
-    if (fmt.type === "f")
-      data = fmt.precision
-        ? parseFloat(data).toFixed(fmt.precision)
-        : parseFloat(data).toString();
-    else if (fmt.type === "d") data = parseInt(data).toString();
-  } else data = data.toString();
-  if (fmt.width) {
-    if (data.length > fmt.width) {
-      if (fmt.wrap === "-")
-        data =
-          fmt.width >= 10
-            ? data.slice(0, fmt.width - 3) + "..."
-            : data.slice(0, fmt.width);
-      else if (fmt.wrap === "+") data = data;
-    } else if (data.length < fmt.width) {
-      if (fmt.align === "<") data = data + " ".repeat(fmt.width - data.length);
-      else if (fmt.align === ">")
-        data = " ".repeat(fmt.width - data.length) + data;
-      else if (fmt.align === "^")
-        data =
-          " ".repeat(Math.ceil((fmt.width - data.length) / 2.0)) +
-          data +
-          " ".repeat(Math.floor((fmt.width - data.length) / 2.0));
-      else data = " ".repeat(fmt.width - data.length) + data;
-    }
-  }
-  return data;
+module.exports.extract.priority = (args, defaultVal = 5) => {
+  if (args.p) return parseInt(args.p);
+  else if (args.priority) return parseInt(args.priority);
+  else if (_.find(args._, arg => _.startsWith(arg, "p:")))
+    return parseInt(_.find(args._, arg => _.startsWith(arg, "p:")).slice(2));
+  else return defaultVal;
+};
+
+module.exports.extract.dueDate = args => {
+  if (args.due) return parseDate(args.due);
+  else if (args.dueDate) return parseDate(args.dueDate);
+  else if (_.find(args._, arg => _.startsWith(arg, "due:")))
+    return parseDate(_.find(args._, arg => _.startsWith(arg, "due:")).slice(4));
+  else return undefined;
+};
+
+module.exports.extract.parents = args => {
+  return _.filter(
+    _.concat(
+      args.parents,
+      args.parent,
+      _.map(_.filter(args._, arg => _.startsWith(arg, "+")), o => o.slice(1))
+    ),
+    o => o !== undefined
+  );
+};
+
+module.exports.extract.children = args => {
+  return _.filter(
+    _.concat(
+      args.children,
+      args.child,
+      _.map(_.filter(args._, arg => _.startsWith(arg, "_")), o => o.slice(1))
+    ),
+    o => o !== undefined
+  );
+};
+
+module.exports.extract.tags = args => {
+  return _.filter(
+    _.concat(
+      args.tags,
+      args.tag,
+      args.t,
+      _.map(_.filter(args._, arg => _.startsWith(arg, "@")), o => o.slice(1))
+    ),
+    o => o !== undefined
+  );
 };

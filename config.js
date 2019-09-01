@@ -1,4 +1,4 @@
-var _ = require("lodash");
+const _ = require("lodash");
 const inquirer = require("inquirer");
 const chalk = require("chalk");
 
@@ -83,7 +83,7 @@ const setOrPrint = (args, config, path = "") => {
   }
 };
 
-module.exports.cmd = (args, config) => {
+module.exports = (args, config) => {
   if (args.help === true || args.h === true) {
     printHelp(
       "config [OPTIONS] [--host [URL]] [--token [TOKEN]] [--listFormat [FMT]]",
@@ -98,13 +98,13 @@ module.exports.cmd = (args, config) => {
     );
   } else if (args.delete === true || args.d === true) {
     config.all = {};
-    console.log(chalk.cyan.bold("Removed all saved config variables"));
+    console.log(chalk.cyan.bold("  Removed all saved config variables"));
   } else if (_.size(args) === 1 && args._.length === 1) {
     promptConfig(config);
   } else if (args._.length !== 1) {
     console.error(
       chalk.red(
-        "Unrecognized option in arguments '" +
+        "  Unrecognized option in arguments '" +
           _.join(args._.slice(1), " ") +
           "'"
       )
@@ -112,16 +112,5 @@ module.exports.cmd = (args, config) => {
   } else {
     delete args._;
     setOrPrint(args, config);
-    // if (args.host === true)
-    //   console.log(chalk.bold("host: ") + config.get("host"));
-    // else if (args.host) config.set("host", args.host);
-    // if (args.token === true)
-    //   console.log(chalk.bold("token: ") + config.get("token"));
-    // else if (args.host) config.set("token", args.host);
-    // if (args.listFormat === true)
-    //   console.log(chalk.bold("listFormat: ") + config.get("listFormat"));
-    // else if (args.host) config.set("listFormat", args.host);
-    // // config.set(args);
-    // console.log(chalk.cyan.bold("Set config variables"));
   }
 };
