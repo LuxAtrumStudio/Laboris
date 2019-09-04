@@ -116,8 +116,8 @@ module.exports.getTask = (queryStr, config, callback) => {
 
 module.exports.extract = {};
 
-module.exports.extract.title = args => {
-  return _.join(
+module.exports.extract.title = (args, defaultVal = "") => {
+  const res = _.join(
     _.filter(
       args._,
       arg =>
@@ -131,6 +131,8 @@ module.exports.extract.title = args => {
     ),
     " "
   );
+  if (res !== "") return res;
+  return defaultVal;
 };
 
 module.exports.extract.priority = (args, defaultVal = 5) => {
@@ -141,16 +143,16 @@ module.exports.extract.priority = (args, defaultVal = 5) => {
   else return defaultVal;
 };
 
-module.exports.extract.dueDate = args => {
+module.exports.extract.dueDate = (args, defaultVal = undefined) => {
   if (args.due) return parseDate(args.due);
   else if (args.dueDate) return parseDate(args.dueDate);
   else if (_.find(args._, arg => _.startsWith(arg, "due:")))
     return parseDate(_.find(args._, arg => _.startsWith(arg, "due:")).slice(4));
-  else return undefined;
+  else return defaultVal;
 };
 
-module.exports.extract.parents = args => {
-  return _.filter(
+module.exports.extract.parents = (args, defaultVal = []) => {
+  const res = _.filter(
     _.concat(
       args.parents,
       args.parent,
@@ -158,10 +160,12 @@ module.exports.extract.parents = args => {
     ),
     o => o !== undefined
   );
+  if (res.length !== 0) return res;
+  return defaultVal;
 };
 
-module.exports.extract.children = args => {
-  return _.filter(
+module.exports.extract.children = (args, defaultVal = []) => {
+  const res = _.filter(
     _.concat(
       args.children,
       args.child,
@@ -169,10 +173,12 @@ module.exports.extract.children = args => {
     ),
     o => o !== undefined
   );
+  if (res.length !== 0) return res;
+  return defaultVal;
 };
 
-module.exports.extract.tags = args => {
-  return _.filter(
+module.exports.extract.tags = (args, defaultVal = []) => {
+  const res = _.filter(
     _.concat(
       args.tags,
       args.tag,
@@ -181,4 +187,6 @@ module.exports.extract.tags = args => {
     ),
     o => o !== undefined
   );
+  if (res.length !== 0) return res;
+  return defaultVal;
 };

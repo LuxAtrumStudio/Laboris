@@ -18,8 +18,7 @@ module.exports = (args, config) => {
       }
     );
     return;
-  }
-  if (args._.length === 0) {
+  } else if (args._.length === 0) {
     console.log(chalk.red.bold("  Must specify a task"));
   } else {
     if (_.last(args._).match(/\+|[0-9]/)) args._ = args._.slice(0, -1);
@@ -28,7 +27,6 @@ module.exports = (args, config) => {
       if (_.last(args.__).match(/[\+-]|[0-9]/)) {
         startTime = parseDate(_.last(args.__));
       }
-      console.log(id);
       mutation(`start(id:\"${id}\", startTime: ${startTime}){id,title}`, config)
         .then(data => {
           console.log(

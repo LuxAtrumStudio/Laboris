@@ -1,9 +1,17 @@
 const ConfigStore = require("configstore");
 const chalk = require("chalk");
+const { printHelp } = require("./util.js");
 var args = require("minimist")(process.argv.slice(2));
 args.__ = process.argv.slice(2);
 
 const package = require("./package.json");
+
+const mainHelp = () => {
+  printHelp("[COMMAND]", "Laboris CLI task manager", {
+    COMMAND:
+      "Sub command {add,modify,start,stop,delete,done,config,report} Defaults to report.list"
+  });
+};
 
 var config = new ConfigStore(
   "laboris",
@@ -23,14 +31,13 @@ var config = new ConfigStore(
   { globalConfigPath: true }
 );
 
-console.log(args);
-
 if (args._[0] === "add") require("./actions/create.js")(args, config);
 else if (args._[0] === "delete") require("./actions/delete.js")(args, config);
 else if (args._[0] === "start") require("./actions/start.js")(args, config);
 else if (args._[0] === "stop") require("./actions/stop.js")(args, config);
-// else if (args._[0] === "modify") console.log(chalk.blue.bold("MODIFY"));
+else if (args._[0] === "modify") require("./actions/modify.js")(args, config);
 // else if (args._[0] === "done") console.log(chalk.green.bold("DONE"));
 else if (args._[0] === "config") require("./config.js")(args, config);
-// else if (args._.length === 0 && args._.help === true) console.log("HELP");
+else if (args._.length === 0 && (args.help === true || args.h === true))
+  mainHelp();
 else require("./reports/list.js")(args, config);

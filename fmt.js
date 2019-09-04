@@ -8,7 +8,7 @@ module.exports.wrap = (txt, padding, firstLine = true, width = 80) => {
     for (const id in words) {
       if (line.length + words[id].length > width) {
         txt += "\n" + line.slice(1);
-        line = " ".repeat(padding);
+        line = " ".repeat(padding) + " " + words[id];
       } else {
         line += " " + words[id];
       }
