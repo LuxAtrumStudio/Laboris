@@ -2,14 +2,14 @@ const _ = require("lodash");
 const chalk = require("chalk");
 
 module.exports.urgColor = (urg, active = false) => {
-  var fn = active ? chalk.bgGreen.bold : chalk;
-  if (urg >= 10.0) return fn.red.bold.underline;
-  else if (urg >= 9.5) return fn.red.bold;
-  else if (urg >= 9.0) return fn.red;
-  else if (urg >= 7.0) return fn.yellow;
-  else if (urg >= 5.0) return fn.green;
-  else if (urg >= 3.0) return fn.blue;
-  else return fn;
+  if (active) return chalk.bgGreen.black.bold;
+  if (urg >= 10.0) return chalk.red.bold.underline;
+  else if (urg >= 9.5) return chalk.red.bold;
+  else if (urg >= 9.0) return chalk.red;
+  else if (urg >= 7.0) return chalk.yellow;
+  else if (urg >= 5.0) return chalk.green;
+  else if (urg >= 3.0) return chalk.blue;
+  else return chalk;
 };
 
 module.exports.dateDelta = (a, b) => {

@@ -22,7 +22,14 @@ module.exports = (args, config) => {
   if (args._.length === 0) {
     console.log(chalk.red.bold("  Must specify a task"));
   } else {
-    if (_.last(args._).match(/\+|[0-9]/)) args._ = args._.slice(0, -1);
+    if (
+      args._.length > 1 &&
+      _.last(args._) &&
+      _.last(args._)
+        .toString()
+        .match(/\+|[0-9]/)
+    )
+      args._ = args._.slice(0, -1);
     getTask(_.join(args._, " "), config, id => {
       var stopTime = _.now();
       if (_.last(args.__).match(/[\+-]|[0-9]/)) {

@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const ConfigStore = require("configstore");
 const chalk = require("chalk");
 const { printHelp } = require("./util.js");
@@ -31,12 +32,14 @@ var config = new ConfigStore(
   { globalConfigPath: true }
 );
 
-if (args._[0] === "add") require("./actions/create.js")(args, config);
+if (args._[0] === "add" || args._[0] === "create")
+  require("./actions/create.js")(args, config);
 else if (args._[0] === "delete") require("./actions/delete.js")(args, config);
 else if (args._[0] === "start") require("./actions/start.js")(args, config);
 else if (args._[0] === "stop") require("./actions/stop.js")(args, config);
 else if (args._[0] === "modify") require("./actions/modify.js")(args, config);
-// else if (args._[0] === "done") console.log(chalk.green.bold("DONE"));
+else if (args._[0] === "close") require("./actions/close.js")(args, config);
+else if (args._[0] === "reopen") require("./actions/reopen.js")(args, config);
 else if (args._[0] === "config") require("./config.js")(args, config);
 else if (args._.length === 0 && (args.help === true || args.h === true))
   mainHelp();

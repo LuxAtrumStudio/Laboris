@@ -76,10 +76,10 @@ module.exports.prompt = options => {
   return inquirer.prompt(prompts);
 };
 
-module.exports.getTask = (queryStr, config, callback) => {
+module.exports.getTask = (queryStr, config, callback, open = true) => {
   query(
-    `find(query:${JSON.stringify(
-      queryStr
+    `find(query:${JSON.stringify(queryStr)}, open: ${JSON.stringify(
+      open
     )}){id,title,parents{title},children{title},tags,dueDate,urg}`,
     config
   )

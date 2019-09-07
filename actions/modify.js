@@ -17,6 +17,7 @@ module.exports = (args, config) => {
         "--parent,--parents": "list of parent tasks",
         "--child,--children": "list of child tasks",
         "-t,--tag,--tags": "list of task tags",
+        TASK: "Single word specifier for task, either the title or the id",
         TITLE:
           "Title and string specifier for task. Any word starting with '+' is considered a parent. Any word starting with '_' is considered a child. Any word starting with '@' is considered a tag. The priority can be specified with p:#, and the due date can be specified with due:DUEDATE. Any words that do not meet one of these previous specifications is considered to be part of the tasks title"
       }

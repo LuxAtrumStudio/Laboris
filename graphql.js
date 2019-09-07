@@ -11,13 +11,13 @@ const postData = (url, data) => {
 };
 
 module.exports.query = (query, config) => {
-  return postData(config.get("host") + "/api/graphql", {
+  return postData(config.get("host") + "/api", {
     query: "query {" + query + "}"
   });
 };
 
 module.exports.mutation = (mutation, config) => {
-  return postData(config.get("host") + "/api/graphql", {
+  return postData(config.get("host") + "/api", {
     query: "mutation {" + mutation + "}"
   });
 };
