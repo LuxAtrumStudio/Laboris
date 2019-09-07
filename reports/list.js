@@ -208,7 +208,7 @@ module.exports = (args, config) => {
         data.filter.forEach(task => {
           printData[fmt.key].push(fmtData(fmt, task));
         });
-        const longest = _.max(printData[fmt.key], str => str.length).length;
+        const longest = _.max(_.map(printData[fmt.key], o => o.length));
         if (longest === 0) delete printData[fmt.key];
         else
           printData[fmt.key] = _.map(printData[fmt.key], str => {
