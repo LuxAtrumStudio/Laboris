@@ -4,6 +4,14 @@
   "main": "index.js",
   "author": "Arden Rasmussen <ardenisthebest@gmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LuxAter/laboris.git"
+  },
+  "engines": {
+    "node": ">=8"
+  },
+  "preferGlobal": true,
   "scripts": {
     "start": "node index.js"
   },
