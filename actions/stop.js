@@ -32,7 +32,9 @@ module.exports = (args, config) => {
       args._ = args._.slice(0, -1);
     getTask(_.join(args._, " "), config, id => {
       var stopTime = _.now();
-      if (_.last(args.__).match(/[\+-]|[0-9]/)) {
+      if (
+        /^((\+|-)[0-9]*[whms]?)|(([0-9]|[-/:T]|am|pm)+)$/i.test(_.last(args.__))
+      ) {
         stopTime = parseDate(_.last(args.__));
       }
       mutation(
