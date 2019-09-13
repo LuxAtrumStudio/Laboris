@@ -33,7 +33,9 @@ module.exports = (args, config) => {
     getTask(_.join(args._, " "), config, id => {
       var stopTime = _.now();
       if (
-        /^((\+|-)[0-9]*[whms]?)|(([0-9]|[-/:T]|am|pm)+)$/i.test(_.last(args.__))
+        /^(((\+|-)[0-9]*[whms]?)|(([0-9]|[-\/:T]|am|pm)+))$/i.test(
+          _.last(args.__)
+        )
       ) {
         stopTime = parseDate(_.last(args.__));
       }
