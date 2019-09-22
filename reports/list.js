@@ -149,7 +149,7 @@ const genPrintKeys = task => {
 };
 
 module.exports = (args, config) => {
-  var queryStr = "filter";
+  var queryStr = args.closed ? "filterClosed" : "filter";
   parsedArgs = {
     priority: extract.priority(args, null),
     parents: extract.parents(args),
@@ -198,6 +198,7 @@ module.exports = (args, config) => {
   fmt = parseFormat(config.get("listFormat"));
   query(queryStr, config)
     .then(data => {
+      if ("filterClosed" in data) data.filter = data.filterClosed;
       data.filter = _.map(
         data.filter.sort((a, b) => b.urg - a.urg),
         genPrintKeys
