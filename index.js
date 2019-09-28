@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const ConfigStore = require("configstore");
 const chalk = require("chalk");
-const { printHelp } = require("./util.js");
+const { printHelp, extract } = require("./util.js");
 var args = require("minimist")(process.argv.slice(2));
 args.__ = process.argv.slice(2);
 
@@ -43,4 +43,5 @@ else if (args._[0] === "reopen") require("./actions/reopen.js")(args, config);
 else if (args._[0] === "config") require("./config.js")(args, config);
 else if (args._.length === 0 && (args.help === true || args.h === true))
   mainHelp();
-else require("./reports/list.js")(args, config);
+else if (extract.title(args, null) === null) require("./reports/list.js")(args, config);
+else require("./reports/detail.js")(args, config);

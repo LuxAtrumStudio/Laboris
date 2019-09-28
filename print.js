@@ -15,6 +15,7 @@ module.exports.urgColor = (urg, active = false) => {
 module.exports.dateDelta = (a, b) => {
   var diff = 0;
   if (a > b) diff = a - b;
+  else if (b === undefined) diff = a;
   else diff = b - a;
   const weeks = Math.floor(diff / 604800000);
   diff -= weeks * 604800000;
@@ -57,6 +58,7 @@ module.exports.dateDeltaFull = (a, b) => {
 
 module.exports.duration = (a, b) => {
   var diff = b - a;
+  if(b === undefined) diff = a;
   const hours = Math.floor(diff / 3600000);
   diff -= hours * 3600000;
   const minutes = Math.floor(diff / 60000);
