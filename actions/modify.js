@@ -45,6 +45,8 @@ module.exports = (args, config) => {
         for (const key in opts) {
           if (typeof opts[key] === "object")
             mutationString += "," + key + ":" + JSON.stringify(opts[key]);
+          else if (typeof opts[key] === "string")
+            mutationString += "," + key + ":" + JSON.stringify(opts[key]);
           else mutationString += "," + key + ":" + opts[key];
         }
         mutationString +=
