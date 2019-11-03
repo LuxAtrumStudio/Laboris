@@ -1,47 +1,26 @@
 #!/usr/bin/env node
-const ConfigStore = require("configstore");
-const chalk = require("chalk");
-const { printHelp, extract } = require("./util.js");
-var args = require("minimist")(process.argv.slice(2));
-args.__ = process.argv.slice(2);
-
-const package = require("./package.json");
-
-const mainHelp = () => {
-  printHelp("[COMMAND]", "Laboris CLI task manager", {
-    COMMAND:
-      "Sub command {add,modify,start,stop,delete,done,config,report} Defaults to report.list"
-  });
-};
-
-var config = new ConfigStore(
-  "laboris",
+const rxDue = /((?<=(d:|due:))\S+)/;
+const rxPriority = /((?<=(p:|priority:))\S+)/;
+const rxHidden = /((?<=(h:|hidden:))(true|t|f|false))/;
+const rxUser = /((?<=(u:|user:))\S+)/;
+const rxParent = /((?<=\+:)\S+)/;
+const rxChild = /((?<=\_:)\S+)/;
+const rxTag = /((?<=\@:)\S+)/;
+const args = require("arg")(
   {
-    urgency: {
-      age: 0.01429,
-      due: 9.0,
-      parents: 1.0,
-      children: 0.5,
-      tags: 0.2,
-      priority: -2.0,
-      active: 4.0
-    },
-    listFormat:
-      "{id:4-} {p} {dueDelta:>} {title:<20+} {parents} {tags} {urg:.3f}"
+    "--help": Boolean,
+    "--due": String,
+    "--priority": Number,
+    "--hidden": Boolean,
+    "--user": [String],
+    "--parent": [String],
+    "--child": [String],
+    "--tag": [String],
+    "-p": "--priority",
+    "-t": "--tag",
+    "-d": "--due",
+    "--dueDate": "--due"
   },
-  { globalConfigPath: true }
+  { permissive: true }
 );
-
-if (args._[0] === "add" || args._[0] === "create")
-  require("./actions/create.js")(args, config);
-else if (args._[0] === "delete") require("./actions/delete.js")(args, config);
-else if (args._[0] === "start") require("./actions/start.js")(args, config);
-else if (args._[0] === "stop") require("./actions/stop.js")(args, config);
-else if (args._[0] === "modify") require("./actions/modify.js")(args, config);
-else if (args._[0] === "close") require("./actions/close.js")(args, config);
-else if (args._[0] === "reopen") require("./actions/reopen.js")(args, config);
-else if (args._[0] === "config") require("./config.js")(args, config);
-else if (args._.length === 0 && (args.help === true || args.h === true))
-  mainHelp();
-else if (extract.title(args, null) === null) require("./reports/list.js")(args, config);
-else require("./reports/detail.js")(args, config);
+console.log(args);
