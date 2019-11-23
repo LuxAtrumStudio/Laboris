@@ -228,8 +228,8 @@ parseStart = argv => {
   const idx = _.findIndex(argv, o => dateParse.parseDate(o) !== undefined, 1);
   return {
     nargs: argv,
-    time: idx ? dateParse.parseDate(_.join(_.slice(argv, idx), " ")) : null,
-    ...parseQualifier(_.slice(argv, 0, idx ? idx : argv.length))
+    time: idx > 0 ? dateParse.parseDate(_.join(_.slice(argv, idx), " ")) : null,
+    ...parseQualifier(_.slice(argv, 0, idx > 0 ? idx : argv.length))
   };
 };
 parseStop = argv => {
@@ -243,8 +243,8 @@ parseStop = argv => {
   const idx = _.findIndex(argv, o => dateParse.parseDate(o) !== undefined, 1);
   return {
     nargs: argv,
-    time: idx ? dateParse.parseDate(_.join(_.slice(argv, idx), " ")) : null,
-    ...parseQualifier(_.slice(argv, 0, idx ? idx : argv.length))
+    time: idx > 0 ? dateParse.parseDate(_.join(_.slice(argv, idx), " ")) : null,
+    ...parseQualifier(_.slice(argv, 0, idx > 0 ? idx : argv.length))
   };
 };
 parseCreate = argv => {
@@ -299,6 +299,31 @@ parseClose = argv => {
     ...parseQualifier(argv)
   };
 };
+parseLogin = argv => {
+  if (_.some(argv, o => o.match(/^(-h|--help)$/))) {
+    return {
+      nargs: argv,
+      action: "help",
+      module: "login"
+    };
+  }
+  return {
+    nargs: argv,
+    email: _.join(argv, " ")
+  };
+};
+parseLogout = argv => {
+  if (_.some(argv, o => o.match(/^(-h|--help)$/))) {
+    return {
+      nargs: argv,
+      action: "help",
+      module: "logout"
+    };
+  }
+  return {
+    nargs: argv
+  };
+};
 
 module.exports.parseArgs = () => {
   argv = _.slice(process.argv, 2);
@@ -311,7 +336,9 @@ module.exports.parseArgs = () => {
     delete: parseDelete,
     open: parseOpen,
     close: parseClose,
-    list: parseQualifier
+    list: parseQualifier,
+    login: parseLogin,
+    logout: parseLogout
   };
   if (argv.length === 0)
     return {
