@@ -22,13 +22,41 @@ module.exports.create = (config, args) => {
       ..._.omit(args, ["ref", "action", "nargs"])
     })
     .then(res => {
-      console.log(res);
+      console.log(res.data);
+      if ("error" in res.data) throw res.data.error;
+      return output.printTask(res.data.task);
     })
     .catch(err => {
-      console.log(err);
+      return output.error(err);
     });
 };
 module.exports.createHelp = () => {
+  return {
+    usage: "create REF [TIME]",
+    ref: "Reference to a task utilizing any of the referencing parameters.",
+    time:
+      "Start time of the task, using the standard date/time parameter options."
+  };
+};
+
+module.exports.list = (config, args) => {
+  console.log(args);
+  axios
+    .post(config.get("url") + "task/?token=" + config.get("token"), {
+      ..._.omit(args, ["ref", "action", "nargs"])
+    })
+    .then(res => {
+      console.log(res.data);
+      if ("error" in res.data) throw res.data.error;
+      for (tsk in res.data) {
+        output.printTask(res.data[tsk]);
+      }
+    })
+    .catch(err => {
+      return output.error(err);
+    });
+};
+module.exports.listHelp = () => {
   return {
     usage: "create REF [TIME]",
     ref: "Reference to a task utilizing any of the referencing parameters.",
