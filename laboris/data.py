@@ -77,8 +77,10 @@ def sync(force=False, historical=False, completed=False):
                 data={
                     "datetime": int(cfg.CONFIG['synced']),
                     "entries": json.dumps(updated_data)
-                }, required=True)
+                }, required=False)
         for x in raw:
+            if x['modifiedDate'] < cfg.CONFIG['synced']:
+                continue
             ind = find_uuid(x['uuid'])
             if not ind:
                 pass

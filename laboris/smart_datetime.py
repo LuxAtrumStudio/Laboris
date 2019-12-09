@@ -58,8 +58,9 @@ def new_timedelta(string):
         dt = try_date_fmt(arg)
         if dt is not None:
             all_false = False
-            cdt += datetime.timedelta(
-                days=dt[0], seconds=(3600 * dt[1]) + (60 * dt[2]) + dt[3])
+            cdt += datetime.timedelta(days=dt[0],
+                                      seconds=(3600 * dt[1]) + (60 * dt[2]) +
+                                      dt[3])
     if all_false:
         return None
     return cdt
@@ -151,8 +152,8 @@ def new_datetime(string):
             if '%H' in fmt and '%p' not in fmt and cdt.date(
             ) == datetime.datetime.now().date():
                 if (dt.hour * 3600) + (dt.minute * 60) + dt.second < (
-                        cdt.hour * 3600) + (
-                            cdt.minute * 60) + cdt.second and cdt.hour < 12:
+                        cdt.hour * 3600) + (cdt.minute *
+                                            60) + cdt.second and cdt.hour < 12:
                     dt = dt.replace(hour=dt.hour + 12)
             if '%H' in fmt or '%I' in fmt:
                 cdt = cdt.replace(hour=dt.hour)
@@ -188,10 +189,10 @@ def new_datetime(string):
         "%m-%d-%Y@%I:%M:%S%p", "%m-%d-%Y@%I:%M%p", "%m-%d-%Y@%I%p",
         "%d-%m-%y@%I:%M:%S%p", "%d-%m-%y@%I:%M%p", "%d-%m-%y@%I%p",
         "%d-%m@%I:%M:%S%p", "%d-%m@%I:%M%p", "%d-%m@%I%p", "%m-%d@%I:%M:%S%p",
-        "%m-%d@%I:%M%p", "%m-%d@%I%p", "%d@%I:%M:%S%p", "%d@%I:%M%p", "%d@%I%p",
-        "%I:%M:%S%p", "%I:%M%p", "%A@%H:%M:%S", "%A@%H:%M", "%A@%H", "%A",
-        "%a@%H:%M:%S", "%a@%H:%M", "%a@%H", "%a", "%A@%I:%M:%S%p", "%A@%I:%M%p",
-        "%A@%I%p", "%a@%I:%M:%S%p", "%a@%I:%M%p", "%a@%I%p"
+        "%m-%d@%I:%M%p", "%m-%d@%I%p", "%d@%I:%M:%S%p", "%d@%I:%M%p",
+        "%d@%I%p", "%I:%M:%S%p", "%I:%M%p", "%A@%H:%M:%S", "%A@%H:%M", "%A@%H",
+        "%A", "%a@%H:%M:%S", "%a@%H:%M", "%a@%H", "%a", "%A@%I:%M:%S%p",
+        "%A@%I:%M%p", "%A@%I%p", "%a@%I:%M:%S%p", "%a@%I:%M%p", "%a@%I%p"
     ]
     dt = None
     for fmt in formats:

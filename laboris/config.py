@@ -40,25 +40,30 @@ def gen_config():
             }
         }
     }
-    json.dump(CONFIG,
-              open(os.path.expanduser('~/.config/laboris/config.json'), 'w'))
+    json.dump(
+        CONFIG,
+        open(os.path.expanduser('~/.config/laboris/backup_config.json'), 'w'))
 
 
 def load_config():
     global CONFIG
     CONFIG = {}
-    if os.path.isfile(os.path.expanduser('~/.config/laboris/config.json')):
+    if os.path.isfile(
+            os.path.expanduser('~/.config/laboris/backup_config.json')):
         CONFIG = json.load(
-            open(os.path.expanduser('~/.config/laboris/config.json'), 'r'))
+            open(os.path.expanduser('~/.config/laboris/backup_config.json'),
+                 'r'))
     else:
         gen_config()
 
 
 def save_config():
-    if os.path.isfile(os.path.expanduser('~/.config/laboris/config.json')):
-        json.dump(CONFIG,
-                  open(
-                      os.path.expanduser('~/.config/laboris/config.json'), 'w'))
+    if os.path.isfile(
+            os.path.expanduser('~/.config/laboris/backup_config.json')):
+        json.dump(
+            CONFIG,
+            open(os.path.expanduser('~/.config/laboris/backup_config.json'),
+                 'w'))
 
 
 def note(msg):
@@ -67,7 +72,7 @@ def note(msg):
 
 def get_urg(urg):
     res = ""
-    a , b, col = None, None, None
+    a, b, col = None, None, None
     for key in CONFIG['theme']['urgency']:
         if '-' in key:
             start, end = map(float, key.split('-'))
@@ -78,23 +83,28 @@ def get_urg(urg):
             if len(CONFIG['theme']['urgency'][key]) == 1:
                 if CONFIG['theme']['urgency'][key][0][0] == '#':
                     a = tuple(
-                            int(CONFIG['theme']['urgency'][key][0][1:][i:i + 2], 16)
+                        int(CONFIG['theme']['urgency'][key][0][1:][i:i +
+                                                                   2], 16)
                         for i in (0, 2, 4))
                 else:
                     res = CONFIG['theme']['urgency'][key][0]
             else:
                 if CONFIG['theme']['urgency'][key][0][0] == '#':
                     a = tuple(
-                            int(CONFIG['theme']['urgency'][key][0][1:][i:i + 2], 16)
+                        int(CONFIG['theme']['urgency'][key][0][1:][i:i +
+                                                                   2], 16)
                         for i in (0, 2, 4))
                 if CONFIG['theme']['urgency'][key][1][0] == '#':
                     b = tuple(
-                            int(CONFIG['theme']['urgency'][key][1][1:][i:i + 2], 16)
+                        int(CONFIG['theme']['urgency'][key][1][1:][i:i +
+                                                                   2], 16)
                         for i in (0, 2, 4))
             if a and b:
-                urg = (urg - float(key.split('-')[0])) / (float(key.split('-')[1]) - float(key.split('-')[0]))
-                dt = (b[0] - a[0], b[1]-a[1], b[2] - a[2])
-                col = (a[0] + dt[0]*urg, a[1] + dt[1]*urg, a[2] + dt[2]*urg)
+                urg = (urg - float(key.split('-')[0])) / (
+                    float(key.split('-')[1]) - float(key.split('-')[0]))
+                dt = (b[0] - a[0], b[1] - a[1], b[2] - a[2])
+                col = (a[0] + dt[0] * urg, a[1] + dt[1] * urg,
+                       a[2] + dt[2] * urg)
             elif a and not b:
                 attrs = ""
                 if "bold" in CONFIG['theme']['urgency'][key]:
@@ -105,6 +115,6 @@ def get_urg(urg):
                     attrs += "4;"
                 res = "\033[{}38;2;{};{};{}m".format(attrs, a[0], a[1], a[2])
             if col:
-                res = "\033[38;2;{};{};{}m".format(int(col[0]), int(col[1]), int(col[2]))
+                res = "\033[38;2;{};{};{}m".format(int(col[0]), int(col[1]),
+                                                   int(col[2]))
     return res
-
