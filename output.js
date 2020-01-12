@@ -119,21 +119,47 @@ const formatTimePeriod = (a, b) => {
   }
 }
 
-const printTable = (table) => {
+const dispLength = str => {
+  let len = 0;
+  let state = 0;
+  for (const i in str) {
+    if (str[i] == '\u001b')
+      state = 1;
+    else if(str[i] == 'm' && state == 1)
+      state = 0;
+    else if (state == 0)
+      len += 1;
+  }
+  return len;
+}
+
+const padLeft = (str, len, char) => {
+  return char.repeat(len - dispLength(str)) + str;
+}
+const padRight = (str, len, char) => {
+  return str + char.repeat(len - dispLength(str));
+}
+
+const printTable = (table, bld=true) => {
   colWidth = [];
   for(const r in table) {
     for(const c in table[r]) {
       if(c >= colWidth.length)
-        colWidth.push(table[r][c].length);
+        colWidth.push(dispLength(table[r][c]));
       else
-        colWidth[c] = Math.max(colWidth[c], table[r][c].length);
+        colWidth[c] = Math.max(colWidth[c], dispLength(table[r][c]));
     }
   }
   for(const r in table) {
+    let msg = bld ? chalk.bold(padLeft(table[r][0], colWidth[0], ' ')) : padLeft(table[r][0], colWidth[0], ' ');
+    for(const c in table[r]) {
+      if (c == 0) continue;
+      msg += '  ' + padRight(table[r][c], colWidth[c], ' ');
+    }
     if(r % 2 == 0)
-      console.log(chalk.bgBlack(chalk.bold(table[r][0].padStart(colWidth[0], ' ')) + '  ' + table[r][1].padEnd(colWidth[1], ' ')));
+      console.log(chalk.bgBlack(msg));
     else
-      console.log(chalk.bold(table[r][0].padStart(colWidth[0], ' ')) + '  ' + table[r][1].padEnd(colWidth[1], ' '));
+      console.log(msg);
   }
 }
 
@@ -178,6 +204,31 @@ module.exports.formatTask = tsk => {
 module.exports.printTask = tsk => {
   console.log(this.formatTask(tsk));
 };
+module.exports.printTasks = tasks => {
+  table = []
+  tasks = _.sortBy(tasks, o => -calcUrg(o))
+  for (const id in tasks) {
+    const urg = calcUrg(tasks[id]);
+    const urgColor = getUrgColor(tasks[id], urg);
+    let row = [urgColor(tasks[id].uuid.slice(0, 4)), tasks[id].priority.toString()]
+    if(tasks[id].dueDate)
+      row.push(dateDeltaMajor(_.now(), tasks[id].dueDate));
+    else
+      row.push("")
+    row.push(tasks[id].title);
+    if(tasks[id].tags.length !== 0)
+      row.push(chalk.yellow.bold("@" + _.join(tasks[id].tags, " @")));
+    else
+      row.push("")
+    if(tasks[id].parents.length !== 0)
+      row.push(chalk.blue.bold("+" + _.join(tasks[id].parents, " +")));
+    else
+      row.push("")
+    row.push(urgColor(urg.toFixed(3)));
+    table.push(row);
+  }
+  printTable(table);
+}
 
 module.exports.formatDetails = tsk => {
   const urg = calcUrg(tsk);

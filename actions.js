@@ -156,12 +156,11 @@ module.exports.list = (config, args) => {
       if (res.data.length === 1 && args.action === "root") {
         return output.printDetails(res.data[0]);
       } else {
-        for (tsk in res.data) {
-          output.printTask(res.data[tsk]);
-        }
+        output.printTasks(res.data);
       }
     })
     .catch(err => {
+      console.log(err);
       return output.error(err);
     });
 };
