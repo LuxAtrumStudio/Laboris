@@ -1,6 +1,7 @@
 const _ = require("lodash");
 const axios = require("axios");
 const output = require("./output.js");
+const select = require("./select.js");
 
 module.exports.start = (config, args) => {
   axios
@@ -10,9 +11,19 @@ module.exports.start = (config, args) => {
       ..._.omit(args, ["ref", "action", "nargs", "time"])
     })
     .then(res => {
-      console.log(res.data);
+      if ("data" in res.data)
+        return select.select(res.data.data);
+      else if ("error" in res.data) throw res.data.error;
+      else
+        return output.printTask(res.data.task);
+    }).then(tsk => {
+      return axios.post(config.get("url") + "task/start/?token=" + config.get("token"), {
+        ref: tsk.uuid,
+        time: args.time || _.now()
+      });
+    }).then(res => {
       if ("error" in res.data) throw res.data.error;
-      return output.printTask(res.data.task);
+      else return output.printTask(res.data.task);
     })
     .catch(err => {
       return output.error(err);
@@ -22,8 +33,7 @@ module.exports.startHelp = () => {
   return {
     usage: "start REF [TIME]",
     ref: "Reference to a task utilizing any of the referencing parameters.",
-    time:
-      "Start time of the task, using the standard date/time parameter options."
+    time: "Start time of the task, using the standard date/time parameter options."
   };
 };
 module.exports.stop = (config, args) => {
@@ -34,9 +44,18 @@ module.exports.stop = (config, args) => {
       ..._.omit(args, ["ref", "action", "nargs", "time"])
     })
     .then(res => {
-      console.log(res.data);
-      if ("error" in res.data) throw res.data.error;
+      if ("data" in res.data)
+        return select.select(res.data.data);
+      else if ("error" in res.data) throw res.data.error;
       return output.printTask(res.data.task);
+    }).then(tsk => {
+      return axios.post(config.get("url") + "task/stop/?token=" + config.get("token"), {
+        ref: tsk.uuid,
+        time: args.time || _.now()
+      });
+    }).then(res => {
+      if ("error" in res.data) throw res.data.error;
+      else return output.printTask(res.data.task);
     })
     .catch(err => {
       return output.error(err);
@@ -46,8 +65,7 @@ module.exports.stopHelp = () => {
   return {
     usage: "Stop REF [TIME]",
     ref: "Reference to a task utilizing any of the referencing parameters.",
-    time:
-      "Stop time of the task, using the standard date/time parameter options."
+    time: "Stop time of the task, using the standard date/time parameter options."
   };
 };
 module.exports.create = (config, args) => {
@@ -57,7 +75,6 @@ module.exports.create = (config, args) => {
       ..._.omit(args, ["ref", "action", "nargs"])
     })
     .then(res => {
-      console.log(res.data);
       if ("error" in res.data) throw res.data.error;
       return output.printTask(res.data.task);
     })
@@ -69,27 +86,25 @@ module.exports.createHelp = () => {
   return {
     usage: "create REF [TIME]",
     ref: "Reference to a task utilizing any of the referencing parameters.",
-    time:
-      "Start time of the task, using the standard date/time parameter options."
+    time: "Start time of the task, using the standard date/time parameter options."
   };
 };
 module.exports.delete = (config, args) => {
+  console.log(args);
   axios
     .post(config.get("url") + "task/?token=" + config.get("token"), {
       ref: _.join(args.ref, " ")
     })
     .then(res => {
       if ("error" in res.data) throw res.data.error;
-    });
-  axios
-    .post(config.get("url") + "task/delete/?token=" + config.get("token"), {
-      title: _.join(args.ref, " "),
-      ..._.omit(args, ["ref", "action", "nargs"])
+      if (res.data.length !== 1) throw "Multiple tasks matched, must specify a single task";
+      return axios.post(config.get("url") + "task/delete/?token=" + config.get("token"), {
+        uuid: res.data[0].uuid
+      });
     })
     .then(res => {
-      console.log(res.data);
       if ("error" in res.data) throw res.data.error;
-      return output.printTask(res.data.task);
+      return output.msg('Deleted Task');
     })
     .catch(err => {
       return output.error(err);
@@ -102,6 +117,34 @@ module.exports.deleteHelp = () => {
   };
 };
 
+module.exports.detail = (config, args) => {
+  axios
+    .post(config.get("url") + "task/?token=" + config.get("token"), {
+      ref: _.join(args.ref, " "),
+      ..._.omit(args, ["ref", "action", "nargs"])
+    })
+    .then(res => {
+      if ("error" in res.data) throw res.data.error;
+      if (res.data.length !== 1) {
+        return select.select(res.data);
+      } else {
+        return res.data[0];
+      }
+    }).then(task => {
+      return output.printDetails(task);
+    })
+    .catch(err => {
+      return output.error(err);
+    });
+}
+module.exports.detailHelp = () => {
+  return {
+    usage: "create REF [TIME]",
+    ref: "Reference to a task utilizing any of the referencing parameters.",
+    time: "Start time of the task, using the standard date/time parameter options."
+  };
+};
+
 module.exports.list = (config, args) => {
   axios
     .post(config.get("url") + "task/?token=" + config.get("token"), {
@@ -110,8 +153,12 @@ module.exports.list = (config, args) => {
     })
     .then(res => {
       if ("error" in res.data) throw res.data.error;
-      for (tsk in res.data) {
-        output.printTask(res.data[tsk]);
+      if (res.data.length === 1 && args.action === "root") {
+        return output.printDetails(res.data[0]);
+      } else {
+        for (tsk in res.data) {
+          output.printTask(res.data[tsk]);
+        }
       }
     })
     .catch(err => {
@@ -122,8 +169,7 @@ module.exports.listHelp = () => {
   return {
     usage: "create REF [TIME]",
     ref: "Reference to a task utilizing any of the referencing parameters.",
-    time:
-      "Start time of the task, using the standard date/time parameter options."
+    time: "Start time of the task, using the standard date/time parameter options."
   };
 };
 

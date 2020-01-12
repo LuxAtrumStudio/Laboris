@@ -270,7 +270,7 @@ parseDelete = argv => {
   }
   return {
     nargs: argv,
-    ref: _.join(argv, " ")
+    ref: argv
   };
 };
 parseOpen = argv => {
@@ -324,6 +324,32 @@ parseLogout = argv => {
     nargs: argv
   };
 };
+parseDetail = argv => {
+  if (_.some(argv, o => o.match(/^(-h|--help)$/))) {
+    return {
+      nargs: argv,
+      action: "help",
+      module: "detail"
+    };
+  }
+  return {
+    action: "detail",
+    ...parseQualifier(argv)
+  };
+}
+parseList = argv => {
+  if (_.some(argv, o => o.match(/^(-h|--help)$/))) {
+    return {
+      nargs: argv,
+      action: "help",
+      module: "list"
+    };
+  }
+  return {
+    action: "list",
+    ...parseQualifier(argv)
+  };
+}
 
 module.exports.parseArgs = () => {
   argv = _.slice(process.argv, 2);
@@ -336,13 +362,14 @@ module.exports.parseArgs = () => {
     delete: parseDelete,
     open: parseOpen,
     close: parseClose,
-    list: parseQualifier,
+    list: parseList,
+    detail: parseDetail,
     login: parseLogin,
     logout: parseLogout
   };
   if (argv.length === 0)
     return {
-      action: "list"
+      action: "root"
     };
   if (argv[0].match(/^(-h|--help)$/)) {
     return {
@@ -358,7 +385,7 @@ module.exports.parseArgs = () => {
       };
   }
   return {
-    action: "list",
+    action: "root",
     ...parseQualifier(argv)
   };
 };
