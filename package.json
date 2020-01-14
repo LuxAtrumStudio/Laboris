@@ -9,13 +9,14 @@
     "start": "node index.js"
   },
   "dependencies": {
+    "argparse": "^1.0.10",
     "axios": "^0.19.0",
     "chalk": "^2.4.2",
-    "configstore": "^5.0.0",
-    "fuse.js": "^3.4.6",
-    "inquirer": "^7.0.0",
-    "inquirer-autocomplete-prompt": "^1.0.1",
+    "commander": "^4.1.0",
+    "conf": "^6.2.0",
+    "config": "^3.2.4",
     "lodash": "^4.17.15",
-    "moment": "^2.24.0"
+    "moment": "^2.24.0",
+    "tinygradient": "^1.1.1"
   }
 }
