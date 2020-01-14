@@ -3,6 +3,13 @@ const chalk = require('chalk');
 const Conf = require('conf');
 const envPaths = require('env-paths');
 const fs = require('fs');
+const path = require('path');
+const Fuse = require('fuse.js')
+const inquirer = require('inquirer');
+inquirer.registerPrompt(
+    'autocomplete', require('inquirer-autocomplete-prompt'));
+
+const common = require('./common.js');
 
 const paths = envPaths('Laboris', {suffix: ''});
 const config = new Conf({
@@ -15,7 +22,9 @@ const config = new Conf({
     'cli': {
       'error': ['bold', 'red'],
       'note': ['bold', 'cyan'],
-      'success': ['bold', 'green']
+      'success': ['bold', 'green'],
+      'warning': ['bold', 'yellow'],
+      'urg': ['white', 'blue', 'green', 'yellow', 'red']
     }
   }
 });
@@ -46,24 +55,25 @@ module.exports.config.get = str => {
 module.exports.config.has = str => {
   return config.has(str);
 };
-module.exports.config.set = (str, val = undefined) => {
+module.exports.config.set = (str, val) => {
   return config.set(str, val);
+};
+module.exports.config.delete = (str) => {
+  return config.delete(str);
 };
 
 module.exports.local = {};
 module.exports.local.loadFile = (file) => {
   return new Promise((resolve, reject) => {
-           fs.exists(file, (err, data) => {
-             if (err)
-               reject(err);
-             else
-               resolve(data);
+           fs.exists(file, (data) => {
+             resolve(data);
            });
          })
       .then(data => {
         return new Promise((resolve, reject) => {
           if (data) {
             fs.readFile(file, 'utf8', (err, data) => {
+              console.log(err);
               if (err)
                 reject(err);
               else
@@ -77,25 +87,128 @@ module.exports.local.loadFile = (file) => {
 };
 module.exports.local.saveFile = (file, data) => {
   return new Promise((resolve, reject) => {
-    fs.writeFile(file, JSON.stringify(data), (err) => {
-      if (err)
-        reject(err);
-      else
-        resolve();
+    fs.mkdir(path.dirname(file), (_err) => {
+      fs.writeFile(file, JSON.stringify(data), (err) => {
+        if (err) return reject(err);
+        return resolve(null);
+      });
     });
   });
 };
 module.exports.local.load = () => {
-  return this.local.loadFile(config.get('dataFile'));
+  return this.local.loadFile(config.get('dataFile')).then(data => {
+    for (let entry in data) {
+      data[entry].urg = common.calcUrg(data[entry]);
+    }
+    this.local.data = data;
+    return data;
+  });
 };
 module.exports.local.loadModified = () => {
   return this.local.loadFile(config.get('modifiedFile'));
 };
-module.exports.local.save = (data) => {
+module.exports.local.save = (data = this.local.data) => {
   return this.local.saveFile(config.get('dataFile'), data);
 };
-module.exports.local.saveModified = (data) => {
+module.exports.local.saveModified = () => {
   return this.local.saveFile(config.get('modifiedFile'), data);
+};
+module.exports.local.getTitles = (uuids, data = this.local.data) => {
+  titles = [];
+  for (const uuid of uuids) {
+    if (uuid in data)
+      titles.push(data[uuid].title);
+    else
+      titles.push('null');
+  }
+  return titles;
+};
+module.exports.local.selectUuids = (titles, data = this.local.data) => {
+  var fuse = new Fuse(data, {
+    shouldSort: true,
+    threshold: 1.0,
+    location: 0,
+    distance: 26,
+    maxPatternLength: 32,
+    keys: ['uuid', 'title', 'tags']
+  });
+  let strings = {};
+  for (const id in data) {
+    strings[this.formatTask(data[id])] = data[id].uuid;
+  }
+  const getStr = (o) => {
+    for (const id in strings) {
+      if (o.uuid == strings[id]) return id;
+    }
+  };
+  let uuids = titles.length !== 0 ? [undefined] * titles.length : [];
+  let prompts = [];
+  for (const id in titles) {
+    const res = fuse.search(titles[id]);
+    if (res.length === 1)
+      uuids[id] = res[0].uuid;
+    else
+      prompts.push({
+        type: 'autocomplete',
+        name: id.toString(),
+        message: 'Specify task for ' + titles[id],
+        source: (_tmp, input) => {
+          return new Promise((resolve, _reject) => {
+            let opt = fuse.search(input);
+            if (opt.length === 0) opt = data;
+            resolve(_.map(opt, o => getStr(o)));
+          });
+        }
+      });
+  }
+  console.log(uuids);
+  if (prompts.length !== 0) {
+    inquirer.prompt(prompts).then(answers => {
+      for (const id in answers) {
+        uuids[_.toInteger(id)] = answers[id];
+      }
+      return uuids;
+    });
+  } else {
+    return new Promise((resolve, _reject) => {
+      resolve(uuids);
+    });
+  }
+};
+module.exports.local.selectSingle = (data = this.local.data) => {
+  let strings = {};
+  for (const id in data) {
+    string[this.formatTask(data[id])] = data[id].uuid;
+  }
+  var fuse = new Fuse(data, {
+    shouldSort: true,
+    threshold: 1.0,
+    location: 0,
+    distance: 26,
+    maxPatternLength: 32,
+    keys: ['uuid', 'title', 'tags']
+  });
+  const getStr = (o) => {
+    for (const id in strings) {
+      if (o.uuid == strings[id]) return id;
+    }
+  };
+  return inquirer
+      .prompt([{
+        type: 'autocomplete',
+        name: 'taskUuid',
+        message: 'Specify task',
+        source: (_tmp, input) => {
+          return new Promise((resolve, _reject) => {
+            let opt = fuse.search(input);
+            if (opt.length === 0) opt = data;
+            resolve(_.map(opt, o => getStr(o)));
+          });
+        }
+      }])
+      .then(answ => {
+        return strings[answ['taskUuid']];
+      });
 };
 
 module.exports.getDisplayFormat = (ref, base = chalk) => {
@@ -204,6 +317,10 @@ module.exports.printError = (err, indent = 0) => {
   this.printMsg(
       err, this.getDisplayFormat(this.config.get('cli.error')), indent);
 };
+module.exports.printWarn = (err, indent = 0) => {
+  this.printMsg(
+      err, this.getDisplayFormat(this.config.get('cli.warning')), indent);
+};
 module.exports.printNote = (err, indent = 0) => {
   this.printMsg(
       err, this.getDisplayFormat(this.config.get('cli.note')), indent);
@@ -277,4 +394,20 @@ module.exports.printTable = (table, zebra = false, alignment = []) => {
     else
       console.log(line);
   }
-}
+};
+
+module.exports.formatTask = (task) => {
+  const urgColor =
+      this.getDisplayFormat(common.getUrgColor(this.config, task.urg));
+  var msg = urgColor(task.uuid.slice(0, 8)) + '  ' + task.priority.toString();
+  if (task.dueDate) msg += '  ' + common.formatDelta(_.now() - task.dueDate);
+  msg += '  ' + task.title;
+  if (task.tags.length !== 0)
+    msg += this.getDisplayFormat(this.config.get('cli.tagColor'))(
+        '  @' + _.join(task.tags, ' @'));
+  if (task.parents.length !== 0)
+    msg += this.getDisplayFormat(this.config.get('cli.parentColor'))(
+        '  +' + _.join(this.local.getTitles(task.parents), ' +'));
+  msg += '  ' + urgColor(task.urg.toFixed(3));
+  return msg;
+};
