@@ -1,4 +1,3 @@
-
 const _ = require('lodash');
 const moment = require('moment');
 
@@ -26,7 +25,7 @@ const parseRelativeDate = str => {
   return res.valueOf();
 };
 
-module.exports.parseDate = str => {
+module.exports.parse = str => {
   // TODO Error matching 19:06 as 2019-06-02T02:00:00.000Z. It seems to be using
   // the MM-DD format
   if (str === undefined) return undefined;

@@ -1,0 +1,11 @@
+{
+    "remoteUrl": "https://laboris.luxater.com/",
+    "cli": {
+      "error": ["bold", "red"],
+      "note": ["bold", "cyan"],
+      "success": ["bold", "green"],
+      "warning": ["bold", "yellow"],
+      "title": ["bold", "white", "underline"],
+      "urg": ["white", "blue", "green", "yellow", "red"]
+    }
+}
