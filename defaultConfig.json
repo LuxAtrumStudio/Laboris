@@ -1,11 +1,38 @@
 {
-    "remoteUrl": "https://laboris.luxater.com/",
-    "cli": {
-      "error": ["bold", "red"],
-      "note": ["bold", "cyan"],
-      "success": ["bold", "green"],
-      "warning": ["bold", "yellow"],
-      "title": ["bold", "white", "underline"],
-      "urg": ["white", "blue", "green", "yellow", "red"]
-    }
+  "remoteUrl": "https://laboris.luxater.com/",
+  "shortFormat": "{uuidShort:urgColor} {title} {parents:parentColor} {tags:tagColor}",
+  "listFormat": "{uuidShort:urgColor},{title},{parents:parentColor},{tags:tagColor},{urg:urgColor}",
+  "colors": {
+    "red": "#F44336",
+    "pink": "#E91E63",
+    "purple": "#9C27B0",
+    "indigo": "#3F51B5",
+    "blue": "#2196F3",
+    "cyan": "#00BCD4",
+    "teal": "#57C7B8",
+    "green": "#4CAF50",
+    "lime": "#CDDC39",
+    "yellow": "#FFEB3B",
+    "amber": "#FFC107",
+    "orange": "#FF9800",
+    "white": "#ECEFF1",
+    "black": "#263238"
+  },
+  "error": { "fg": "{red}", "attr": ["bold"] },
+  "note": { "fg": "{cyan}", "attr": ["bold"] },
+  "success": { "fg": "{green}", "attr": ["bold"] },
+  "warning": { "fg": "{yellow}", "attr": ["bold"] },
+  "title": { "fg": "{white}", "attr": ["bold", "underline"] },
+  "parent": { "fg": "{blue}" },
+  "child": { "fg": "{purple}" },
+  "tag": { "fg": "{yellow}" },
+  "active": { "fg": "{black}", "bg": "{green}" },
+  "urgGradient": [
+    { "fg": "{white}", "pos": 0 },
+    { "fg": "{green}", "pos": 0.25 },
+    { "fg": "{blue}", "pos": 0.5 },
+    { "fg": "{yellow}", "pos": 0.75 },
+    { "fg": "{red}", "pos": 0.9 },
+    { "fg": "{red}", "pos": 1.0 }
+  ]
 }
