@@ -2,6 +2,7 @@
 const _ = require("lodash");
 const uuidv5 = require("uuid/v5");
 const inquirer = require("inquirer");
+const axios = require("axios");
 
 const argparse = require("./argparse.js");
 const datetime = require("./datetime.js");
@@ -15,16 +16,16 @@ const createTask = args => {
     .load()
     .then(_data => {
       const taskUUID = uuidv5(args.ref + _.now().toString(), uuidv5.URL);
-      data.tasks[taskUUID] = _.defaults(args, {
+      data.tasks[taskUUID] = _.defaults(_.omit(args, "ref"), {
         uuid: taskUUID,
         title: args.ref,
         entryDate: _.now(),
         modifiedDate: _.now(),
-        syncTime: _.now(),
         doneDate: null,
         dueDate: null,
         times: [],
-        open: true
+        open: true,
+        urg: 0.0
       });
       return Promise.all([
         Promise.resolve(taskUUID),
@@ -81,13 +82,16 @@ const deleteTask = args => {
     .then(answ => {
       let deletedId = undefined;
       let tmpTask = undefined;
+      let updated = [];
       for (const id in answ) {
         if (answ[id] === true) {
           deletedId = data.tasks[id].uuid;
           for (const parent of data.tasks[id].parents) {
+            updated.push(parent);
             _.pull(data.tasks[parent].children, deletedId);
           }
           for (const child of data.tasks[id].children) {
+            updated.push(child);
             _.pull(data.tasks[child].parents, deletedId);
           }
           tmpTask = data.tasks[id];
@@ -96,7 +100,10 @@ const deleteTask = args => {
       }
       if (tmpTask !== undefined) {
         cliUtil.printDelete(tmpTask);
-        return data.syncDelete(deletedId);
+        return Promise.all([
+          data.syncDelete(deletedId),
+          ..._.map(updated, id => data.sync(id))
+        ]);
       } else {
         return undefined;
       }
@@ -112,6 +119,7 @@ const startTask = args => {
     })
     .then(data.fetch)
     .then(taskUUID => {
+      data.tasks[taskUUID].modifiedDate = _.now();
       data.tasks[taskUUID].times.push(args.time);
       cliUtil.printStart(data.tasks[taskUUID]);
       return data.sync(taskUUID);
@@ -126,6 +134,7 @@ const stopTask = args => {
     })
     .then(data.fetch)
     .then(taskUUID => {
+      data.tasks[taskUUID].modifiedDate = _.now();
       data.tasks[taskUUID].times.push(args.time);
       cliUtil.printStop(data.tasks[taskUUID]);
       return data.sync(taskUUID);
@@ -140,6 +149,7 @@ const closeTask = args => {
     })
     .then(data.fetch)
     .then(taskUUID => {
+      data.tasks[taskUUID].modifiedDate = _.now();
       data.tasks[taskUUID].open = false;
       cliUtil.printClose(data.tasks[taskUUID]);
       return data.sync(taskUUID);
@@ -154,6 +164,7 @@ const openTask = args => {
     })
     .then(data.fetch)
     .then(taskUUID => {
+      data.tasks[taskUUID].modifiedDate = _.now();
       data.tasks[taskUUID].open = true;
       cliUtil.printOpen(data.tasks[taskUUID]);
       return data.sync(taskUUID);
@@ -298,6 +309,43 @@ const report = (report, args) => {
   });
 };
 
+const userCreate = args => {
+  return axios
+    .post(config.get("remoteUrl") + "user/create/", args)
+    .then(response => {
+      if (response.data.error !== undefined)
+        return cliUtil.printError(response.data.error);
+      cliUtil.printSuccess(response.data.success);
+      config.set("uuid", response.data.uuid);
+    })
+    .catch(err => {
+      console.error(err);
+    });
+};
+
+const userSignin = args => {
+  return axios
+    .post(config.get("remoteUrl") + "user/signin/", args)
+    .then(response => {
+      if (response.data.error !== undefined)
+        return cliUtil.printError(response.data.error);
+      cliUtil.printSuccess(response.data.success);
+      console.log(response.data);
+      config.set("uuid", response.data.uuid);
+    });
+};
+
+const user = (action, args) => {
+  return new Promise((resolve, reject) => {
+    if (action === "create") return userCreate(args);
+    if (action === "signin") return userSignin(args);
+  });
+};
+
+const configCmd = args => {
+  config.set(args.keys, args.value);
+};
+
 argparse()
   .then(cmd => {
     if (cmd === undefined) return undefined;
@@ -308,7 +356,10 @@ argparse()
     else if (cmd.command === "open") return openTask(cmd.args);
     else if (cmd.command === "close") return closeTask(cmd.args);
     else if (cmd.command === "report") return report(cmd.report, cmd.args);
+    else if (cmd.command === "user") return user(cmd.action, cmd.args);
+    else if (cmd.command === "config") return configCmd(cmd.args);
   })
   .catch(err => {
+    console.log(err);
     cliUtil.printError(err);
   });

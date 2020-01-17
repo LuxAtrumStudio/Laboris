@@ -410,6 +410,33 @@ const parseReport = argv => {
   }
 };
 
+const parseUserCreate = argv => {
+  return (cmd = {
+    command: "user",
+    action: "create",
+    args: { email: argv[0], password: argv[1] }
+  });
+};
+
+const parseUserSignin = argv => {
+  return (cmd = {
+    command: "user",
+    action: "signin",
+    args: { email: argv[0], password: argv[1] }
+  });
+};
+
+const parseUser = argv => {
+  if (argv.length > 0) {
+    if (argv[0] === "create") return parseUserCreate(_.slice(argv, 1));
+    if (argv[0] === "signin") return parseUserSignin(_.slice(argv, 1));
+  }
+};
+
+const parseConfig = argv => {
+  return (cmd = { command: "config", args: { key: argv[0], value: argv[1] } });
+};
+
 module.exports = (argv = undefined) => {
   return new Promise((resolve, reject) => {
     if (argv === undefined) argv = _.slice(process.argv, 2);
@@ -428,6 +455,9 @@ module.exports = (argv = undefined) => {
         return resolve(parseDetail(_.slice(argv, 1)));
       else if (argv[0] === "report")
         return resolve(parseReport(_.slice(argv, 1)));
+      else if (argv[0] === "user") return resolve(parseUser(_.slice(argv, 1)));
+      else if (argv[0] === "config")
+        return resolve(parseConfig(_.slice(argv, 1)));
       else return resolve(parseAutolist(argv));
     } else {
       return resolve(parseAutolist(argv));

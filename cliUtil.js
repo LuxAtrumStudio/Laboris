@@ -193,3 +193,6 @@ module.exports.printOpen = task => {
 module.exports.printError = msg => {
   console.error(this.getColorFunc(config.getColor("error"))(msg));
 };
+module.exports.printSuccess = msg => {
+  console.error(this.getColorFunc(config.getColor("success"))(msg));
+};
