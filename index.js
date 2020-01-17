@@ -4,6 +4,7 @@ const uuidv5 = require("uuid/v5");
 const inquirer = require("inquirer");
 
 const argparse = require("./argparse.js");
+const datetime = require("./datetime.js");
 const data = require("./data.js");
 const config = require("./config.js");
 const cliUtil = require("./cliUtil.js");
@@ -53,6 +54,7 @@ const createTask = args => {
           }
         }
       }
+      cliUtil.printCreate(data.tasks[taskUUID]);
       return data.sync(taskUUID);
     })
     .then(data.save);
@@ -78,6 +80,7 @@ const deleteTask = args => {
     })
     .then(answ => {
       let deletedId = undefined;
+      let tmpTask = undefined;
       for (const id in answ) {
         if (answ[id] === true) {
           deletedId = data.tasks[id].uuid;
@@ -87,10 +90,16 @@ const deleteTask = args => {
           for (const child of data.tasks[id].children) {
             _.pull(data.tasks[child].parents, deletedId);
           }
+          tmpTask = data.tasks[id];
           delete data.tasks[id];
         }
       }
-      return data.syncDelete(deletedId);
+      if (tmpTask !== undefined) {
+        cliUtil.printDelete(tmpTask);
+        return data.syncDelete(deletedId);
+      } else {
+        return undefined;
+      }
     })
     .then(data.save);
 };
@@ -104,6 +113,7 @@ const startTask = args => {
     .then(data.fetch)
     .then(taskUUID => {
       data.tasks[taskUUID].times.push(args.time);
+      cliUtil.printStart(data.tasks[taskUUID]);
       return data.sync(taskUUID);
     })
     .then(data.save);
@@ -117,6 +127,7 @@ const stopTask = args => {
     .then(data.fetch)
     .then(taskUUID => {
       data.tasks[taskUUID].times.push(args.time);
+      cliUtil.printStop(data.tasks[taskUUID]);
       return data.sync(taskUUID);
     })
     .then(data.save);
@@ -130,6 +141,7 @@ const closeTask = args => {
     .then(data.fetch)
     .then(taskUUID => {
       data.tasks[taskUUID].open = false;
+      cliUtil.printClose(data.tasks[taskUUID]);
       return data.sync(taskUUID);
     })
     .then(data.save);
@@ -143,6 +155,7 @@ const openTask = args => {
     .then(data.fetch)
     .then(taskUUID => {
       data.tasks[taskUUID].open = true;
+      cliUtil.printOpen(data.tasks[taskUUID]);
       return data.sync(taskUUID);
     })
     .then(data.save);
@@ -151,6 +164,7 @@ const openTask = args => {
 const reportShowList = tasks => {
   return new Promise((resolve, reject) => {
     table = [];
+    tasks = _.reverse(_.sortBy(tasks, "urg"));
     for (const task of tasks) {
       table.push(cliUtil.formatList(task));
     }
@@ -160,7 +174,6 @@ const reportShowList = tasks => {
 };
 const reportShowDetail = task => {
   return new Promise((resolve, reject) => {
-    console.log("DETAIL", task);
     table = [];
     const titleFunc = cliUtil.getColorFunc(config.getColor("title"));
     table.push([titleFunc("Title"), task.title]);
@@ -186,27 +199,55 @@ const reportShowDetail = task => {
         titleFunc("Modified Date"),
         moment(task.modifiedDate).format("YYYY-MM-DD HH:mm:ss")
       ]);
+    if (task.tags.length !== 0) {
+      for (let i in task.tags) {
+        i = _.toInteger(i);
+        if (i === 0) table.push([titleFunc("Tags"), task.tags[i]]);
+        else table.push(["", task.tags[i]]);
+      }
+    }
+    if (task.parents.length !== 0) {
+      for (let i in task.parents) {
+        i = _.toInteger(i);
+        if (i === 0)
+          table.push([
+            titleFunc("Parents"),
+            cliUtil.formatShort(data.tasks[task.parents[i]])
+          ]);
+        else table.push(["", cliUtil.formatShort(data.tasks[task.parents[i]])]);
+      }
+    }
+    if (task.children.length !== 0) {
+      for (let i in task.children) {
+        i = _.toInteger(i);
+        if (i === 0)
+          table.push([
+            titleFunc("Children"),
+            cliUtil.formatShort(data.tasks[task.children[i]])
+          ]);
+        else
+          table.push(["", cliUtil.formatShort(data.tasks[task.children[i]])]);
+      }
+    }
     if (task.times.length !== 0) {
-      const fmtInterval = i => {
-        let a = task.times[i];
-        let b = task.times.length > i + 1 ? task.times[i + 1] : _.now();
-        let aMoment = moment(a);
-        let bMoment = moment(b);
-        if (bMoment.diff(aMoment, "days") !== 0) {
-          return (
-            aMoment.format("YYYY-MM-DD HH:mm") +
-            " - " +
-            bMoment.format("YYYY-MM-DD HH:mm")
-          );
-        } else {
-          return (
-            aMoment.format("YYYY-MM-DD HH:mm") + " - " + bMoment.format("HH:mm")
-          );
-        }
-      };
-      for (const i in _.range(0, task.times.length, 2)) {
-        if (i == 0) table.push([titleFunc("Times"), fmtInterval(i)]);
-        else table.push(["", fmtInterval(i)]);
+      for (let i of _.range(0, task.times.length, 2)) {
+        i = _.toInteger(i);
+        if (i === 0)
+          table.push([
+            titleFunc("Times"),
+            datetime.formatInterval(
+              task.times[i],
+              task.times.length > i + 1 ? task.times[i + 1] : _.now()
+            )
+          ]);
+        else
+          table.push([
+            "",
+            datetime.formatInterval(
+              task.times[i],
+              task.times.length > i + 1 ? task.times[i + 1] : _.now()
+            )
+          ]);
       }
     }
 
@@ -259,7 +300,6 @@ const report = (report, args) => {
 
 argparse()
   .then(cmd => {
-    console.log(cmd);
     if (cmd === undefined) return undefined;
     else if (cmd.command === "create") return createTask(cmd.args);
     else if (cmd.command === "delete") return deleteTask(cmd.args);
@@ -270,5 +310,5 @@ argparse()
     else if (cmd.command === "report") return report(cmd.report, cmd.args);
   })
   .catch(err => {
-    console.error(err);
+    cliUtil.printError(err);
   });

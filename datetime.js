@@ -183,3 +183,132 @@ module.exports.parse = str => {
     return res.add({ days: 7 }).valueOf();
   return res.valueOf();
 };
+
+module.exports.splitDuration = (milli, components) => {
+  let neg = false;
+  if (milli < 0) {
+    milli *= -1;
+    neg = true;
+  }
+  if (components.years !== undefined) {
+    components.years = Math.floor(milli / 3.154e10);
+    milli -= components.years * 3.154e10;
+    if (neg) components.years *= -1;
+  }
+  if (components.months !== undefined) {
+    components.months = Math.floor(milli / 2.628e9);
+    milli -= components.months * 2.628e9;
+    if (neg) components.months *= -1;
+  }
+  if (components.weeks !== undefined) {
+    components.weeks = Math.floor(milli / 6.0488e8);
+    milli -= components.weeks * 6.048e8;
+    if (neg) components.weeks *= -1;
+  }
+  if (components.days !== undefined) {
+    components.days = Math.floor(milli / 8.64e7);
+    milli -= components.days * 8.64e7;
+    if (neg) components.days *= -1;
+  }
+  if (components.hours !== undefined) {
+    components.hours = Math.floor(milli / 3.6e6);
+    milli -= components.hours * 3.6e6;
+    if (neg) components.hours *= -1;
+  }
+  if (components.minutes !== undefined) {
+    components.minutes = Math.floor(milli / 6e4);
+    milli -= components.minutes * 6e4;
+    if (neg) components.minutes *= -1;
+  }
+  if (components.seconds !== undefined) {
+    components.seconds = Math.floor(milli / 1e3);
+    milli -= components.seconds * 1e3;
+    if (neg) components.seconds *= -1;
+  }
+  if (components.milli !== undefined) components.milli = milli * (neg ? -1 : 1);
+  return components;
+};
+module.exports.formatDuration = (durration, fmt) => {
+  let components = {};
+  if (fmt.includes("Y")) components.years = 0;
+  if (fmt.includes("M")) components.months = 0;
+  if (fmt.includes("W")) components.weeks = 0;
+  if (fmt.includes("D")) components.days = 0;
+  if (fmt.includes("H")) components.hours = 0;
+  if (fmt.includes("m")) components.minutes = 0;
+  if (fmt.includes("s")) components.seconds = 0;
+  if (fmt.includes("S")) components.milli = 0;
+  components = this.splitDuration(durration, components);
+  if (components.years !== undefined) {
+    fmt = fmt.replace("YYYY", components.years.toString().padStart(4, "0"));
+    fmt = fmt.replace(
+      "YY",
+      components.years
+        .toString()
+        .slice(2)
+        .padStart(2, "0")
+    );
+    fmt = fmt.replace("Y", components.years.toString());
+  }
+  if (components.months !== undefined) {
+    fmt = fmt.replace("MM", components.months.toString().padStart(2, "0"));
+    fmt = fmt.replace("M", components.months.toString());
+  }
+  if (components.weeks !== undefined) {
+    fmt = fmt.replace("WW", components.weeks.toString().padStart(2, "0"));
+    fmt = fmt.replace("W", components.weeks.toString());
+  }
+  if (components.days !== undefined) {
+    fmt = fmt.replace("DD", components.days.toString().padStart(2, "0"));
+    fmt = fmt.replace("D", components.days.toString());
+  }
+  if (components.hours !== undefined) {
+    fmt = fmt.replace("HH", components.hours.toString().padStart(2, "0"));
+    fmt = fmt.replace("H", components.hours.toString());
+  }
+  if (components.minutes !== undefined) {
+    fmt = fmt.replace("mm", components.minutes.toString().padStart(2, "0"));
+    fmt = fmt.replace("m", components.minutes.toString());
+  }
+  if (components.seconds !== undefined) {
+    fmt = fmt.replace("ss", components.seconds.toString().padStart(2, "0"));
+    fmt = fmt.replace("s", components.seconds.toString());
+  }
+  if (components.milli !== undefined) {
+    fmt = fmt.replace("SSS", components.milli.toString().padStart(3, "0"));
+    fmt = fmt.replace("S", components.milli.toString());
+  }
+  return fmt;
+};
+module.exports.getDurationMax = durration => {
+  components = this.splitDuration(durration, {
+    years: 0,
+    months: 0,
+    weeks: 0,
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    milli: 0
+  });
+  if (components.years !== 0) return components.years.toString() + "Y";
+  else if (components.months !== 0) return components.months.toString() + "M";
+  else if (components.weeks !== 0) return components.weeks.toString() + "W";
+  else if (components.days !== 0) return components.days.toString() + "D";
+  else if (components.hours !== 0) return components.hours.toString() + "H";
+  else if (components.minutes !== 0) return components.minutes.toString() + "m";
+  else if (components.seconds !== 0) return components.seconds.toString() + "s";
+  else if (components.milli !== 0) return components.milli.toString() + "S";
+};
+module.exports.formatDate = (a, fmt) => {
+  return moment(a).format(fmt);
+};
+module.exports.formatInterval = (a, b) => {
+  let ma = moment(a);
+  let mb = moment(b);
+  let msg = ma.format("YYYY-MM-DD HH:mm") + " - ";
+  if (mb.diff(ma, "days") !== 0) msg += mb.format("YYYY-MM-DD HH:mm");
+  else msg += mb.format("HH:mm");
+  msg += " [" + this.formatDuration(b - a, "HH:mm") + "]";
+  return msg;
+};

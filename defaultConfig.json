@@ -1,7 +1,7 @@
 {
   "remoteUrl": "https://laboris.luxater.com/",
   "shortFormat": "{uuidShort:urgColor} {title} {parents:parentColor} {tags:tagColor}",
-  "listFormat": "{uuidShort:urgColor},{title},{parents:parentColor},{tags:tagColor},{urg:urgColor}",
+  "listFormat": "{uuidShort:urgColor},{dueShort},{title},{parents:parentColor},{tags:tagColor},{urg:urgColor}",
   "colors": {
     "red": "#F44336",
     "pink": "#E91E63",
@@ -22,11 +22,17 @@
   "note": { "fg": "{cyan}", "attr": ["bold"] },
   "success": { "fg": "{green}", "attr": ["bold"] },
   "warning": { "fg": "{yellow}", "attr": ["bold"] },
-  "title": { "fg": "{white}", "attr": ["bold", "underline"] },
+  "title": { "fg": "{white}", "attr": ["bold"] },
   "parent": { "fg": "{blue}" },
   "child": { "fg": "{purple}" },
   "tag": { "fg": "{yellow}" },
   "active": { "fg": "{black}", "bg": "{green}" },
+  "create": { "fg": "{green}" },
+  "delete": { "fg": "{red}", "attr": ["bold"] },
+  "start": { "fg": "{yellow}" },
+  "stop": { "fg": "{yellow}" },
+  "close": { "fg": "{green}" },
+  "open": { "fg": "{blue}" },
   "urgGradient": [
     { "fg": "{white}", "pos": 0 },
     { "fg": "{green}", "pos": 0.25 },

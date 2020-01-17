@@ -4,6 +4,8 @@ const data = require("./data.js");
 const moment = require("moment");
 const config = require("./config.js");
 
+const datetime = require("./datetime.js");
+
 const dispLength = str => {
   let len = 0;
   let state = 0;
@@ -51,7 +53,7 @@ module.exports.printTable = (table, alignment = [], zebra = false) => {
   for (const r in table) {
     let line = "";
     for (const c in table[r]) {
-      if (c !== 0) line += "  ";
+      if (_.toInteger(c) !== 0) line += "  ";
       if (alignment[c] === "<") line += padRight(table[r][c], colWidth[c]);
       else if (alignment[c] === ">") line += padLeft(table[r][c], colWidth[c]);
     }
@@ -73,7 +75,10 @@ module.exports.getColorFunc = color => {
 
 module.exports.taskFmt = (fmt, task) => {
   const colors = {
-    urg: this.getColorFunc(config.getUrgColor(task.urg)),
+    urg:
+      task.times.length % 2 === 0
+        ? this.getColorFunc(config.getUrgColor(task.urg))
+        : this.getColorFunc(config.getColor("active")),
     title: this.getColorFunc(config.getColor("title")),
     parent: this.getColorFunc(config.getColor("parent")),
     child: this.getColorFunc(config.getColor("child")),
@@ -101,6 +106,18 @@ module.exports.taskFmt = (fmt, task) => {
       ? moment(task.doneDate).format("YYYY-MM-DD HH:mm:ss")
       : "",
     modifiedDate: moment(task.modifiedDate).format("YYYY-MM-DD HH:mm:ss"),
+    dueShort: task.dueDate
+      ? datetime.getDurationMax(task.dueDate - _.now())
+      : "",
+    entryShort: task.entryDate
+      ? datetime.getDurationMax(task.entryDate - _.now())
+      : "",
+    doneShort: task.doneDate
+      ? datetime.getDurationMax(task.doneDate - _.now())
+      : "",
+    modifiedShort: task.modifiedDate
+      ? datetime.getDurationMax(task.modifiedDate - _.now())
+      : "",
     urg: task.urg.toFixed(3)
   };
   for (const color in colors) {
@@ -115,6 +132,9 @@ module.exports.taskFmt = (fmt, task) => {
   return fmt;
 };
 
+module.exports.formatRef = task => {
+  return this.taskFmt("{uuidShort} {title}", task);
+};
 module.exports.formatShort = task => {
   return this.taskFmt(config.get("shortFormat"), task);
 };
@@ -122,4 +142,54 @@ module.exports.formatShort = task => {
 module.exports.formatList = task => {
   const fmt = str => this.taskFmt(str, task);
   return _.map(this.taskFmt(config.get("listFormat"), task).split(","), fmt);
+};
+
+module.exports.printCreate = task => {
+  console.log(
+    this.getColorFunc(config.getColor("create"))(
+      `Created ${this.formatRef(task)}`
+    )
+  );
+};
+module.exports.printDelete = task => {
+  console.log(
+    this.getColorFunc(config.getColor("delete"))(
+      `Deleted ${this.formatRef(task)}`
+    )
+  );
+};
+module.exports.printStart = task => {
+  console.log(
+    this.getColorFunc(config.getColor("start"))(
+      `Started ${this.formatRef(task)} ${datetime.formatDate(
+        _.last(task.times),
+        "h:mm:ss A"
+      )}`
+    )
+  );
+};
+module.exports.printStop = task => {
+  console.log(
+    this.getColorFunc(config.getColor("start"))(
+      `Stoped ${this.formatRef(task)} ${datetime.formatInterval(
+        task.times[task.times.length - 2],
+        task.times[task.times.length - 1]
+      )}`
+    )
+  );
+};
+module.exports.printClose = task => {
+  console.log(
+    this.getColorFunc(config.getColor("close"))(
+      `Closed ${this.formatRef(task)}`
+    )
+  );
+};
+module.exports.printOpen = task => {
+  console.log(
+    this.getColorFunc(config.getColor("open"))(`Opened ${this.formatRef(task)}`)
+  );
+};
+module.exports.printError = msg => {
+  console.error(this.getColorFunc(config.getColor("error"))(msg));
 };
