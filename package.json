@@ -1,6 +1,6 @@
 {
   "name": "laboris-cli",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "main": "index.js",
   "repository": "git@github.com:LuxAter/Laboris.git",
   "author": "Arden Rasmussen <ardenisthebest@gmail.com>",
