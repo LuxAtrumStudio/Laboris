@@ -118,9 +118,17 @@ const startTask = args => {
   return data
     .load()
     .then(_data => {
-      return data.getUUID(args);
+      return data.filterTasks(_.omit(args, "active"));
     })
-    .then(data.pull)
+    .then(tasks => {
+      return data.pull(_.map(tasks, "uuid"));
+    })
+    .then(tasks => {
+      return data.getUUID(
+        args,
+        _.map(tasks, id => data.tasks[id])
+      );
+    })
     .then(taskUUID => {
       data.tasks[taskUUID].modifiedDate = _.now();
       data.tasks[taskUUID].times.push(args.time);
@@ -133,9 +141,17 @@ const stopTask = args => {
   return data
     .load()
     .then(_data => {
-      return data.getUUID(args);
+      return data.filterTasks(_.omit(args, "active"));
     })
-    .then(data.pull)
+    .then(tasks => {
+      return data.pull(_.map(tasks, "uuid"));
+    })
+    .then(tasks => {
+      return data.getUUID(
+        args,
+        _.map(tasks, id => data.tasks[id])
+      );
+    })
     .then(taskUUID => {
       data.tasks[taskUUID].modifiedDate = _.now();
       data.tasks[taskUUID].times.push(args.time);

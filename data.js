@@ -97,18 +97,24 @@ module.exports.save = () => {
 module.exports.pull = uuid => {
   return new Promise((resolve, reject) => {
     if (config.has("uuid")) {
+      console.log("HELLO!", _.castArray(uuid));
       return axios
-        .get(
+        .post(
           config.get("remoteUrl") +
             "tasks/pull/" +
             "?user=" +
-            config.get("uuid") +
-            "&task=" +
-            uuid
+            config.get("uuid"),
+          { tasks: _.castArray(uuid) }
         )
         .then(response => {
-          this.tasks[uuid] = response.data;
+          console.log("PULL:", response.data);
+          for (const resUuid in response.data) {
+            this.tasks[resUuid] = response.data[resUuid];
+          }
           resolve(uuid);
+        })
+        .catch(err => {
+          reject(err);
         });
     } else {
       return Promise((resolve, reject) => {
@@ -203,6 +209,9 @@ module.exports.sync = () => {
           ).then(result => {
             resolve(this.tasks);
           });
+        })
+        .catch(err => {
+          reject(err);
         });
     } else {
       return new Promsie(ressolve => {
@@ -211,7 +220,7 @@ module.exports.sync = () => {
     }
   });
 };
-module.exports.filterTasks = filter => {
+module.exports.filterTasks = (filter, tasks = this.tasks) => {
   return new Promise((resolve, reject) => {
     const filters = [];
     if (filter.parents !== undefined) {
@@ -326,7 +335,7 @@ module.exports.filterTasks = filter => {
         o => o.modifiedDate !== null && o.modifiedDate > filter.modifiedAfter
       );
     }
-    resolve(_.filter(this.tasks, o => _.every(_.map(filters, f => f(o)))));
+    resolve(_.filter(tasks, o => _.every(_.map(filters, f => f(o)))));
   }).then(tasks => {
     return new Promise(resolve => {
       const fuse = new Fuse(tasks, {
@@ -342,8 +351,8 @@ module.exports.filterTasks = filter => {
 module.exports.getTitle = uuid => {
   return this.tasks[uuid].title;
 };
-module.exports.getUUID = filter => {
-  return this.filterTasks(filter).then(tasks => {
+module.exports.getUUID = (filter, tasks = this.tasks) => {
+  return this.filterTasks(filter, tasks).then(tasks => {
     return new Promise((resolve, reject) => {
       if (tasks.length === 0) {
         return reject({
