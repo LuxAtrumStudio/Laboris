@@ -193,15 +193,23 @@ module.exports.delete = uuid => {
     }
   });
 };
-module.exports.sync = () => {
+module.exports.sync = args => {
   return new Promise((resolve, reject) => {
     if (config.has("uuid")) {
+      const url =
+        config.get("remoteUrl") + "user/tasks/?user=" + config.get("uuid");
       return axios
-        .get(config.get("remoteUrl") + "user/tasks/?user=" + config.get("uuid"))
+        .get(url)
         .then(response => {
           if ("error" in response.data) reject(response.data.error);
           return this.pull(
-            _.difference(response.data.tasks, Object.keys(this.tasks))
+            _.uniq(
+              _.concat(
+                _.difference(response.data.tasks, Object.keys(this.tasks)),
+                args.open ? _.filter(this.tasks, tsk => tsk.open) : [],
+                args.closed ? _.filter(this.tasks, tsk => !tsk.open) : []
+              )
+            )
           ).then(result => {
             resolve(this.tasks);
           });

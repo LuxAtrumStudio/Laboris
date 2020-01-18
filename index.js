@@ -393,7 +393,9 @@ const configCmd = args => {
 const sync = args => {
   return data
     .load()
-    .then(data.sync)
+    .then(_data => {
+      return data.sync(args);
+    })
     .then(_data => {
       cliUtil.printSuccess(
         `Synced tasks with remote server at ${datetime.formatDate(

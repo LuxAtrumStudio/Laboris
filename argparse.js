@@ -543,7 +543,10 @@ const parseSync = argv => {
   }
   return {
     command: "sync",
-    args: {}
+    args: {
+      open: _.indexOf(argv, "--no-open") === -1,
+      closed: _.indexOf(argv, "--closed") !== -1
+    }
   };
 };
 
