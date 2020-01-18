@@ -38,10 +38,10 @@ const calculateUrg = task => {
 module.exports.tasks = {};
 module.exports.load = () => {
   return new Promise((resolve, _reject) => {
-      fs.exists(config.get("dataFile"), exists => {
-        resolve(exists);
-      });
-    })
+    fs.exists(config.get("dataFile"), exists => {
+      resolve(exists);
+    });
+  })
     .then(exists => {
       return new Promise((resolve, reject) => {
         if (!exists) resolve({});
@@ -67,10 +67,10 @@ module.exports.load = () => {
 };
 module.exports.save = () => {
   return new Promise((resolve, _reject) => {
-      fs.exists(path.dirname(config.get("dataFile")), exists => {
-        resolve(exists);
-      });
-    })
+    fs.exists(path.dirname(config.get("dataFile")), exists => {
+      resolve(exists);
+    });
+  })
     .then(exists => {
       return new Promise((resolve, reject) => {
         if (!exists) {
@@ -210,8 +210,8 @@ module.exports.sync = args => {
             _.uniq(
               _.concat(
                 _.difference(response.data.tasks, Object.keys(this.tasks)),
-                args.open ? _.filter(this.tasks, tsk => tsk.open) : [],
-                args.closed ? _.filter(this.tasks, tsk => !tsk.open) : []
+                args.open ? _.map(_.filter(this.tasks, tsk => tsk.open), 'uuid') : [],
+                args.closed ? _.map(_.filter(this.tasks, tsk => !tsk.open), 'uuid') : []
               )
             )
           ).then(result => {
