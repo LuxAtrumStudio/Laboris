@@ -97,7 +97,6 @@ module.exports.save = () => {
 module.exports.pull = uuid => {
   return new Promise((resolve, reject) => {
     if (config.has("uuid")) {
-      console.log("HELLO!", _.castArray(uuid));
       return axios
         .post(
           config.get("remoteUrl") +
@@ -107,7 +106,7 @@ module.exports.pull = uuid => {
           { tasks: _.castArray(uuid) }
         )
         .then(response => {
-          console.log("PULL:", response.data);
+          if ("error" in response.data) reject(response.data.error);
           for (const resUuid in response.data) {
             this.tasks[resUuid] = response.data[resUuid];
           }
