@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 const _ = require("lodash");
 const uuidv5 = require("uuid/v5");
 const inquirer = require("inquirer");
@@ -31,7 +32,9 @@ const createTask = args => {
         Promise.resolve(taskUUID),
         Promise.resolve(_.uniq(_.concat(args.parents, args.children))),
         ..._.map(_.uniq(_.concat(args.parents, args.children)), tsk =>
-          data.getUUID({ ref: tsk })
+          data.getUUID({
+            ref: tsk
+          })
         )
       ]);
     })
@@ -56,7 +59,7 @@ const createTask = args => {
         }
       }
       cliUtil.printCreate(data.tasks[taskUUID]);
-      return data.sync(taskUUID);
+      return data.create(taskUUID);
     })
     .then(data.save);
 };
@@ -66,7 +69,7 @@ const deleteTask = args => {
     .then(_data => {
       return data.getUUID(args);
     })
-    .then(data.fetch)
+    .then(data.pull)
     .then(taskUUID => {
       return inquirer.prompt([
         {
@@ -82,7 +85,7 @@ const deleteTask = args => {
     .then(answ => {
       let deletedId = undefined;
       let tmpTask = undefined;
-      let updated = [];
+      const updated = [];
       for (const id in answ) {
         if (answ[id] === true) {
           deletedId = data.tasks[id].uuid;
@@ -101,8 +104,8 @@ const deleteTask = args => {
       if (tmpTask !== undefined) {
         cliUtil.printDelete(tmpTask);
         return Promise.all([
-          data.syncDelete(deletedId),
-          ..._.map(updated, id => data.sync(id))
+          data.delete(deletedId),
+          ..._.map(updated, id => data.push(id))
         ]);
       } else {
         return undefined;
@@ -117,12 +120,12 @@ const startTask = args => {
     .then(_data => {
       return data.getUUID(args);
     })
-    .then(data.fetch)
+    .then(data.pull)
     .then(taskUUID => {
       data.tasks[taskUUID].modifiedDate = _.now();
       data.tasks[taskUUID].times.push(args.time);
       cliUtil.printStart(data.tasks[taskUUID]);
-      return data.sync(taskUUID);
+      return data.push(taskUUID);
     })
     .then(data.save);
 };
@@ -132,12 +135,12 @@ const stopTask = args => {
     .then(_data => {
       return data.getUUID(args);
     })
-    .then(data.fetch)
+    .then(data.pull)
     .then(taskUUID => {
       data.tasks[taskUUID].modifiedDate = _.now();
       data.tasks[taskUUID].times.push(args.time);
       cliUtil.printStop(data.tasks[taskUUID]);
-      return data.sync(taskUUID);
+      return data.push(taskUUID);
     })
     .then(data.save);
 };
@@ -147,12 +150,12 @@ const closeTask = args => {
     .then(_data => {
       return data.getUUID(args);
     })
-    .then(data.fetch)
+    .then(data.pull)
     .then(taskUUID => {
       data.tasks[taskUUID].modifiedDate = _.now();
       data.tasks[taskUUID].open = false;
       cliUtil.printClose(data.tasks[taskUUID]);
-      return data.sync(taskUUID);
+      return data.push(taskUUID);
     })
     .then(data.save);
 };
@@ -162,12 +165,12 @@ const openTask = args => {
     .then(_data => {
       return data.getUUID(args);
     })
-    .then(data.fetch)
+    .then(data.pul)
     .then(taskUUID => {
       data.tasks[taskUUID].modifiedDate = _.now();
       data.tasks[taskUUID].open = true;
       cliUtil.printOpen(data.tasks[taskUUID]);
-      return data.sync(taskUUID);
+      return data.push(taskUUID);
     })
     .then(data.save);
 };
@@ -195,21 +198,24 @@ const reportShowDetail = task => {
       titleFunc("Entry Date"),
       moment(task.entryDate).format("YYYY-MM-DD HH:mm:ss")
     ]);
-    if (task.dueDate !== null)
+    if (task.dueDate !== null) {
       table.push([
         titleFunc("Due Date"),
         moment(task.dueDate).format("YYYY-MM-DD HH:mm:ss")
       ]);
-    if (task.doneDate !== null)
+    }
+    if (task.doneDate !== null) {
       table.push([
         titleFunc("Done Date"),
         moment(task.doneDate).format("YYYY-MM-DD HH:mm:ss")
       ]);
-    if (task.modifiedDate !== undefined)
+    }
+    if (task.modifiedDate !== undefined) {
       table.push([
         titleFunc("Modified Date"),
         moment(task.modifiedDate).format("YYYY-MM-DD HH:mm:ss")
       ]);
+    }
     if (task.tags.length !== 0) {
       for (let i in task.tags) {
         i = _.toInteger(i);
@@ -220,30 +226,32 @@ const reportShowDetail = task => {
     if (task.parents.length !== 0) {
       for (let i in task.parents) {
         i = _.toInteger(i);
-        if (i === 0)
+        if (i === 0) {
           table.push([
             titleFunc("Parents"),
             cliUtil.formatShort(data.tasks[task.parents[i]])
           ]);
-        else table.push(["", cliUtil.formatShort(data.tasks[task.parents[i]])]);
+        } else
+          table.push(["", cliUtil.formatShort(data.tasks[task.parents[i]])]);
       }
     }
     if (task.children.length !== 0) {
       for (let i in task.children) {
         i = _.toInteger(i);
-        if (i === 0)
+        if (i === 0) {
           table.push([
             titleFunc("Children"),
             cliUtil.formatShort(data.tasks[task.children[i]])
           ]);
-        else
+        } else {
           table.push(["", cliUtil.formatShort(data.tasks[task.children[i]])]);
+        }
       }
     }
     if (task.times.length !== 0) {
       for (let i of _.range(0, task.times.length, 2)) {
         i = _.toInteger(i);
-        if (i === 0)
+        if (i === 0) {
           table.push([
             titleFunc("Times"),
             datetime.formatInterval(
@@ -251,7 +259,7 @@ const reportShowDetail = task => {
               task.times.length > i + 1 ? task.times[i + 1] : _.now()
             )
           ]);
-        else
+        } else {
           table.push([
             "",
             datetime.formatInterval(
@@ -259,6 +267,7 @@ const reportShowDetail = task => {
               task.times.length > i + 1 ? task.times[i + 1] : _.now()
             )
           ]);
+        }
       }
     }
 
@@ -274,9 +283,9 @@ const reportAutolist = args => {
       return data.filterTasks(args);
     })
     .then(tasks => {
-      if (tasks.length === 1)
+      if (tasks.length === 1) {
         return reportShowDetail(tasks[Object.keys(tasks)[0]]);
-      else return reportShowList(tasks);
+      } else return reportShowList(tasks);
     });
 };
 
@@ -313,8 +322,9 @@ const userCreate = args => {
   return axios
     .post(config.get("remoteUrl") + "user/create/", args)
     .then(response => {
-      if (response.data.error !== undefined)
+      if (response.data.error !== undefined) {
         return cliUtil.printError(response.data.error);
+      }
       cliUtil.printSuccess(response.data.success);
       config.set("uuid", response.data.uuid);
     })
@@ -327,23 +337,56 @@ const userSignin = args => {
   return axios
     .post(config.get("remoteUrl") + "user/signin/", args)
     .then(response => {
-      if (response.data.error !== undefined)
+      if (response.data.error !== undefined) {
         return cliUtil.printError(response.data.error);
+      }
       cliUtil.printSuccess(response.data.success);
-      console.log(response.data);
       config.set("uuid", response.data.uuid);
     });
+};
+const userSignout = args => {
+  return new Promise((resolve, reject) => {
+    if (config.has("uuid")) config.delete("uuid");
+    cliUtil.printSuccess("Signed out of user");
+    resolve();
+  });
 };
 
 const user = (action, args) => {
   return new Promise((resolve, reject) => {
     if (action === "create") return userCreate(args);
     if (action === "signin") return userSignin(args);
+    if (action === "signout") return userSignout(args);
   });
 };
 
 const configCmd = args => {
-  config.set(args.keys, args.value);
+  return new Promise((resolve, reject) => {
+    for (const key of args.keys) {
+      cliUtil.printNote(
+        `Config value "${key}" = ${JSON.stringify(config.get(key))}`
+      );
+    }
+    for (const key in args.set) {
+      config.set(key, args.set[key]);
+      cliUtil.printSuccess(`Set config value "${key}" = ${args.set[key]}`);
+    }
+  });
+};
+
+const sync = args => {
+  return data
+    .load()
+    .then(data.sync)
+    .then(_data => {
+      cliUtil.printSuccess(
+        `Synced tasks with remote server at ${datetime.formatDate(
+          _.now(),
+          "YYYY-MM-DD HH:mm:ss"
+        )}`
+      );
+      return data.save();
+    });
 };
 
 argparse()
@@ -358,8 +401,14 @@ argparse()
     else if (cmd.command === "report") return report(cmd.report, cmd.args);
     else if (cmd.command === "user") return user(cmd.action, cmd.args);
     else if (cmd.command === "config") return configCmd(cmd.args);
+    else if (cmd.command === "sync") return sync(cmd.args);
   })
   .catch(err => {
-    console.log(err);
-    cliUtil.printError(err);
+    if (_.isObject(err)) {
+      if ("error" in err) cliUtil.printError(err.error);
+      else if ("warning" in err) cliUtil.printNote(err.warning);
+      else cliUtil.printError(`Unrecognized Error: ${JSON.stringify(err)}`);
+    } else {
+      cliUtil.printError(err);
+    }
   });

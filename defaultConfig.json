@@ -40,5 +40,6 @@
     { "fg": "{yellow}", "pos": 0.75 },
     { "fg": "{red}", "pos": 0.9 },
     { "fg": "{red}", "pos": 1.0 }
-  ]
+  ],
+  "lastSync": 0
 }

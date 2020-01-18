@@ -6,15 +6,15 @@ const tinygradient = require('tinygradient');
 const paths = envPaths('Laboris', {suffix: ''});
 const config = new Conf({
   projectSuffix: '',
-  serialize: value => JSON.stringify(value),
+  serialize: (value) => JSON.stringify(value),
   defaults: {
     dataFile: paths.data + '/data.json',
     configFile: paths.config + '/config.json',
-    ...require('./defaultConfig.json')
-  }
+    ...require('./defaultConfig.json'),
+  },
 });
 module.exports = config;
-const configureColor = base => {
+const configureColor = (base) => {
   const baseColors = config.get('colors');
   const baseKeys = Object.keys(baseColors);
   if (base.fg === undefined) base.fs = '';
@@ -28,18 +28,18 @@ const configureColor = base => {
   }
   return base;
 };
-module.exports.getColor = key => {
+module.exports.getColor = (key) => {
   const baseColors = config.get('colors');
   const baseKeys = Object.keys(baseColors);
   if (key in baseColors) return {fg: baseColors[key], bg: '', attr: []};
   return configureColor(config.get(key));
 };
-module.exports.getUrgColor = urg => {
+module.exports.getUrgColor = (urg) => {
   const urgGradient = _.map(config.get('urgGradient'), configureColor);
-  const fgGradient = _.map(urgGradient, c => {
+  const fgGradient = _.map(urgGradient, (c) => {
     return {color: c.fg, pos: c.pos};
   });
-  const bgGradient = _.map(urgGradient, c => {
+  const bgGradient = _.map(urgGradient, (c) => {
     return {color: c.bg, pos: c.pos};
   });
   const pos = _.clamp(urg / 10.0, 0, 1);

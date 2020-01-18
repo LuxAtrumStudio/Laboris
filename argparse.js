@@ -65,7 +65,7 @@ const parseTags = argv => {
 };
 const parseDate = (short, long, argv) => {
   let date = undefined;
-  let newArgv = [];
+  const newArgv = [];
   let skipNext = false;
   shortInline = new RegExp("^" + short + ":");
   longInline = new RegExp("^" + long + ":");
@@ -94,7 +94,7 @@ const parseDueDate = argv => {
 };
 const parseHidden = argv => {
   let hidden = false;
-  let newArgv = [];
+  const newArgv = [];
   for (const arg of argv) {
     if (arg.match(/^--hidden$/)) hidden = true;
     else newArgv.push(arg);
@@ -103,7 +103,7 @@ const parseHidden = argv => {
 };
 const parsePriority = argv => {
   let priority = 5;
-  let newArgv = [];
+  const newArgv = [];
   let skipNext = false;
   for (const arg of argv) {
     if (skipNext) {
@@ -125,7 +125,7 @@ const parsePriority = argv => {
 
 const filterGenericNumber = (name, argv, defaultValue = undefined) => {
   let val = defaultValue;
-  let newArgv = [];
+  const newArgv = [];
   regexSkip = new RegExp("^--" + name + "$");
   regexCapture = new RegExp("^--" + name + "=");
   regexInline = new RegExp(name + ":");
@@ -137,9 +137,9 @@ const filterGenericNumber = (name, argv, defaultValue = undefined) => {
       continue;
     }
     if (arg.match(regexInline)) val = _.toInteger(arg.slice(name.length + 1));
-    else if (arg.match(regexCapture))
+    else if (arg.match(regexCapture)) {
       val = _.toInteger(arg.slice(name.length + 3));
-    else if (arg.match(regexSkip)) skipNext = true;
+    } else if (arg.match(regexSkip)) skipNext = true;
     else newArgv.push(arg);
   }
   return [val, newArgv];
@@ -154,7 +154,7 @@ const filterNumber = (names, argv, defaultValue = undefined) => {
 
 const filterHidden = argv => {
   let hidden = false;
-  let newArgv = [];
+  const newArgv = [];
   for (const arg of argv) {
     if (arg.match(/^--hidden$/)) hidden = true;
     else if (arg.match(/^--no-hidden$/)) hidden = false;
@@ -165,7 +165,7 @@ const filterHidden = argv => {
 };
 const filterOpen = argv => {
   let open = true;
-  let newArgv = [];
+  const newArgv = [];
   for (const arg of argv) {
     if (arg.match(/^--open$/)) open = true;
     else if (arg.match(/^--closed$/)) open = true;
@@ -176,7 +176,7 @@ const filterOpen = argv => {
 };
 const filterActive = argv => {
   let active = undefined;
-  let newArgv = [];
+  const newArgv = [];
   for (const arg of argv) {
     if (arg.match(/^--active$/)) active = true;
     else if (arg.match(/^--not-active$/)) active = true;
@@ -187,7 +187,7 @@ const filterActive = argv => {
 };
 
 const parseFilter = argv => {
-  let filter = {};
+  const filter = {};
   [filter.parents, argv] = parseParents(argv);
   [filter.children, argv] = parseChildren(argv);
   [filter.tags, argv] = parseTags(argv);
@@ -233,7 +233,10 @@ const hasHelp = argv => {
 };
 
 const parseCreate = argv => {
-  let cmd = { command: "create", args: {} };
+  const cmd = {
+    command: "create",
+    args: {}
+  };
   [cmd.args.parents, argv] = parseParents(argv);
   [cmd.args.children, argv] = parseChildren(argv);
   [cmd.args.tags, argv] = parseTags(argv);
@@ -272,10 +275,13 @@ const parseDelete = argv => {
     return undefined;
   }
   if (argv.length === 0) throw "Parse Error[delete]: Task title is required";
-  return (cmd = {
+  return {
     command: "delete",
-    args: { ref: _.join(argv, " "), ...filter }
-  });
+    args: {
+      ref: _.join(argv, " "),
+      ...filter
+    }
+  };
 };
 const parseStart = argv => {
   let time = undefined;
@@ -298,7 +304,7 @@ const parseStart = argv => {
     return undefined;
   }
   if (argv.length === 0) throw "Parse Error[start]: Task title is required";
-  return (cmd = {
+  return {
     command: "start",
     args: {
       time: time ? time : _.now(),
@@ -306,7 +312,7 @@ const parseStart = argv => {
       ...filter,
       active: false
     }
-  });
+  };
 };
 const parseStop = argv => {
   let time = undefined;
@@ -329,7 +335,7 @@ const parseStop = argv => {
     return undefined;
   }
   if (argv.length === 0) throw "Parse Error[stop]: Task title is required";
-  return (cmd = {
+  return {
     command: "stop",
     args: {
       time: time ? time : _.now(),
@@ -337,7 +343,7 @@ const parseStop = argv => {
       ...filter,
       active: true
     }
-  });
+  };
 };
 const parseClose = argv => {
   [filter, argv] = parseFilter(argv);
@@ -347,10 +353,14 @@ const parseClose = argv => {
     return undefined;
   }
   if (argv.length === 0) throw "Parse Error[close]: Task title is required";
-  return (cmd = {
+  return {
     command: "close",
-    args: { ref: _.join(argv, " "), ...filter, open: true }
-  });
+    args: {
+      ref: _.join(argv, " "),
+      ...filter,
+      open: true
+    }
+  };
 };
 const parseOpen = argv => {
   [filter, argv] = parseFilter(argv);
@@ -360,10 +370,14 @@ const parseOpen = argv => {
     return undefined;
   }
   if (argv.length === 0) throw "Parse Error[open]: Task title is required";
-  return (cmd = {
+  return {
     command: "open",
-    args: { ref: _.join(argv, " "), ...filter, open: false }
-  });
+    args: {
+      ref: _.join(argv, " "),
+      ...filter,
+      open: false
+    }
+  };
 };
 const parseAutolist = argv => {
   [filter, argv] = parseFilter(argv);
@@ -371,11 +385,14 @@ const parseAutolist = argv => {
     cliUtil.wrapText("Usage: laboris report autolist [FILTER_OPTIONS]", 80, 22);
     return undefined;
   }
-  return (cmd = {
+  return {
     command: "report",
     report: "autolist",
-    args: { ref: _.join(argv, " "), ...filter }
-  });
+    args: {
+      ref: _.join(argv, " "),
+      ...filter
+    }
+  };
 };
 const parseList = argv => {
   [filter, argv] = parseFilter(argv);
@@ -383,11 +400,14 @@ const parseList = argv => {
     cliUtil.wrapText("Usage: laboris report list [FILTER_OPTIONS]", 80, 22);
     return undefined;
   }
-  return (cmd = {
+  return {
     command: "report",
     report: "list",
-    args: { ref: _.join(argv, " "), ...filter }
-  });
+    args: {
+      ref: _.join(argv, " "),
+      ...filter
+    }
+  };
 };
 const parseDetail = argv => {
   [filter, argv] = parseFilter(argv);
@@ -395,11 +415,14 @@ const parseDetail = argv => {
     cliUtil.wrapText("Usage: laboris report detail [FILTER_OPTIONS]", 80, 22);
     return undefined;
   }
-  return (cmd = {
+  return {
     command: "report",
     report: "detail",
-    args: { ref: _.join(argv, " "), ...filter }
-  });
+    args: {
+      ref: _.join(argv, " "),
+      ...filter
+    }
+  };
 };
 
 const parseReport = argv => {
@@ -411,30 +434,117 @@ const parseReport = argv => {
 };
 
 const parseUserCreate = argv => {
-  return (cmd = {
+  if (hasHelp(argv)) {
+    cliUtil.wrapText("Usage: laboris user create EMAIL PASSWORD", 80, 22);
+    return undefined;
+  }
+  if (argv.length === 0)
+    throw "Parse Error[user create]: User email is required";
+  if (argv.length === 1)
+    throw "Parse Error[user create]: User password is required";
+  return {
     command: "user",
     action: "create",
-    args: { email: argv[0], password: argv[1] }
-  });
+    args: {
+      email: argv[0],
+      password: argv[1]
+    }
+  };
 };
 
 const parseUserSignin = argv => {
-  return (cmd = {
+  if (hasHelp(argv)) {
+    cliUtil.wrapText("Usage: laboris user signin EMAIL PASSWORD", 80, 22);
+    return undefined;
+  }
+  if (argv.length === 0)
+    throw "Parse Error[user signin]: User email is required";
+  if (argv.length === 1)
+    throw "Parse Error[user signin]: User password is required";
+  return {
     command: "user",
     action: "signin",
-    args: { email: argv[0], password: argv[1] }
-  });
+    args: {
+      email: argv[0],
+      password: argv[1]
+    }
+  };
+};
+
+const parseUserSignout = argv => {
+  if (hasHelp(argv)) {
+    cliUtil.wrapText("Usage: laboris user signout", 80, 22);
+    return undefined;
+  }
+  return {
+    command: "user",
+    action: "signout",
+    args: {}
+  };
 };
 
 const parseUser = argv => {
   if (argv.length > 0) {
     if (argv[0] === "create") return parseUserCreate(_.slice(argv, 1));
     if (argv[0] === "signin") return parseUserSignin(_.slice(argv, 1));
+    if (argv[0] === "signout") return parseUserSignout(_.slice(argv, 1));
   }
 };
 
 const parseConfig = argv => {
-  return (cmd = { command: "config", args: { key: argv[0], value: argv[1] } });
+  let set = {};
+  let newArgv = [];
+  regexSkip = new RegExp(/^--set$/);
+  regexCapture = new RegExp(/^--set=/);
+  regexInline = new RegExp(/^([^=:]+)[:=](.+)$/);
+  let skipNext = false;
+  for (const arg of argv) {
+    if (skipNext) {
+      skipNext = false;
+      set[_.last(newArgv)] = arg;
+      newArgv = _.dropRight(newArgv);
+      continue;
+    }
+    if (arg.match(regexCapture)) {
+      if (newArgv.length === 0)
+        throw "Parse Error[config]: Expected config value key before set flag";
+      set[_.last(newArgv)] = arg.slice(6);
+      newArgv = _.dropRight(newArgv);
+    } else if (arg.match(regexInline)) {
+      set[arg.match(regexInline)[1]] = arg.match(regexInline)[2];
+    } else if (arg.match(regexSkip)) {
+      if (newArgv.length === 0)
+        throw "Parse Error[config]: Expected config value key before set flag";
+      skipNext = true;
+    } else newArgv.push(arg);
+  }
+  if (skipNext) throw "Parse Error[config]: Expected value for set flag";
+  if (hasHelp(newArgv)) {
+    cliUtil.wrapText(
+      "Usage: laboris config [KEY [--set VAL] [KEY [--set VAL]...]]",
+      80,
+      22
+    );
+    return undefined;
+  }
+  return {
+    command: "config",
+    args: {
+      keys: newArgv,
+      set: set
+    }
+  };
+};
+
+const parseSync = argv => {
+  if (hasHelp(argv)) {
+    cliUtil.wrapText("Usage: laboris sync", 80, 22);
+    return undefined;
+  }
+  return {
+    command: "sync",
+    args: {}
+  };
 };
 
 module.exports = (argv = undefined) => {
@@ -442,23 +552,28 @@ module.exports = (argv = undefined) => {
     if (argv === undefined) argv = _.slice(process.argv, 2);
     if (argv.length > 0) {
       if (argv[0] === "create") return resolve(parseCreate(_.slice(argv, 1)));
-      else if (argv[0] === "delete")
+      else if (argv[0] === "delete") {
         return resolve(parseDelete(_.slice(argv, 1)));
-      else if (argv[0] === "start")
+      } else if (argv[0] === "start") {
         return resolve(parseStart(_.slice(argv, 1)));
-      else if (argv[0] === "stop") return resolve(parseStop(_.slice(argv, 1)));
-      else if (argv[0] === "close")
+      } else if (argv[0] === "stop")
+        return resolve(parseStop(_.slice(argv, 1)));
+      else if (argv[0] === "close") {
         return resolve(parseClose(_.slice(argv, 1)));
-      else if (argv[0] === "open") return resolve(parseOpen(_.slice(argv, 1)));
+      } else if (argv[0] === "open")
+        return resolve(parseOpen(_.slice(argv, 1)));
       else if (argv[0] === "list") return resolve(parseList(_.slice(argv, 1)));
-      else if (argv[0] === "detail")
+      else if (argv[0] === "detail") {
         return resolve(parseDetail(_.slice(argv, 1)));
-      else if (argv[0] === "report")
+      } else if (argv[0] === "report") {
         return resolve(parseReport(_.slice(argv, 1)));
-      else if (argv[0] === "user") return resolve(parseUser(_.slice(argv, 1)));
-      else if (argv[0] === "config")
+      } else if (argv[0] === "user") {
+        return resolve(parseUser(_.slice(argv, 1)));
+      } else if (argv[0] === "config") {
         return resolve(parseConfig(_.slice(argv, 1)));
-      else return resolve(parseAutolist(argv));
+      } else if (argv[0] === "sync") {
+        return resolve(parseSync(_.slice(argv, 1)));
+      } else return resolve(parseAutolist(argv));
     } else {
       return resolve(parseAutolist(argv));
     }

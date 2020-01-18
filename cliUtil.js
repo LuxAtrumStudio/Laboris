@@ -1,46 +1,46 @@
-const _ = require("lodash");
-const chalk = require("chalk");
-const data = require("./data.js");
-const moment = require("moment");
-const config = require("./config.js");
+const _ = require('lodash');
+const chalk = require('chalk');
+const data = require('./data.js');
+const moment = require('moment');
+const config = require('./config.js');
 
-const datetime = require("./datetime.js");
+const datetime = require('./datetime.js');
 
-const dispLength = str => {
+const dispLength = (str) => {
   let len = 0;
   let state = 0;
   for (const i in str) {
-    if (str[i] == "\u001b") state = 1;
-    else if (str[i] == "m" && state == 1) state = 0;
+    if (str[i] == '\u001b') state = 1;
+    else if (str[i] == 'm' && state == 1) state = 0;
     else if (state == 0) len += 1;
   }
   return len;
 };
 
-const padLeft = (str, len, char = " ") => {
+const padLeft = (str, len, char = ' ') => {
   return char.repeat(len - dispLength(str)) + str;
 };
-const padRight = (str, len, char = " ") => {
+const padRight = (str, len, char = ' ') => {
   return str + char.repeat(len - dispLength(str));
 };
 
 module.exports.wrapText = (str, width = 80, indent = 2, initIndent = 0) => {
-  str = str.split(" ");
-  res = "";
-  line = " ".repeat(initIndent);
+  str = str.split(' ');
+  res = '';
+  line = ' '.repeat(initIndent);
   for (const word of str) {
     if (dispLength(line + word) > width) {
-      res += line + "\n";
-      line = " ".repeat(indent);
+      res += line + '\n';
+      line = ' '.repeat(indent);
     }
-    line += word + " ";
+    line += word + ' ';
   }
   res += line;
   console.log(res);
 };
 
 module.exports.printTable = (table, alignment = [], zebra = false) => {
-  let colWidth = [];
+  const colWidth = [];
   for (const r in table) {
     for (const c in table[r]) {
       if (c >= colWidth.length) colWidth.push(dispLength(table[r][c]));
@@ -48,41 +48,41 @@ module.exports.printTable = (table, alignment = [], zebra = false) => {
     }
   }
   while (alignment.length < colWidth.length) {
-    alignment.push("<");
+    alignment.push('<');
   }
   for (const r in table) {
-    let line = "";
+    let line = '';
     for (const c in table[r]) {
-      if (_.toInteger(c) !== 0) line += "  ";
-      if (alignment[c] === "<") line += padRight(table[r][c], colWidth[c]);
-      else if (alignment[c] === ">") line += padLeft(table[r][c], colWidth[c]);
+      if (_.toInteger(c) !== 0) line += '  ';
+      if (alignment[c] === '<') line += padRight(table[r][c], colWidth[c]);
+      else if (alignment[c] === '>') line += padLeft(table[r][c], colWidth[c]);
     }
     if (zebra && r % 2 == 0) console.log(chalk.bgBlack(line));
     else console.log(line);
   }
 };
 
-module.exports.getColorFunc = color => {
+module.exports.getColorFunc = (color) => {
   let func = chalk;
-  if (color.fg !== "" && _.isString(color.fg)) func = func.hex(color.fg);
-  else if (color.fg !== "") func = func.hex(color.fg.toHex());
-  if (color.bg !== "" && _.isString(color.bg)) func = func.bgHex(color.bg);
-  else if (color.bg !== "") func = func.bgHex(color.bg.toHex());
-  if (_.findIndex(color.attr, "bold") !== -1) func = func.bold;
-  if (_.findIndex(color.attr, "underline") !== -1) func = func.underline;
+  if (color.fg !== '' && _.isString(color.fg)) func = func.hex(color.fg);
+  else if (color.fg !== '') func = func.hex(color.fg.toHex());
+  if (color.bg !== '' && _.isString(color.bg)) func = func.bgHex(color.bg);
+  else if (color.bg !== '') func = func.bgHex(color.bg.toHex());
+  if (_.findIndex(color.attr, 'bold') !== -1) func = func.bold;
+  if (_.findIndex(color.attr, 'underline') !== -1) func = func.underline;
   return func;
 };
 
 module.exports.taskFmt = (fmt, task) => {
   const colors = {
     urg:
-      task.times.length % 2 === 0
-        ? this.getColorFunc(config.getUrgColor(task.urg))
-        : this.getColorFunc(config.getColor("active")),
-    title: this.getColorFunc(config.getColor("title")),
-    parent: this.getColorFunc(config.getColor("parent")),
-    child: this.getColorFunc(config.getColor("child")),
-    tag: this.getColorFunc(config.getColor("tag"))
+      task.times.length % 2 === 0 ?
+        this.getColorFunc(config.getUrgColor(task.urg)) :
+        this.getColorFunc(config.getColor('active')),
+    title: this.getColorFunc(config.getColor('title')),
+    parent: this.getColorFunc(config.getColor('parent')),
+    child: this.getColorFunc(config.getColor('child')),
+    tag: this.getColorFunc(config.getColor('tag')),
   };
   const keys = {
     uuidShort: task.uuid.slice(0, 8),
@@ -90,109 +90,112 @@ module.exports.taskFmt = (fmt, task) => {
     priority: task.priority.toString(),
     title: task.title,
     parents:
-      task.parents.length !== 0
-        ? "+" + _.join(_.map(task.parents, data.getTitle), " +")
-        : "",
+      task.parents.length !== 0 ?
+        '+' + _.join(_.map(task.parents, data.getTitle), ' +') :
+        '',
     children:
-      task.children.length !== 0
-        ? "%" + _.join(_.map(task.children, data.getTitle), " %")
-        : "",
-    tags: task.tags.length !== 0 ? "@" + _.join(task.tags, " @") : "",
-    dueDate: task.dueDate
-      ? moment(task.dueDate).format("YYYY-MM-DD HH:mmm:ss")
-      : "",
-    entryDate: moment(task.entryDate).format("YYYY-MM-DD HH:mm:ss"),
-    doneDate: task.doneDate
-      ? moment(task.doneDate).format("YYYY-MM-DD HH:mm:ss")
-      : "",
-    modifiedDate: moment(task.modifiedDate).format("YYYY-MM-DD HH:mm:ss"),
-    dueShort: task.dueDate
-      ? datetime.getDurationMax(task.dueDate - _.now())
-      : "",
-    entryShort: task.entryDate
-      ? datetime.getDurationMax(task.entryDate - _.now())
-      : "",
-    doneShort: task.doneDate
-      ? datetime.getDurationMax(task.doneDate - _.now())
-      : "",
-    modifiedShort: task.modifiedDate
-      ? datetime.getDurationMax(task.modifiedDate - _.now())
-      : "",
-    urg: task.urg.toFixed(3)
+      task.children.length !== 0 ?
+        '%' + _.join(_.map(task.children, data.getTitle), ' %') :
+        '',
+    tags: task.tags.length !== 0 ? '@' + _.join(task.tags, ' @') : '',
+    dueDate: task.dueDate ?
+      moment(task.dueDate).format('YYYY-MM-DD HH:mmm:ss') :
+      '',
+    entryDate: moment(task.entryDate).format('YYYY-MM-DD HH:mm:ss'),
+    doneDate: task.doneDate ?
+      moment(task.doneDate).format('YYYY-MM-DD HH:mm:ss') :
+      '',
+    modifiedDate: moment(task.modifiedDate).format('YYYY-MM-DD HH:mm:ss'),
+    dueShort: task.dueDate ?
+      datetime.getDurationMax(task.dueDate - _.now()) :
+      '',
+    entryShort: task.entryDate ?
+      datetime.getDurationMax(task.entryDate - _.now()) :
+      '',
+    doneShort: task.doneDate ?
+      datetime.getDurationMax(task.doneDate - _.now()) :
+      '',
+    modifiedShort: task.modifiedDate ?
+      datetime.getDurationMax(task.modifiedDate - _.now()) :
+      '',
+    urg: task.urg.toFixed(3),
   };
   for (const color in colors) {
     fmt = fmt.replace(
-      new RegExp("{([^:{}]+):" + color + "Color}"),
-      colors[color]("{$1}")
+        new RegExp('{([^:{}]+):' + color + 'Color}'),
+        colors[color]('{$1}'),
     );
   }
   for (const key in keys) {
-    fmt = fmt.replace(new RegExp("{" + key + "}"), keys[key]);
+    fmt = fmt.replace(new RegExp('{' + key + '}'), keys[key]);
   }
   return fmt;
 };
 
-module.exports.formatRef = task => {
-  return this.taskFmt("{uuidShort} {title}", task);
+module.exports.formatRef = (task) => {
+  return this.taskFmt('{uuidShort} {title}', task);
 };
-module.exports.formatShort = task => {
-  return this.taskFmt(config.get("shortFormat"), task);
-};
-
-module.exports.formatList = task => {
-  const fmt = str => this.taskFmt(str, task);
-  return _.map(this.taskFmt(config.get("listFormat"), task).split(","), fmt);
+module.exports.formatShort = (task) => {
+  return this.taskFmt(config.get('shortFormat'), task);
 };
 
-module.exports.printCreate = task => {
+module.exports.formatList = (task) => {
+  const fmt = (str) => this.taskFmt(str, task);
+  return _.map(this.taskFmt(config.get('listFormat'), task).split(','), fmt);
+};
+
+module.exports.printCreate = (task) => {
   console.log(
-    this.getColorFunc(config.getColor("create"))(
-      `Created ${this.formatRef(task)}`
-    )
+      this.getColorFunc(config.getColor('create'))(
+          `Created ${this.formatRef(task)}`,
+      ),
   );
 };
-module.exports.printDelete = task => {
+module.exports.printDelete = (task) => {
   console.log(
-    this.getColorFunc(config.getColor("delete"))(
-      `Deleted ${this.formatRef(task)}`
-    )
+      this.getColorFunc(config.getColor('delete'))(
+          `Deleted ${this.formatRef(task)}`,
+      ),
   );
 };
-module.exports.printStart = task => {
+module.exports.printStart = (task) => {
   console.log(
-    this.getColorFunc(config.getColor("start"))(
-      `Started ${this.formatRef(task)} ${datetime.formatDate(
-        _.last(task.times),
-        "h:mm:ss A"
-      )}`
-    )
+      this.getColorFunc(config.getColor('start'))(
+          `Started ${this.formatRef(task)} ${datetime.formatDate(
+              _.last(task.times),
+              'h:mm:ss A',
+          )}`,
+      ),
   );
 };
-module.exports.printStop = task => {
+module.exports.printStop = (task) => {
   console.log(
-    this.getColorFunc(config.getColor("start"))(
-      `Stoped ${this.formatRef(task)} ${datetime.formatInterval(
-        task.times[task.times.length - 2],
-        task.times[task.times.length - 1]
-      )}`
-    )
+      this.getColorFunc(config.getColor('start'))(
+          `Stoped ${this.formatRef(task)} ${datetime.formatInterval(
+              task.times[task.times.length - 2],
+              task.times[task.times.length - 1],
+          )}`,
+      ),
   );
 };
-module.exports.printClose = task => {
+module.exports.printClose = (task) => {
   console.log(
-    this.getColorFunc(config.getColor("close"))(
-      `Closed ${this.formatRef(task)}`
-    )
+      this.getColorFunc(config.getColor('close'))(
+          `Closed ${this.formatRef(task)}`,
+      ),
   );
 };
-module.exports.printOpen = task => {
+module.exports.printOpen = (task) => {
   console.log(
-    this.getColorFunc(config.getColor("open"))(`Opened ${this.formatRef(task)}`)
+      this.getColorFunc(config.getColor('open'))(`Opened ${this.formatRef(task)}`),
   );
 };
-module.exports.printError = msg => {
-  console.error(this.getColorFunc(config.getColor("error"))(msg));
+module.exports.printError = (msg) => {
+  console.error(this.getColorFunc(config.getColor('error'))(msg));
 };
-module.exports.printSuccess = msg => {
-  console.error(this.getColorFunc(config.getColor("success"))(msg));
+module.exports.printSuccess = (msg) => {
+  console.error(this.getColorFunc(config.getColor('success'))(msg));
+};
+module.exports.printNote = (msg) => {
+  console.error(this.getColorFunc(config.getColor('note'))(msg));
 };

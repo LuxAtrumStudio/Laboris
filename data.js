@@ -24,7 +24,7 @@ const calcUrgDueDate = task => {
 
 const calculateUrg = task => {
   if (task.priority === 0 || task.open === false) return 0.0;
-  var urg = 0.0;
+  let urg = 0.0;
   urg += Math.abs((0.01429 * (_.now() - task.entryDate)) / 86400000);
   urg += Math.abs(9.0 * calcUrgDueDate(task));
   urg += Math.abs(1.0 * task.parents.length);
@@ -45,17 +45,21 @@ module.exports.load = () => {
     .then(exists => {
       return new Promise((resolve, reject) => {
         if (!exists) resolve({});
-        else
+        else {
           fs.readFile(config.get("dataFile"), "utf8", (err, data) => {
             if (err) return reject(err);
             return resolve(JSON.parse(data));
           });
+        }
       });
     })
     .then(data => {
       return new Promise(resolve => {
         for (const id in data) {
-          this.tasks[id] = { ...data[id], urg: calculateUrg(data[id]) };
+          this.tasks[id] = {
+            ...data[id],
+            urg: calculateUrg(data[id])
+          };
         }
         resolve(this.tasks);
       });
@@ -69,12 +73,12 @@ module.exports.save = () => {
   })
     .then(exists => {
       return new Promise((resolve, reject) => {
-        if (!exists)
+        if (!exists) {
           fs.mkdir(path.dirname(config.get("dataFile")), err => {
             if (err) return reject(err);
             else return resolve();
           });
-        else return resolve();
+        } else return resolve();
       });
     })
     .then(() => {
@@ -90,9 +94,9 @@ module.exports.save = () => {
       });
     });
 };
-module.exports.fetch = uuid => {
+module.exports.pull = uuid => {
   return new Promise((resolve, reject) => {
-    if (config.has("uuid"))
+    if (config.has("uuid")) {
       return axios
         .get(
           config.get("remoteUrl") +
@@ -106,15 +110,16 @@ module.exports.fetch = uuid => {
           this.tasks[uuid] = response.data;
           resolve(uuid);
         });
-    else
+    } else {
       return Promise((resolve, reject) => {
         resolve(uuid);
       });
+    }
   });
 };
-module.exports.sync = uuid => {
+module.exports.push = uuid => {
   return new Promise((resolve, reject) => {
-    if (config.has("uuid"))
+    if (config.has("uuid")) {
       return axios
         .post(
           config.get("remoteUrl") +
@@ -126,19 +131,43 @@ module.exports.sync = uuid => {
           this.tasks[uuid]
         )
         .then(response => {
-          if ("error" in response) reject(response);
+          if ("error" in response.data) reject(response.data.error);
           this.tasks[uuid] = response.data;
           resolve(uuid);
         });
-    else
+    } else {
       return new Promise((resolve, reject) => {
         resolve(uuid);
       });
+    }
   });
 };
-module.exports.syncDelete = uuid => {
+module.exports.create = uuid => {
   return new Promise((resolve, reject) => {
-    if (config.has("uuid"))
+    if (config.has("uuid")) {
+      return axios
+        .post(
+          config.get("remoteUrl") +
+            "tasks/create/?user=" +
+            config.get("uuid") +
+            "&task=" +
+            uuid,
+          this.tasks[uuid]
+        )
+        .then(response => {
+          if ("error" in response.data) reject(response.data.error);
+          resolve(uuid);
+        });
+    } else {
+      return new Promise((resolve, reject) => {
+        resolve(uuid);
+      });
+    }
+  });
+};
+module.exports.delete = uuid => {
+  return new Promise((resolve, reject) => {
+    if (config.has("uuid")) {
       return axios
         .post(
           config.get("remoteUrl") +
@@ -149,105 +178,158 @@ module.exports.syncDelete = uuid => {
             uuid
         )
         .then(response => {
-          if ("error" in response) reject(response);
+          if ("error" in response.data) reject(response.data.error);
           resolve(uuid);
         });
-    else
+    } else {
       return new Promise(resolve => {
         resolve(uuid);
       });
+    }
+  });
+};
+module.exports.sync = () => {
+  return new Promise((resolve, reject) => {
+    if (config.has("uuid")) {
+      return axios
+        .get(config.get("remoteUrl") + "user/tasks/?user=" + config.get("uuid"))
+        .then(response => {
+          if ("error" in response.data) reject(response.data.error);
+          Promise.all(
+            _.map(
+              _.difference(response.data.tasks, Object.keys(this.tasks)),
+              uuid => this.fetch(uuid)
+            )
+          ).then(result => {
+            resolve(this.tasks);
+          });
+        });
+    } else {
+      return new Promsie(ressolve => {
+        resolve(this.tasks);
+      });
+    }
   });
 };
 module.exports.filterTasks = filter => {
   return new Promise((resolve, reject) => {
-    let filters = [];
-    if (filter.parents !== undefined)
+    const filters = [];
+    if (filter.parents !== undefined) {
       filters.push(o => _.difference(filter.parents, o.parents).length === 0);
-    if (filter.children !== undefined)
+    }
+    if (filter.children !== undefined) {
       filters.push(o => _.difference(filter.children, o.children).length === 0);
-    if (filter.tags !== undefined)
+    }
+    if (filter.tags !== undefined) {
       filters.push(o => _.difference(filter.tags, o.tags).length === 0);
+    }
     if (filter.open !== undefined) filters.push(o => o.open === filter.open);
-    if (filter.hidden !== undefined)
+    if (filter.hidden !== undefined) {
       filters.push(o => o.hidden === filter.hidden);
-    if (filter.active !== undefined)
+    }
+    if (filter.active !== undefined) {
       filters.push(o => o.times.length % 2 === (filter.active ? 1 : 0));
-    if (filter.priority !== undefined)
+    }
+    if (filter.priority !== undefined) {
       filters.push(o => o.priority === filter.priority);
-    if (filter.priorityG !== undefined)
+    }
+    if (filter.priorityG !== undefined) {
       filters.push(o => o.priority > filter.priorityG);
-    if (filter.priorityL !== undefined)
+    }
+    if (filter.priorityL !== undefined) {
       filters.push(o => o.priority < filter.priorityL);
-    if (filter.parentCount !== undefined)
+    }
+    if (filter.parentCount !== undefined) {
       filters.push(o => o.parents.length === filter.parentCount);
-    if (filter.parentCountG !== undefined)
+    }
+    if (filter.parentCountG !== undefined) {
       filters.push(o => o.parents.length > filter.parentCountG);
-    if (filter.parentCountL !== undefined)
+    }
+    if (filter.parentCountL !== undefined) {
       filters.push(o => o.parents.length < filter.parentCountL);
-    if (filter.childCount !== undefined)
+    }
+    if (filter.childCount !== undefined) {
       filters.push(o => o.children.length === filter.childCount);
-    if (filter.childCountG !== undefined)
+    }
+    if (filter.childCountG !== undefined) {
       filters.push(o => o.children.length > filter.childCountG);
-    if (filter.childCountL !== undefined)
+    }
+    if (filter.childCountL !== undefined) {
       filters.push(o => o.children.length < filter.childCountL);
-    if (filter.tagCount !== undefined)
+    }
+    if (filter.tagCount !== undefined) {
       filters.push(o => o.tags.length === filter.tagCount);
-    if (filter.tagCountG !== undefined)
+    }
+    if (filter.tagCountG !== undefined) {
       filters.push(o => o.tags.length > filter.tagCountG);
-    if (filter.tagCountL !== undefined)
+    }
+    if (filter.tagCountL !== undefined) {
       filters.push(o => o.tags.length < filter.tagCountL);
-    if (filter.due !== undefined)
+    }
+    if (filter.due !== undefined) {
       filters.push(
         o =>
           o.dueDate !== null &&
           moment(o.dueDate).diff(moment(filter.due), "days") === 0
       );
-    if (filter.dueBefore !== undefined)
+    }
+    if (filter.dueBefore !== undefined) {
       filters.push(o => o.dueDate !== null && o.dueDate < filter.dueBefore);
-    if (filter.dueAfter !== undefined)
+    }
+    if (filter.dueAfter !== undefined) {
       filters.push(o => o.dueDate !== null && o.dueDate > filter.dueAfter);
-    if (filter.entry !== undefined)
+    }
+    if (filter.entry !== undefined) {
       filters.push(
         o =>
           o.entryDate !== null &&
           moment(o.entryDate).diff(moment(filter.entry), "days") === 0
       );
-    if (filter.entryBefore !== undefined)
+    }
+    if (filter.entryBefore !== undefined) {
       filters.push(
         o => o.entryDate !== null && o.entryDate < filter.entryBefore
       );
-    if (filter.entryAfter !== undefined)
+    }
+    if (filter.entryAfter !== undefined) {
       filters.push(
         o => o.entryDate !== null && o.entryDate > filter.entryAfter
       );
-    if (filter.done !== undefined)
+    }
+    if (filter.done !== undefined) {
       filters.push(
         o =>
           o.doneDate !== null &&
           moment(o.doneDate).diff(moment(filter.done), "days") === 0
       );
-    if (filter.doneBefore !== undefined)
+    }
+    if (filter.doneBefore !== undefined) {
       filters.push(o => o.doneDate !== null && o.doneDate < filter.doneBefore);
-    if (filter.doneAfter !== undefined)
+    }
+    if (filter.doneAfter !== undefined) {
       filters.push(o => o.doneDate !== null && o.doneDate > filter.doneAfter);
-    if (filter.modified !== undefined)
+    }
+    if (filter.modified !== undefined) {
       filters.push(
         o =>
           o.modifiedDate !== null &&
           moment(o.modifiedDate).diff(moment(filter.modified), "days") === 0
       );
-    if (filter.modifiedBefore !== undefined)
+    }
+    if (filter.modifiedBefore !== undefined) {
       filters.push(
         o => o.modifiedDate !== null && o.modifiedDate < filter.modifiedBefore
       );
-    if (filter.modifiedAfter !== undefined)
+    }
+    if (filter.modifiedAfter !== undefined) {
       filters.push(
         o => o.modifiedDate !== null && o.modifiedDate > filter.modifiedAfter
       );
+    }
     resolve(_.filter(this.tasks, o => _.every(_.map(filters, f => f(o)))));
   }).then(tasks => {
     return new Promise(resolve => {
-      var fuse = new Fuse(tasks, {
+      const fuse = new Fuse(tasks, {
         shouldSort: true,
         threshold: 0.5,
         keys: ["uuid", "title"]
@@ -263,14 +345,17 @@ module.exports.getTitle = uuid => {
 module.exports.getUUID = filter => {
   return this.filterTasks(filter).then(tasks => {
     return new Promise((resolve, reject) => {
-      if (tasks.length === 0)
-        return reject({ warning: "No tasks satisfied all filters" });
+      if (tasks.length === 0) {
+        return reject({
+          warning: "No tasks satisfied all filters"
+        });
+      }
       if (tasks.length === 1) return resolve(tasks[0].uuid);
-      let strings = {};
+      const strings = {};
       for (const task of tasks) {
         strings[task.uuid] = cliUtil.formatShort(task);
       }
-      var fuse = new Fuse(tasks, {
+      const fuse = new Fuse(tasks, {
         shouldSort: true,
         threshold: 0.8,
         keys: ["uuid", "title"]
@@ -284,9 +369,10 @@ module.exports.getUUID = filter => {
               message: "Specify Task",
               source: (_tmp, input) => {
                 return new Promise((resolve, _reject) => {
-                  if (input === undefined)
+                  if (input === undefined) {
                     return resolve(_.map(tasks, o => strings[o.uuid]));
-                  let opt = fuse.search(input);
+                  }
+                  const opt = fuse.search(input);
                   return resolve(
                     _.map(fuse.search(input), o => strings[o.uuid])
                   );

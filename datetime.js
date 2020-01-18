@@ -2,10 +2,10 @@ const _ = require("lodash");
 const moment = require("moment");
 
 const parseRelativeDate = str => {
-  var res = moment();
+  const res = moment();
   Array.from(str.matchAll(/([\+-])(\d*)([wdhms])/gim)).forEach(mod => {
     if (mod[2] === "") mod[2] = "1";
-    if (mod[1] === "+")
+    if (mod[1] === "+") {
       res.add({
         weeks: mod[3] === "w" ? parseInt(mod[2]) : 0,
         days: mod[3] === "d" ? parseInt(mod[2]) : 0,
@@ -13,7 +13,7 @@ const parseRelativeDate = str => {
         minutes: mod[3] === "m" ? parseInt(mod[2]) : 0,
         seconds: mod[3] === "s" ? parseInt(mod[2]) : 0
       });
-    else
+    } else {
       res.subtract({
         weeks: mod[3] === "w" ? parseInt(mod[2]) : 0,
         days: mod[3] === "d" ? parseInt(mod[2]) : 0,
@@ -21,6 +21,7 @@ const parseRelativeDate = str => {
         minutes: mod[3] === "m" ? parseInt(mod[2]) : 0,
         seconds: mod[3] === "s" ? parseInt(mod[2]) : 0
       });
+    }
   });
   return res.valueOf();
 };
@@ -179,8 +180,9 @@ module.exports.parse = str => {
   if (!res.isValid()) {
     return undefined;
   }
-  if (res.valueOf() < _.now() && !str.match(/[0-9]|\s/i))
+  if (res.valueOf() < _.now() && !str.match(/[0-9]|\s/i)) {
     return res.add({ days: 7 }).valueOf();
+  }
   return res.valueOf();
 };
 
@@ -304,8 +306,8 @@ module.exports.formatDate = (a, fmt) => {
   return moment(a).format(fmt);
 };
 module.exports.formatInterval = (a, b) => {
-  let ma = moment(a);
-  let mb = moment(b);
+  const ma = moment(a);
+  const mb = moment(b);
   let msg = ma.format("YYYY-MM-DD HH:mm") + " - ";
   if (mb.diff(ma, "days") !== 0) msg += mb.format("YYYY-MM-DD HH:mm");
   else msg += mb.format("HH:mm");
