@@ -1,12 +1,19 @@
 {
-  "name": "Laboris",
-  "version": "1.0.0",
+  "name": "laboris-cli",
+  "version": "2.1.0",
   "main": "index.js",
   "repository": "git@github.com:LuxAter/Laboris.git",
   "author": "Arden Rasmussen <ardenisthebest@gmail.com>",
   "license": "MIT",
   "scripts": {
     "start": "node index.js"
+  },
+  "engines": {
+    "node": ">=8"
+  },
+  "preferGlobal": true,
+  "bin": {
+    "laboris": "index.js"
   },
   "dependencies": {
     "axios": "^0.19.1",
