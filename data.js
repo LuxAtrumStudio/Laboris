@@ -198,7 +198,7 @@ module.exports.sync = () => {
           Promise.all(
             _.map(
               _.difference(response.data.tasks, Object.keys(this.tasks)),
-              uuid => this.fetch(uuid)
+              uuid => this.pull(uuid)
             )
           ).then(result => {
             resolve(this.tasks);
