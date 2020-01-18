@@ -38,10 +38,10 @@ const calculateUrg = task => {
 module.exports.tasks = {};
 module.exports.load = () => {
   return new Promise((resolve, _reject) => {
-    fs.exists(config.get("dataFile"), exists => {
-      resolve(exists);
-    });
-  })
+      fs.exists(config.get("dataFile"), exists => {
+        resolve(exists);
+      });
+    })
     .then(exists => {
       return new Promise((resolve, reject) => {
         if (!exists) resolve({});
@@ -67,10 +67,10 @@ module.exports.load = () => {
 };
 module.exports.save = () => {
   return new Promise((resolve, _reject) => {
-    fs.exists(path.dirname(config.get("dataFile")), exists => {
-      resolve(exists);
-    });
-  })
+      fs.exists(path.dirname(config.get("dataFile")), exists => {
+        resolve(exists);
+      });
+    })
     .then(exists => {
       return new Promise((resolve, reject) => {
         if (!exists) {
@@ -100,15 +100,19 @@ module.exports.pull = uuid => {
       return axios
         .post(
           config.get("remoteUrl") +
-            "tasks/pull/" +
-            "?user=" +
-            config.get("uuid"),
-          { tasks: _.castArray(uuid) }
+          "tasks/pull/" +
+          "?user=" +
+          config.get("uuid"), {
+            tasks: _.castArray(uuid)
+          }
         )
         .then(response => {
           if ("error" in response.data) reject(response.data.error);
           for (const resUuid in response.data) {
-            this.tasks[resUuid] = response.data[resUuid];
+            this.tasks[resUuid] = {
+              urg: calculateUrg(response.data[resUuid]),
+              ...response.data[resUuid]
+            };
           }
           resolve(uuid);
         })
@@ -128,11 +132,11 @@ module.exports.push = uuid => {
       return axios
         .post(
           config.get("remoteUrl") +
-            "tasks/push/" +
-            "?user=" +
-            config.get("uuid") +
-            "&task=" +
-            uuid,
+          "tasks/push/" +
+          "?user=" +
+          config.get("uuid") +
+          "&task=" +
+          uuid,
           this.tasks[uuid]
         )
         .then(response => {
@@ -153,10 +157,10 @@ module.exports.create = uuid => {
       return axios
         .post(
           config.get("remoteUrl") +
-            "tasks/create/?user=" +
-            config.get("uuid") +
-            "&task=" +
-            uuid,
+          "tasks/create/?user=" +
+          config.get("uuid") +
+          "&task=" +
+          uuid,
           this.tasks[uuid]
         )
         .then(response => {
@@ -176,11 +180,11 @@ module.exports.delete = uuid => {
       return axios
         .post(
           config.get("remoteUrl") +
-            "tasks/delete/" +
-            "?user=" +
-            config.get("uuid") +
-            "&task=" +
-            uuid
+          "tasks/delete/" +
+          "?user=" +
+          config.get("uuid") +
+          "&task=" +
+          uuid
         )
         .then(response => {
           if ("error" in response.data) reject(response.data.error);
@@ -282,8 +286,8 @@ module.exports.filterTasks = (filter, tasks = this.tasks) => {
     if (filter.due !== undefined) {
       filters.push(
         o =>
-          o.dueDate !== null &&
-          moment(o.dueDate).diff(moment(filter.due), "days") === 0
+        o.dueDate !== null &&
+        moment(o.dueDate).diff(moment(filter.due), "days") === 0
       );
     }
     if (filter.dueBefore !== undefined) {
@@ -295,8 +299,8 @@ module.exports.filterTasks = (filter, tasks = this.tasks) => {
     if (filter.entry !== undefined) {
       filters.push(
         o =>
-          o.entryDate !== null &&
-          moment(o.entryDate).diff(moment(filter.entry), "days") === 0
+        o.entryDate !== null &&
+        moment(o.entryDate).diff(moment(filter.entry), "days") === 0
       );
     }
     if (filter.entryBefore !== undefined) {
@@ -312,8 +316,8 @@ module.exports.filterTasks = (filter, tasks = this.tasks) => {
     if (filter.done !== undefined) {
       filters.push(
         o =>
-          o.doneDate !== null &&
-          moment(o.doneDate).diff(moment(filter.done), "days") === 0
+        o.doneDate !== null &&
+        moment(o.doneDate).diff(moment(filter.done), "days") === 0
       );
     }
     if (filter.doneBefore !== undefined) {
@@ -325,8 +329,8 @@ module.exports.filterTasks = (filter, tasks = this.tasks) => {
     if (filter.modified !== undefined) {
       filters.push(
         o =>
-          o.modifiedDate !== null &&
-          moment(o.modifiedDate).diff(moment(filter.modified), "days") === 0
+        o.modifiedDate !== null &&
+        moment(o.modifiedDate).diff(moment(filter.modified), "days") === 0
       );
     }
     if (filter.modifiedBefore !== undefined) {
@@ -375,30 +379,28 @@ module.exports.getUUID = (filter, tasks = this.tasks) => {
       });
       return resolve(
         inquirer
-          .prompt([
-            {
-              type: "autocomplete",
-              name: "uuid",
-              message: "Specify Task",
-              source: (_tmp, input) => {
-                return new Promise((resolve, _reject) => {
-                  if (input === undefined) {
-                    return resolve(_.map(tasks, o => strings[o.uuid]));
-                  }
-                  const opt = fuse.search(input);
-                  return resolve(
-                    _.map(fuse.search(input), o => strings[o.uuid])
-                  );
-                });
+        .prompt([{
+          type: "autocomplete",
+          name: "uuid",
+          message: "Specify Task",
+          source: (_tmp, input) => {
+            return new Promise((resolve, _reject) => {
+              if (input === undefined) {
+                return resolve(_.map(tasks, o => strings[o.uuid]));
               }
-            }
-          ])
-          .then(answ => {
-            for (const uuid in strings) {
-              if (strings[uuid] === answ.uuid) return uuid;
-            }
-            return undefined;
-          })
+              const opt = fuse.search(input);
+              return resolve(
+                _.map(fuse.search(input), o => strings[o.uuid])
+              );
+            });
+          }
+        }])
+        .then(answ => {
+          for (const uuid in strings) {
+            if (strings[uuid] === answ.uuid) return uuid;
+          }
+          return undefined;
+        })
       );
     });
   });

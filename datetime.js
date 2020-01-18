@@ -75,6 +75,16 @@ module.exports.parse = str => {
   ];
 
   validFormats = [
+    "YYYY-MM-DD",
+    "YYYY-MM-DDThh:mm:ss A",
+    "YYYY-MM-DDThh:mm:ssA",
+    "YYYY-MM-DDThh:mm A",
+    "YYYY-MM-DDThh:mmA",
+    "YYYY-MM-DDThh A",
+    "YYYY-MM-DDThhA",
+    "YYYY-MM-DDTHH:mm:ss",
+    "YYYY-MM-DDTHH:mm",
+    "YYYY-MM-DDTHH",
     "DD-MM-YYYY",
     "DD-MM-YYYYThh:mm:ss A",
     "DD-MM-YYYYThh:mm:ssA",

@@ -71,16 +71,14 @@ const deleteTask = args => {
     })
     .then(data.pull)
     .then(taskUUID => {
-      return inquirer.prompt([
-        {
-          type: "confirm",
-          name: taskUUID,
-          message: `Are you sure you want to delete ${data.tasks[
+      return inquirer.prompt([{
+        type: "confirm",
+        name: taskUUID,
+        message: `Are you sure you want to delete ${data.tasks[
             taskUUID
           ].uuid.slice(0, 8)}  [${data.tasks[taskUUID].title}]?`,
-          default: false
-        }
-      ]);
+        default: false
+      }]);
     })
     .then(answ => {
       let deletedId = undefined;
@@ -423,9 +421,10 @@ argparse()
   })
   .catch(err => {
     if (_.isObject(err)) {
+      console.log(err);
       if ("error" in err) cliUtil.printError(err.error);
       else if ("warning" in err) cliUtil.printNote(err.warning);
-      else cliUtil.printError(`Unrecognized Error: ${JSON.stringify(err)}`);
+      else cliUtil.printError(`Unrecognized Error: ${err}`);
     } else {
       cliUtil.printError(err);
     }
