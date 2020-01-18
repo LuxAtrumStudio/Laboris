@@ -3,7 +3,7 @@ const Conf = require('conf');
 const envPaths = require('env-paths');
 const tinygradient = require('tinygradient');
 
-const paths = envPaths('Laboris', {suffix: ''});
+const paths = envPaths('laboris', {suffix: ''});
 const config = new Conf({
   projectName: 'laboris',
   projectSuffix: '',

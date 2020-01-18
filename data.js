@@ -222,7 +222,7 @@ module.exports.sync = args => {
           reject(err);
         });
     } else {
-      return new Promsie(ressolve => {
+      return new Promise(resolve => {
         resolve(this.tasks);
       });
     }
