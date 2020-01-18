@@ -200,11 +200,8 @@ module.exports.sync = () => {
         .get(config.get("remoteUrl") + "user/tasks/?user=" + config.get("uuid"))
         .then(response => {
           if ("error" in response.data) reject(response.data.error);
-          Promise.all(
-            _.map(
-              _.difference(response.data.tasks, Object.keys(this.tasks)),
-              uuid => this.pull(uuid)
-            )
+          return this.pull(
+            _.difference(response.data.tasks, Object.keys(this.tasks))
           ).then(result => {
             resolve(this.tasks);
           });
