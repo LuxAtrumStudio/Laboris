@@ -5,6 +5,7 @@ const tinygradient = require('tinygradient');
 
 const paths = envPaths('Laboris', {suffix: ''});
 const config = new Conf({
+  projectName: 'laboris',
   projectSuffix: '',
   serialize: (value) => JSON.stringify(value),
   defaults: {
